@@ -1,9 +1,12 @@
 { pkgs }: {
 	deps = [
-		pkgs.rustc
-		pkgs.rustfmt
-		pkgs.cargo
+		pkgs.gh
+		pkgs.rustup
 		pkgs.cargo-edit
-        pkgs.rust-analyzer
+			pkgs.rust-analyzer
+		pkgs.clang_13
+		pkgs.ccls
+		pkgs.gdb
+		pkgs.gnumake
 	];
 }

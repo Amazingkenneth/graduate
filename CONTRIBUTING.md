@@ -22,79 +22,90 @@
 - [改进文档](#improving-the-documentation)
 - [加入我们](#join-the-project-team)
 
-> 对于该项目投稿，请您务必保证您创作了全部内容，且您需要对内容拥有必要的权利，它们也需要根据项目许可提供。
+# 贡献指南
 
-## I Have a Question
+## 提交说明
 
-Before you ask a question, it is best to search for existing [Issues](https://github.com/Amazingkenneth/Exercise/issues) that might help you. In case you have found a suitable issue and still need clarification, you can write your question in this issue. It is also advisable to search the internet for answers first.
+各种提交代码之前一定要
+
+```shell
+git pull --rebase
+```
+
+----
+
+### 占位符
+
+为避免编辑冲突，在完成第一版翻译前，请尽量不要多人修改同一个页面。
+
+正在为某页面编写第一版翻译的参与者，可提交一个空文档作为占位符，并且在其中注明编写者和 deadline，如：
+> Reserved by ZgblKylin until 2020-07-31.
+
+超过 deadline 后尚未完成第一版提交的页面，或已经完成第一版提交的页面，均被视作**开放状态**，其它参与者可对其进行修改。
 
 
-If you then still feel the need to ask a question and need clarification, we recommend the following:
+## 完成度追踪
+
+每添加一个页面，需在[完成度追踪表](completeness_tracking.md)中增加相应条目。
+
+当页面完成编辑、完成维护等状态改变时，维护者有责任在[完成度追踪表](completeness_tracking.md)中更新对应信息。
+
+需要新增或修改一篇文档时，请先检索追踪表中是否已存在该文档，和该文档的翻译进度。
 
 
-- Open an [Issue](https://github.com/Amazingkenneth/Exercise/issues/new).
-- Provide as much context as you can about what you're running into.
-- Provide project and platform versions (nodejs, npm, etc), depending on what seems relevant.
+
+## 参考资料
+关于如何将英文文档信达雅地翻译为中文技术文档，可参考 [语法小贴士](https://gitee.com/cryfeifei/QtDocumentCN/blob/master/Grammar_Tips.mdGrammar_Tips.md)。
+
+## Markdown 格式规范
+这里是 GitHub 的官方说明。
+
+### 注解
+
+当翻译者需要添加额外的资料或吐槽时，需有明确的标注与官方文档区分开。
+
+若为独立段落，建议使用`>`引用语法，并在开头单独一行标识`译者注:`。
+
+若为段内信息，建议使用段内代码(`译者注：xxx`)的方式标注。
+
+### 中英混排
+
+中英混排时，英文内容前后需增加空格分隔，以避免文字过于紧凑：
+> 正确写法：
+>
+> 我要在 X 文件夹下，新建一个 QX11Info 的文件夹。
+>
+> 错误写法：
+>
+> 我要在X文件夹下，新建一个QX11Info的文件夹。
+
+文本字段落中的编程关键字，需用段内代码格式包裹，如：
+```text
+比如我想翻译 `QX11Info` 类。
+```
+比如我想翻译 `QX11Info` 类。
 
 
-We will then take care of the issue as soon as possible.
-## Reporting Bugs
+### 引用链接
 
-<!-- omit in toc -->
-### Before Submitting a Bug Report
+#### 页内跳转
 
-A good bug report shouldn't leave others needing to chase you up for more information. Therefore, we ask you to investigate carefully, collect information and describe the issue in detail in your report. Please complete the following steps in advance to help us fix any potential bug as fast as possible.
+Markdown 页内标题跳转较为简便，语法如下：
 
-- Make sure that you are using the latest version.
-- Determine if your bug is really a bug and not an error on your side e.g. using incompatible environment components/versions (Make sure that you have read the [documentation](). If you are looking for support, you might want to check [this section](#i-have-a-question)).
-- To see if other users have experienced (and potentially already solved) the same issue you are having, check if there is not already a bug report existing for your bug or error in the [bug tracker](https://github.com/Amazingkenneth/Exerciseissues?q=label%3Abug).
-- Also make sure to search the internet (including Stack Overflow) to see if users outside of the GitHub community have discussed the issue.
-- Collect information about the bug:
-- Stack trace (Traceback)
-- OS, Platform and Version (Windows, Linux, macOS, x86, ARM)
-- Version of the interpreter, compiler, SDK, runtime environment, package manager, depending on what seems relevant.
-- Possibly your input and the output
-- Can you reliably reproduce the issue? And can you also reproduce it with older versions?
-### How Do I Submit a Good Bug Report?
+```markdown
+[页内跳转](本文档名#页内跳转标题)
+```
 
-We use GitHub issues to track bugs and errors. If you run into an issue with the project:
+页内跳转：[中英混排](CONTRIBUTING.md#中英混排)
 
-- Open an [Issue](https://github.com/Amazingkenneth/Exercise/issues/new). (Since we can't be sure at this point whether it is a bug or not, we ask you not to talk about a bug yet and not to label the issue.)
-- Explain the behavior you would expect and the actual behavior.
-- Please provide as much context as possible and describe the *reproduction steps* that someone else can follow to recreate the issue on their own. This usually includes your code. For good bug reports you should isolate the problem and create a reduced test case.
-- Provide the information you collected in the previous section.
+省略本文件名称时，通常也可进行跳转，但有的场景会无法正确生成跳转链接，因此不建议省略。
 
-Once it's filed:
+## Markdown 编辑器
+### VSCode
 
-- The project team will label the issue accordingly.
-- A team member will try to reproduce the issue with your provided steps. If there are no reproduction steps or no obvious way to reproduce the issue, the team will ask you for those steps and mark the issue as `needs-repro`. Bugs with the `needs-repro` tag will not be addressed until they are reproduced.
-- If the team is able to reproduce the issue, it will be marked `needs-fix`, as well as possibly other tags (such as `critical`), and the issue will be left to be [implemented by someone](#your-first-code-contribution).
+若不想下载独立编辑工具，但想直观阅览 Markdown 渲染效果，则可直接使用 VSCode 编辑`.md`文件。
 
-<!-- You might want to create an issue template for bugs and errors that can be used as a guide and that defines the structure of the information to be included. If you do so, reference it here in the description. -->
-## Suggesting Enhancements
-
-This section guides you through submitting an enhancement suggestion for Exercise, **including completely new features and minor improvements to existing functionality**. Following these guidelines will help maintainers and the community to understand your suggestion and find related suggestions.
-
-<!-- omit in toc -->
-### Before Submitting an Enhancement
-
-- Make sure that you are using the latest version.
-- Read the [documentation]() carefully and find out if the functionality is already covered, maybe by an individual configuration.
-- Perform a [search](https://github.com/Amazingkenneth/Exercise/issues) to see if the enhancement has already been suggested. If it has, add a comment to the existing issue instead of opening a new one.
-- Find out whether your idea fits with the scope and aims of the project. It's up to you to make a strong case to convince the project's developers of the merits of this feature. Keep in mind that we want features that will be useful to the majority of our users and not just a small subset. If you're just targeting a minority of users, consider writing an add-on/plugin library.
-
-<!-- omit in toc -->
-### How Do I Submit a Good Enhancement Suggestion?
-
-Enhancement suggestions are tracked as [GitHub issues](https://github.com/Amazingkenneth/Exercise/issues), or you may comment in the [Discussions](https://github.com/Amazingkenneth/Exercise/discussions/1).
-
-- Use a **clear and descriptive title** for the issue to identify the suggestion.
-- Provide a **step-by-step description of the suggested enhancement** in as many details as possible.
-- **Describe the current behavior** and **explain which behavior you expected to see instead** and why. At this point you can also tell which alternatives do not work for you.
-- You may want to **include screenshots and animated GIFs** which help you demonstrate the steps or point out the part which the suggestion is related to. You can use [this tool](https://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or [this tool](https://github.com/GNOME/byzanz) on Linux. <!-- this should only be included if the project has a GUI -->
-- **Explain why this enhancement would be useful** to most Exercise users. You may also want to point out the other projects that solved it better and which could serve as inspiration.
-
-<!-- You might want to create an issue template for enhancement suggestions that can be used as a guide and that defines the structure of the information to be included. If you do so, reference it here in the description. -->
+点击 VSCode 的`.md`文件标签页右上角的“打开侧边预览”(Ctrl+K V)，或在命令面板(F1)中搜索“Markdown”并选择打开预览(Markdown: Open Preview)即可。
 
 ## 您的首次代码投稿
 <!--**@开发组同学们**：
@@ -144,22 +155,21 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/Amazin
 ```
 
 ## Your First Content Contribution
-
+您的第一次内容贡献
 ### 设计剧情
 We place strings in the game in `/data` file. `/data/string.txt` is only for the sentences and words, and `/data/graph.txt` is only for the logic between the contents.
-
+我们将字符串放在“/data”文件中。' /data/string.txt '仅用于句子和单词，' /data/graph.txt '仅用于内容之间的逻辑。
 Here is an example graph:
-
+下面是一个示例图:
 ![example_graph](https://user-images.githubusercontent.com/81886982/198510011-8550b2d0-ba15-468c-a800-db34a189537a.png)
 
 #### string.txt
-https://github.com/Amazingkenneth/exercise/blob/e7859c8970a6149890d3f031eb1c695ded3dac06/data/string.txt#L1-L7
+https://github.com/Amazingkenneth/graduate/blob/e7859c8970a6149890d3f031eb1c695ded3dac06/data/string.txt#L1-L7
 
 We use `|`(ASCII 0x7C) to separate Chinese and English contents.
 
 Each line corresponds to the node number is its line number, which means the example content above is the content of node 1 (Because it is at Line 1).
 #### graph.txt
-https://github.com/Amazingkenneth/exercise/blob/786153ac74977433781a351004fa311c541544c8/data/graph.txt#L1-L7
 
 The graph follows this format:
 ```txt
@@ -169,28 +179,11 @@ x,y
 - when the line is in format of "x,y p", it means node `x` has a edge to `y` with a weight of probability of `p`.
 - when the line is in format of "x,y", it means node `x` is a question with possible answer for user of node `y`.
 ### 设计地图
-你可以为我们设计一个游戏地图，按照如下格式：
 #### 首选项
 要求包含以下几个配置
 - size
   要求是矩形，给出长和宽，以 `axb` 的形式，如 `128x128`，`720x480`
 - 选项别名
-
-#### 方格种类
-- aid
-  急救箱，可增加血量
-- box
-  宝箱，有不定惊喜
-- clearing
-  空地，可以自由通行
-- gateway
-  传送门
-- mud
-  泥潭
-- obstacle
-  障碍物
-- river
-  河流，单行道
 
 ## Improving The Documentation
 You may help us to translate the documents.

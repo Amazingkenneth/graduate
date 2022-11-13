@@ -1,4 +1,4 @@
-run = "./target/debug/exercise || (rustup install stable && cargo run)"
+run = "./target/debug/graduate || (rustup install stable && cargo run)"
 hidden = ["target"]
 
 [packager]

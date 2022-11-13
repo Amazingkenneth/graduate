@@ -10,13 +10,13 @@ jobs:
         include:
           - os: windows-latest
             abbr: Windows
-            exec_path: ./target/release/exercise.exe
+            exec_path: ./target/release/graduate.exe
           - os: ubuntu-latest
             abbr: Linux(Ubuntu)
-            exec_path: ./target/release/exercise
+            exec_path: ./target/release/graduate
           - os: macos-latest
             abbr: Mac
-            exec_path: ./target/release/exercise
+            exec_path: ./target/release/graduate
     runs-on: ${{ matrix.os }}
     name: Build Executable on ${{ matrix.abbr }}
     steps:
@@ -55,6 +55,6 @@ jobs:
           field: 'package.version'
       - uses: actions/upload-artifact@main
         with:
-          name: exercise-v${{ steps.read_toml.outputs.value }}-${{ matrix.abbr }}
+          name: graduate-v${{ steps.read_toml.outputs.value }}-${{ matrix.abbr }}
           path:
             ${{ matrix.exec_path }}

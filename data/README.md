@@ -24,7 +24,7 @@
 
 ## /index.toml
 这是一个索引文件，也是整个程序的入口文件。
-它的格式可以参考 https://toml.io/cn/。
+它的格式可以参考 https://toml.io/cn/ 。
 
 ## /jokes.md
 里面是一些梗。

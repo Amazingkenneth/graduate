@@ -1,6 +1,6 @@
 # graduate
-
 [![CI](https://github.com/Amazingkenneth/graduate/actions/workflows/ci.yml/badge.svg)](https://github.com/Amazingkenneth/graduate/actions/workflows/ci.yml)
+---
 
 ***有你，才是一班。***
 

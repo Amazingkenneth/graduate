@@ -1,1 +1,4 @@
-This file contains the implement of the code (Both Rust and C++).
+# /src
+这个文件夹用于存放源代码和数据处理的脚本。
+
+主程序从 `main.rs` 开始。

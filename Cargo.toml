@@ -9,5 +9,6 @@ license = "GPL-3.0"
 repository = "https://github.com/Amazingkenneth/graduate"
 
 [dependencies]
-csv = "1"
+toml = "0"
 iced = "0"
+rodio = "0"

@@ -6,8 +6,8 @@ jobs:
   rust-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@main
+      - uses: actions-rs/toolchain@master
         with:
             toolchain: stable
             components: rustfmt
@@ -32,6 +32,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     name: Build Executable on ${{ matrix.abbr }}
     steps:
+      - uses: actions/checkout@main
       - uses: actions-rs/toolchain@master
         with:
           toolchain: stable

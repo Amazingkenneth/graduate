@@ -3,7 +3,7 @@ on: [push, pull_request]
 name: CI
 
 jobs:
-  preparation:
+  Preparations:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@main
@@ -18,7 +18,7 @@ jobs:
       - name: Upload material
         uses: actions/upload-artifact@main
         with:
-          name: material
+          name: 《一史》加载项
           path: |
             ./data/
             !./data/*.md
@@ -39,6 +39,10 @@ jobs:
     name: Build Executable on ${{ matrix.abbr }}
     steps:
       - uses: actions/checkout@main
+      - name: Install build dependency of RustAudio/cpal
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: sudo apt install libasound2-dev
       - uses: actions-rs/toolchain@master
         with:
           toolchain: stable
@@ -46,10 +50,6 @@ jobs:
         with:
           command: build
           args: --release
-      - name: Install dependency of RustAudio/cpal
-        if: matrix.os == 'ubuntu-latest'
-        shell: bash
-        run: sudo apt install libasound2-dev
       - uses: SebRollen/toml-action@main
         id: read_toml
         with:

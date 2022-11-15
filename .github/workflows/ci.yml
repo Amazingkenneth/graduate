@@ -3,7 +3,7 @@ on: [push, pull_request]
 name: CI
 
 jobs:
-  rust-check:
+  preparation:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@main
@@ -15,9 +15,15 @@ jobs:
       - uses: mbrobbel/rustfmt-check@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload material
+        uses: actions/upload-artifact@main
+        with:
+          name: material
+          path: |
+            ./data/
+            !./data/*.md
   build:
     strategy:
-      fail-fast: false
       matrix:
         include:
           - os: windows-latest
@@ -40,12 +46,10 @@ jobs:
         with:
           command: build
           args: --release
-      - uses: actions/upload-artifact@main
+      - name: Install dependency of RustAudio/cpal
         if: matrix.os == 'ubuntu-latest'
-        with:
-          name: config
-          path:
-            ./src/config.json
+        shell: bash
+        run: sudo apt install libasound2-dev
       - uses: SebRollen/toml-action@main
         id: read_toml
         with:

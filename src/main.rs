@@ -2,19 +2,19 @@ use iced::executor;
 use iced::{Application, Command, Element, Settings, Theme};
 
 pub fn main() -> iced::Result {
-    Hello::run(Settings::default())
+    Graduate::run(Settings::default())
 }
 
-struct Hello;
+struct Graduate;
 
-impl Application for Hello {
+impl Application for Graduate {
     type Executor = executor::Default;
     type Flags = ();
     type Message = ();
     type Theme = Theme;
 
-    fn new(_flags: ()) -> (Hello, Command<Self::Message>) {
-        (Hello, Command::none())
+    fn new(_flags: ()) -> (Graduate, Command<Self::Message>) {
+        (Graduate, Command::none())
     }
 
     fn title(&self) -> String {
@@ -26,6 +26,6 @@ impl Application for Hello {
     }
 
     fn view(&self) -> Element<Self::Message> {
-        "Hello, world!".into()
+        "Graduate, world!".into()
     }
 }

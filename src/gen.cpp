@@ -1,3 +1,4 @@
+// xpack library is at https://github.com/xyz347/xpack
 #include "xpack/json.h"
 #include <algorithm>
 #include <codecvt>

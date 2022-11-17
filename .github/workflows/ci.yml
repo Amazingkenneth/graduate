@@ -3,7 +3,7 @@ on: [push, pull_request]
 name: CI
 
 jobs:
-  Preparations:
+  Format:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@main
@@ -15,13 +15,6 @@ jobs:
       - uses: mbrobbel/rustfmt-check@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Upload material
-        uses: actions/upload-artifact@main
-        with:
-          name: 《一史》加载项
-          path: |
-            ./data/
-            !./data/*.md
   build:
     strategy:
       matrix:

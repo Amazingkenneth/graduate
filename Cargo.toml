@@ -12,6 +12,8 @@ repository = "https://github.com/Amazingkenneth/graduate"
 toml = "0"
 rodio = "0"
 iced = { version = "0", features = ["image", "canvas"] }
+reqwest = "0"
+tokio = { version = "1", features = ["full"] }
 
 [profile.release]
 lto = "fat"

@@ -12,7 +12,7 @@ pub fn main() -> iced::Result {
 }
 
 enum Memories {
-    // Loading,
+    Loading,
     // Errored,
     ChoosingCharacter(ChoosingState),
     ShowingPlots,
@@ -58,10 +58,11 @@ impl Application for Memories {
             Memories::ChoosingCharacter(s) => match message {
                 Message::ImageChanged(to) => {
                     s.on_image = to;
-
                 }
             },
+            _ => {}
         }
+        Command::none()
     }
     fn view(&self) -> Element<Message> {
         container(image("data/image/grade7/开学合照.jpg"))

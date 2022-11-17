@@ -1,10 +1,7 @@
-use ChoosingState::EntryImage;
-impl EntryImage {
+use crate::*;
+/*impl EntryImage {
 
-    async fn search() -> Result<, Error> {
-        use rand::Rng;
-        use serde::Deserialize;
-
+    async fn search() -> Result<EntryImage, Error> {
         let fetch_entry = async {
             let url =
                 format!("https://pokeapi.co/api/v2/pokemon-species/{}", id);
@@ -16,15 +13,7 @@ impl EntryImage {
             futures::future::try_join(fetch_entry, Self::fetch_image(id))
                 .await?;
 
-        Ok(Pokemon {
-            number: id,
-            name: entry.name.to_uppercase(),
-            description: description
-                .flavor_text
-                .chars()
-                .map(|c| if c.is_control() { ' ' } else { c })
-                .collect(),
-            image,
+        Ok(EntryImage {
         })
     }
     async fn fetch_image(id: u16) -> Result<image::Handle, reqwest::Error> {
@@ -40,7 +29,5 @@ impl EntryImage {
             Ok(image::Handle::from_memory(bytes.as_ref().to_vec()))
         }
 
-        #[cfg(target_arch = "wasm32")]
-        Ok(image::Handle::from_path(url))
     }
-}
+}*/

@@ -1,4 +1,4 @@
-# graduate &emsp; [![CI](https://github.com/Amazingkenneth/graduate/actions/workflows/ci.yml/badge.svg)](https://github.com/Amazingkenneth/graduate/actions/workflows/ci.yml)[![Clippy Check](https://github.com/Amazingkenneth/graduate/actions/workflows/clippy-check.yml/badge.svg)](https://github.com/Amazingkenneth/graduate/actions/workflows/clippy-check.yml)
+# graduate &emsp; [![CI](https://github.com/Amazingkenneth/graduate/actions/workflows/ci.yml/badge.svg)](https://github.com/Amazingkenneth/graduate/actions/workflows/ci.yml) [![Clippy Check](https://github.com/Amazingkenneth/graduate/actions/workflows/clippy-check.yml/badge.svg)](https://github.com/Amazingkenneth/graduate/actions/workflows/clippy-check.yml)
 
 ***有你，才是一班。***
 
@@ -6,8 +6,8 @@
 换言之，我们打算写一部民间的《一史》，并且希望能够得到您的支持。我们将使用程序展现这段历史，如果你愿意帮忙，欢迎阅读 [文档](CONTRIBUTING.md) 并同我们一起撰写这部传记。
 
 <meta name="referrer" content="never">
-
 <meta data-draft-node="block" data-draft-type="table" data-size="normal" data-row-style="normal">
+
 ![合照](https://mmbiz.qpic.cn/mmbiz_jpg/gkGu2rbIy4EcBYCXhzANZVph9fz6hEFdRNxPoudjiaYEicanTHPW7RLuq1NzKWk4ia5HumLjIeaGibr1h93BzTDMYA/640)
 
 ## 我想看看你们的成果！

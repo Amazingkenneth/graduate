@@ -11,10 +11,15 @@
 ![合照](https://mmbiz.qpic.cn/mmbiz_jpg/gkGu2rbIy4EcBYCXhzANZVph9fz6hEFdRNxPoudjiaYEicanTHPW7RLuq1NzKWk4ia5HumLjIeaGibr1h93BzTDMYA/640)
 
 ## 我想看看你们的成果！
-<!--### 下载可执行文件
+### 下载可执行文件进行测试
 在 [GitHub Artifacts](https://github.com/Amazingkenneth/graduate/actions/workflows/ci.yml?query=is%3Asuccess) 上找到最新的一次 CI Action，点进去并划到页面最底端，会看到如下图所示的不同系统的可执行文件供下载。
+<img width="927" alt="image" src="https://user-images.githubusercontent.com/81886982/202855238-fbe94bb4-96a0-4f13-9fc5-62cca61d2b77.png">
 
-找到你自己的系统对应的程序下载即可（无需安装）。-->
+找到你自己的系统对应的版本，下载运行即可（无需安装）。
+
+> 注：Linux 系统上需要安装 `libasound2-dev`（Debian / Ubuntu）或 `alsa-lib-devel`（Fedora）作为声音模块 [RustAudio/cpal](https://github.com/RustAudio/cpal) 的依赖项
+>
+> Note that on Linux, the ALSA development files are required. These are provided as part of the libasound2-dev package on Debian and Ubuntu distributions and alsa-lib-devel on Fedora.
 
 ## 想做点贡献？
 **[点此](https://github.com/users/Amazingkenneth/projects/1)** 查看我们当前的进展；

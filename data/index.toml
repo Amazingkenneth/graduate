@@ -1,0 +1,50 @@
+people.count = 35
+
+[profile]
+1 = "敖卓茵"
+2 = "任恩琦"
+3 = "刘佳庚"
+4 = "何好"
+5 = "杨珺婷"
+6 = "柳昱嘉"
+# 待补充
+
+[[image]]
+name = "春游"
+path = "data/image/grade7/春游.jpg"
+description = "七年级的一次春游。"
+date = 2020-11-12 10:39:00
+
+[[image]]
+name = "开学合照"
+path = "data/image/grade7/开学合照.jpg"
+description = "第一张合照~"
+date = 2020-08-28 16:27:00
+
+[audio]
+exercise = [
+    "data/audio/课间操/我们都是追梦人.mp3",
+    "data/audio/课间操/Deep Side - Booty Music.mp3",
+]
+bellring = [
+    "data/audio/铃声/瓦妮莎的微笑.m4a"
+]
+
+[map]
+
+[[plot]]
+date = 2020-09-01
+description = "张婷代课，何树声演讲"
+
+[[plot]]
+date = 2021-11-19
+description = "八年级运动会"
+
+[[plot.related]]
+image = [
+    "data/image/grade8/运动会-草坪.jpg",
+    "data/image/grade8/运动会-全景.jpg",
+    "data/image/grade8/运动会-墙边1.jpg",
+    "data/image/grade8/运动会-墙边2.jpg",
+    "data/image/grade8/运动会-墙边3.jpg",
+]

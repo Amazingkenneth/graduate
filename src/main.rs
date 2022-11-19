@@ -1,10 +1,28 @@
-use iced::widget::*;
-use iced::*;
+#![allow(dead_code, unused_imports)]
 mod exchange;
+// use iced::futures;
+use iced::widget::{column, container, horizontal_space, image, row, text, vertical_space, Column};
+use iced::{window, Application, Color, Command, Element, Length, Settings, Theme};
+use toml::value::Datetime;
+
+const INITIAL_WIDTH: u32 = 1400;
+const INITIAL_HEIGHT: u32 = 800;
+pub enum LayoutDirection {
+    Horizontal,
+    Upright,
+}
+pub fn get_dir(width: u32, height: u32) -> LayoutDirection {
+    let upr = width * INITIAL_HEIGHT > height * INITIAL_WIDTH;
+    match upr {
+        true => LayoutDirection::Upright,
+        false => LayoutDirection::Horizontal,
+    }
+}
+
 pub fn main() -> iced::Result {
     Memories::run(Settings {
         window: window::Settings {
-            size: (1400, 800),
+            size: (INITIAL_WIDTH, INITIAL_HEIGHT),
             ..window::Settings::default()
         },
         ..Settings::default()
@@ -26,9 +44,9 @@ pub struct ChoosingState {
     // 当前图片为 idx[on_image]
 }
 pub struct EntryImage {
-    number: u16,
     name: String,
     description: String,
+    date: Datetime,
     image: image::Handle,
 }
 
@@ -38,7 +56,7 @@ enum Message {
 }
 
 impl Application for Memories {
-    type Executor = executor::Default;
+    type Executor = iced::executor::Default;
     type Flags = ();
     type Message = Message;
     type Theme = Theme;
@@ -65,9 +83,16 @@ impl Application for Memories {
         Command::none()
     }
     fn view(&self) -> Element<Message> {
-        container(image("data/image/grade7/开学合照.jpg"))
-            .width(Length::Fill)
-            .center_x()
-            .into()
+        let content = row![
+            image("data/image/grade7/开学合照.jpg"),
+            /*horizontal_space(Length::Units(20)),
+            Self::show_profile("abc")*/
+        ];
+        container(content).into()
+    }
+}
+impl Memories {
+    fn show_profile(title: &str) -> Column<Message> {
+        column![text(title).size(50)].spacing(20)
     }
 }

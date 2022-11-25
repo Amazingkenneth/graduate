@@ -13,7 +13,7 @@
 ## 我想看看你们的成果！
 ### 下载可执行文件进行测试
 在 [GitHub Artifacts](https://github.com/Amazingkenneth/graduate/actions/workflows/ci.yml?query=is%3Asuccess) 上找到最新的一次 CI Action，点进去并划到页面最底端，会看到如下图所示的不同系统的可执行文件供下载。
-<img width="927" alt="image" src="https://user-images.githubusercontent.com/81886982/202855238-fbe94bb4-96a0-4f13-9fc5-62cca61d2b77.png">
+[![GitHub Artifacts](https://user-images.githubusercontent.com/81886982/202855238-fbe94bb4-96a0-4f13-9fc5-62cca61d2b77.png)](https://github.com/Amazingkenneth/graduate/actions/workflows/ci.yml?query=is%3Asuccess)
 
 找到你自己的系统对应的版本，下载运行即可（无需安装）。
 

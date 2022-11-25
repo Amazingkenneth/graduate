@@ -1,7 +1,7 @@
 use crate::*;
-/*impl EntryImage {
-
-    async fn search() -> Result<EntryImage, Error> {
+impl EntryImage {
+    pub fn read_index() {}
+    /*async fn search() -> Result<EntryImage, Error> {
         let fetch_entry = async {
             let url =
                 format!("https://pokeapi.co/api/v2/pokemon-species/{}", id);
@@ -29,5 +29,5 @@ use crate::*;
             Ok(image::Handle::from_memory(bytes.as_ref().to_vec()))
         }
 
-    }
-}*/
+    }*/
+}

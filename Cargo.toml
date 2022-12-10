@@ -11,9 +11,12 @@ repository = "https://github.com/Amazingkenneth/graduate"
 [dependencies]
 toml = "0"
 rodio = "0"
-iced = { version = "0", features = ["image", "canvas", "svg"] }
+iced = { version = "0", features = ["image", "canvas", "svg", "tokio"] }
+iced_native = { version = "0" }
 reqwest = "0"
 tokio = { version = "1", features = ["full"] }
+directories = "4"
+
 
 [profile.release]
 lto = "fat"

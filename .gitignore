@@ -1,6 +1,3 @@
-/data/*
-Cargo.lock
-
 # C++:
 # Prerequisites
 *.d

@@ -108,7 +108,8 @@ impl Application for Memories {
                                 .as_array()
                                 .expect("Cannot read as an array.")[next as usize]
                                 .get("path")
-                                .expect("No path value in the item.").to_owned();
+                                .expect("No path value in the item.")
+                                .to_owned();
                             *self = Memories::Loading;
                             Command::perform(
                                 async move {

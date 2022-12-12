@@ -28,6 +28,7 @@ pub fn main() -> iced::Result {
             size: (INITIAL_WIDTH, INITIAL_HEIGHT),
             ..window::Settings::default()
         },
+        default_font: Some(include_bytes!("./YangRenDongZhuShiTi-Light-2.ttf")),
         ..Settings::default()
     })
 }
@@ -140,7 +141,7 @@ impl Application for Memories {
         match self {
             Memories::Loading => container(
                 column![
-                    text("正在加载中……").size(40),
+                    text("正在加载中Loading……").size(40),
                     text("有你，才是一班。").size(20)
                 ]
                 .width(Length::Shrink),

@@ -11,7 +11,7 @@ impl State {
         let proj_dir = directories::ProjectDirs::from("", "9B1", "Graduate").unwrap();
         fs::create_dir_all(proj_dir.data_dir()).unwrap();
         let location = "https://graduate-1313398930.cos.ap-guangzhou.myqcloud.com";
-        let idxurl: String = format!("{}{}", location, "/index.toml");
+        let idxurl: String = format!("https://amazingkenneth.github.io/graduate/index.toml");
         let idxdir: String = format!("{}{}", proj_dir.data_dir().display(), "/index.toml");
         let mut contents = String::new();
         let cli = Client::new();

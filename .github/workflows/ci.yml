@@ -53,12 +53,10 @@ jobs:
           name: graduate-v${{ steps.read_toml.outputs.value }}-${{ matrix.abbr }}
           path:
             ${{ matrix.exec_path }}
-      - name: Run UPX
-        uses: crazy-max/ghaction-upx@master
+      - name: Compress binaries
+        uses: svenstaro/upx-action@master
         with:
-          version: latest
-          files: |
-            ${{ matrix.exec_path }}
+          file: ${{ matrix.exec_path }}
           args: --best --lzma
       - uses: actions/upload-artifact@main
         with:

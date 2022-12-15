@@ -32,9 +32,11 @@ pub fn main() -> iced::Result {
         ..Settings::default()
     })
 }
+
+#[derive(Debug)]
 enum Memories {
-    Loading,
-    Loaded(State),
+    Loading,       // 有加载任务尚未完成
+    Loaded(State), // 已完成加载，等待下个事件
 }
 
 #[derive(Clone, Debug)]
@@ -55,7 +57,6 @@ enum Stage {
 
 #[derive(Clone, Debug, Default)]
 pub struct ChoosingState {
-    chosen_character: u32,
     on_image: u32,
     image: Option<image::Handle>,
     // 当前图片为 idx[on_image]
@@ -64,6 +65,8 @@ pub struct ChoosingState {
 #[derive(Debug)]
 enum Message {
     Loaded(Result<State, Error>),
+    FetchImage(Result<State, Error>),
+    LoadedImage(Result<ChoosingState, Error>),
     ImageChanged(u32),
 }
 
@@ -83,85 +86,87 @@ impl Application for Memories {
     fn new(_flags: ()) -> (Memories, Command<Message>) {
         (
             Memories::Loading,
-            Command::perform(State::get_idx(), Message::Loaded),
+            Command::perform(State::get_idx(), Message::FetchImage),
         )
     }
 
     fn title(&self) -> String {
         let subtitle = match self {
             Memories::Loading => "加载中",
-            Memories::Loaded(_) => "加载完毕!",
+            Memories::Loaded(_) => "加载完毕！",
         };
         format!("{} - 有你，才是一班。", subtitle)
     }
     fn update(&mut self, message: Message) -> Command<Message> {
+        println!("On update().");
         match self {
-            Memories::Loading => Command::none(),
+            Memories::Loading => match message {
+                Message::FetchImage(Ok(state)) => {
+                    *self = Memories::Loading;
+                    Command::perform(exchange::load_image(state), Message::Loaded)
+                }
+                Message::Loaded(Ok(state)) => {
+                    *self = Memories::Loaded(state);
+                    Command::none()
+                }
+                _ => {
+                    println!("Error Processing: {:#?}", message);
+                    Command::none()
+                }
+            },
             Memories::Loaded(state) => {
+                println!("Loaded...");
                 match &state.stage {
                     Stage::ChoosingCharacter(chosen) => match message {
                         Message::ImageChanged(next) => {
-                            let (mut chosen, state) = (chosen.clone(), state.clone());
-                            let img_path = state
-                                .idxtable
-                                .get("image")
-                                .expect("Cannot get item `image`")
-                                .as_array()
-                                .expect("Cannot read as an array.")[next as usize]
-                                .get("path")
-                                .expect("No path value in the item.")
-                                .to_owned();
-                            *self = Memories::Loading;
-                            Command::perform(
-                                async move {
-                                    chosen.on_image = next;
-                                    chosen.image = Some(
-                                        state
-                                            .get_image(img_path.to_string())
-                                            .await
-                                            .expect("Cannot get image."),
-                                    );
-                                    Ok(state)
-                                },
-                                Message::Loaded,
-                            )
+                            println!("On Loaded-ChoosingCharacter-ImageChanged");
+                            Command::none()
                         }
                         _ => {
-                            /* *self = Memories::Loading;
-                            Command::perform(, Message::ImageChanged)*/
+                            println!("Not `ImageChanged` message");
                             Command::none()
                         }
                     },
-                    _ => Command::none(),
+                    _ => {
+                        println!("Some other message.");
+                        Command::none()
+                    }
                 }
             }
         }
     }
     fn view(&self) -> Element<Message> {
+        println!("On view()...");
         match self {
-            Memories::Loading => container(
-                column![
-                    text("正在加载中Loading……").size(40),
-                    text("有你，才是一班。").size(20)
-                ]
-                .width(Length::Shrink),
-            )
+            Memories::Loading => {
+                println!("On Memories::Loading");
+                container(
+                    column![
+                        text("正在加载中  Loading...").size(40),
+                        text("有你，才是一班。").size(20)
+                    ]
+                    .width(Length::Shrink),
+                )
+            }
             .width(Length::Fill)
             .height(Length::Fill)
             .center_x()
             .center_y()
             .into(),
-            Memories::Loaded(state) => match &state.stage {
-                Stage::ChoosingCharacter(chosen) => row![
-                    match &chosen.image {
-                        Some(handle) => Element::from(image::viewer(handle.clone())),
-                        None => Element::from(text("Not able to load image.").size(40)),
-                    },
-                    Self::show_name("Class 1")
-                ]
-                .into(),
-                _ => row![Self::show_name("Not implemented")].into(),
-            },
+            Memories::Loaded(state) => {
+                println!("Loaded Image!");
+                match &state.stage {
+                    Stage::ChoosingCharacter(chosen) => row![
+                        match &chosen.image {
+                            Some(handle) => Element::from(image::viewer(handle.clone())),
+                            None => Element::from(text("Not able to load image.").size(40)),
+                        },
+                        Self::show_name("Class 1")
+                    ]
+                    .into(),
+                    _ => row![Self::show_name("Not implemented")].into(),
+                }
+            }
         }
         /*let content = row![
             image("data/image/grade7/开学合照.jpg"),

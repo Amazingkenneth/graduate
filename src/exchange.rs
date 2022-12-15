@@ -1,3 +1,4 @@
+use crate::ChoosingState;
 use crate::{Error, Memories, Stage, State};
 use iced::widget::image;
 use reqwest::Client;
@@ -5,6 +6,7 @@ use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::path::Path;
 use toml::value::Value;
+
 //type JoinHandle = std::thread::JoinHandle<_>;
 impl State {
     pub async fn get_idx() -> Result<State, crate::Error> {
@@ -20,6 +22,7 @@ impl State {
             file.read_to_string(&mut contents)
                 .expect("Cannot read the index file");
             if let Ok(val) = contents.parse::<Value>() {
+                println!("Successfully parsed content.");
                 return Ok(State {
                     stage: Stage::ChoosingCharacter(Default::default()),
                     idxtable: val.as_table().ok_or(crate::Error::ParseError)?.to_owned(),
@@ -51,12 +54,17 @@ impl State {
         })
     }
     pub async fn get_image(&self, path: String) -> Result<image::Handle, reqwest::Error> {
+        println!("Calling get_image({})", path);
         let img_dir = format!("{}{}", self.storage, path);
-        if Path::new(&img_dir).is_file() {
+        println!("Calling get_image({})", img_dir);
+        let img_path = Path::new(&img_dir);
+        if img_path.is_file() {
             return Ok(image::Handle::from_path(&img_dir));
         }
+        fs::create_dir_all(img_path.parent().expect("Cannot parse the path.")).unwrap();
         async {
             let url = format!("{}{}", self.url_prefix, path);
+            println!("url: {}", url);
             let bytes = self
                 .client
                 .get(&url)
@@ -66,8 +74,42 @@ impl State {
                 .bytes()
                 .await
                 .expect("Cannot read the image into bytes.");
+            println!("Done processing image!");
+            let mut file = std::fs::File::create(&img_dir).expect("Failed to create image file.");
+            file.write_all(&bytes)
+                .expect("Failed to write the image into file in the project directory.");
             Ok(image::Handle::from_memory(bytes.as_ref().to_vec()))
         }
         .await
+    }
+}
+pub async fn load_image(state: State) -> Result<State, crate::Error> {
+    match state.stage {
+        Stage::ChoosingCharacter(ref chosen) => {
+            let mut chosen = chosen.clone();
+            let mut img_path = state
+                .idxtable
+                .get("image")
+                .expect("Cannot get item `image`")
+                .as_array()
+                .expect("Cannot read as an array.")[chosen.on_image as usize]
+                .get("path")
+                .expect("No path value in the item.")
+                .to_owned()
+                .to_string();
+            img_path.pop();
+            // println!("img_path: {}", img_path.to_string());
+            chosen.image = Some(
+                state
+                    .get_image(img_path.split_off(1))
+                    .await
+                    .expect("Cannot get image."),
+            );
+            Ok(State {
+                stage: Stage::ChoosingCharacter(chosen),
+                ..state
+            })
+        }
+        _ => Ok(state),
     }
 }

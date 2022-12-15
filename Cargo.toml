@@ -21,5 +21,4 @@ directories = "4"
 lto = "fat"
 codegen-units = 1
 panic = "abort"
-opt-level = "s"  # Optimize for size.
 strip = true  # Automatically strip symbols from the binary.

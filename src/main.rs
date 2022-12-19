@@ -120,7 +120,7 @@ impl Application for Memories {
                 match state.stage {
                     Stage::ChoosingCharacter(ref chosen) => match message {
                         Message::NextEvent => {
-                            let to : i64 = (chosen.on_event + 1).into();
+                            let to: i64 = (chosen.on_event + 1).into();
                             let state = state.clone();
                             *self = Memories::Loading;
                             Command::perform(exchange::change_image(state, to), Message::Loaded)
@@ -168,7 +168,7 @@ impl Application for Memories {
                             Some(handle) => {
                                 println!("handle: {:?}", handle);
                                 Element::from(image::viewer(handle.clone()))
-                            },
+                            }
                             None => Element::from(text("Not able to load image.").size(40)),
                         },
                         column![

@@ -96,11 +96,11 @@ pub async fn change_image(state: State, mut to: i64) -> Result<State, crate::Err
     match state.stage {
         Stage::ChoosingCharacter(ref chosen) => {
             let cnt = state
-            .idxtable
-            .get("together_events")
-            .expect("Didn't find together_events in the indextable.")
-            .as_integer()
-            .expect("together_events is not an integer");
+                .idxtable
+                .get("together_events")
+                .expect("Didn't find together_events in the indextable.")
+                .as_integer()
+                .expect("together_events is not an integer");
             let mut chosen = chosen.clone();
             if to >= cnt {
                 to = 0;

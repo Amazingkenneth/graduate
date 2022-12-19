@@ -10,7 +10,7 @@ use toml::value::Table;
 const INITIAL_WIDTH: u32 = 1400;
 const INITIAL_HEIGHT: u32 = 800;
 
-pub enum LayoutDirection {
+/*pub enum LayoutDirection {
     Horizontal,
     Upright,
 }
@@ -20,7 +20,7 @@ pub fn get_dir(width: u32, height: u32) -> LayoutDirection {
         true => LayoutDirection::Upright,
         false => LayoutDirection::Horizontal,
     }
-}
+}*/
 
 pub fn main() -> iced::Result {
     Memories::run(Settings {
@@ -57,20 +57,21 @@ enum Stage {
 
 #[derive(Clone, Debug, Default)]
 pub struct ChoosingState {
+    on_event: u32,
     on_image: u32,
     image: Option<image::Handle>,
     // 当前图片为 idx[on_image]
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 enum Message {
     Loaded(Result<State, Error>),
     FetchImage(Result<State, Error>),
     LoadedImage(Result<ChoosingState, Error>),
-    ImageChanged(u32),
+    NextEvent,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum Error {
     APIError,
     LanguageError,
@@ -98,11 +99,11 @@ impl Application for Memories {
         format!("{} - 有你，才是一班。", subtitle)
     }
     fn update(&mut self, message: Message) -> Command<Message> {
-        println!("On update().");
+        println!("On update()");
         match self {
             Memories::Loading => match message {
                 Message::FetchImage(Ok(state)) => {
-                    *self = Memories::Loading;
+                    // *self = Memories::Loading;
                     Command::perform(exchange::load_image(state), Message::Loaded)
                 }
                 Message::Loaded(Ok(state)) => {
@@ -116,14 +117,20 @@ impl Application for Memories {
             },
             Memories::Loaded(state) => {
                 println!("Loaded...");
-                match &state.stage {
-                    Stage::ChoosingCharacter(chosen) => match message {
-                        Message::ImageChanged(next) => {
-                            println!("On Loaded-ChoosingCharacter-ImageChanged");
+                match state.stage {
+                    Stage::ChoosingCharacter(ref chosen) => match message {
+                        Message::NextEvent => {
+                            let to : i64 = (chosen.on_event + 1).into();
+                            let state = state.clone();
+                            *self = Memories::Loading;
+                            Command::perform(exchange::change_image(state, to), Message::Loaded)
+                        }
+                        Message::Loaded(_) => {
+                            println!("On Message::Loaded");
                             Command::none()
                         }
                         _ => {
-                            println!("Not `ImageChanged` message");
+                            println!("Not regular message");
                             Command::none()
                         }
                     },
@@ -136,7 +143,7 @@ impl Application for Memories {
         }
     }
     fn view(&self) -> Element<Message> {
-        println!("On view()...");
+        println!("On view()... self = {:?}", self);
         match self {
             Memories::Loading => {
                 println!("On Memories::Loading");
@@ -158,26 +165,36 @@ impl Application for Memories {
                 match &state.stage {
                     Stage::ChoosingCharacter(chosen) => row![
                         match &chosen.image {
-                            Some(handle) => Element::from(image::viewer(handle.clone())),
+                            Some(handle) => {
+                                println!("handle: {:?}", handle);
+                                Element::from(image::viewer(handle.clone()))
+                            },
                             None => Element::from(text("Not able to load image.").size(40)),
                         },
-                        Self::show_name("Class 1")
+                        column![
+                            text(
+                                state
+                                    .get_current_event(chosen.on_event)
+                                    .get("description")
+                                    .expect("No image value in the item.")
+                                    .as_str()
+                                    .expect("cannot convert into &str")
+                            )
+                            .size(50),
+                            widget::Button::new(widget::Svg::new(
+                                widget::svg::Handle::from_memory(
+                                    include_bytes!("./runtime/arrow-right.svg").to_vec()
+                                )
+                            ))
+                            .width(Length::Units(20))
+                            .on_press(Message::NextEvent)
+                        ]
+                        .spacing(20),
                     ]
                     .into(),
-                    _ => row![Self::show_name("Not implemented")].into(),
+                    _ => row![column![text("Not implemented").size(50)].spacing(20)].into(),
                 }
             }
         }
-        /*let content = row![
-            image("data/image/grade7/开学合照.jpg"),
-            /*horizontal_space(Length::Units(20)),
-            Self::show_profile("abc")*/
-        ];
-        container(content).into()*/
-    }
-}
-impl Memories {
-    fn show_name(title: &str) -> Column<Message> {
-        column![text(title).size(50)].spacing(20)
     }
 }

@@ -1,11 +1,10 @@
-use crate::ChoosingState;
 use crate::{Error, Memories, Stage, State};
 use iced::widget::image;
 use reqwest::Client;
 use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::path::Path;
-use toml::value::Value;
+use toml::value;
 
 //type JoinHandle = std::thread::JoinHandle<_>;
 impl State {
@@ -21,7 +20,7 @@ impl State {
             let mut file = std::fs::File::open(&idxdir).unwrap();
             file.read_to_string(&mut contents)
                 .expect("Cannot read the index file");
-            if let Ok(val) = contents.parse::<Value>() {
+            if let Ok(val) = contents.parse::<toml::value::Value>() {
                 println!("Successfully parsed content.");
                 return Ok(State {
                     stage: Stage::ChoosingCharacter(Default::default()),
@@ -44,7 +43,9 @@ impl State {
         buffer
             .write_all(content.as_bytes())
             .expect("Cannot write into file.");
-        let val = content.parse::<Value>().expect("Cannot parse the content.");
+        let val = content
+            .parse::<toml::value::Value>()
+            .expect("Cannot parse the content.");
         Ok(State {
             stage: Stage::ChoosingCharacter(Default::default()),
             idxtable: val.as_table().ok_or(crate::Error::ParseError)?.to_owned(),
@@ -82,23 +83,69 @@ impl State {
         }
         .await
     }
+    pub fn get_current_event(&self, on_event: u32) -> toml::value::Value {
+        self.idxtable
+            .get("event")
+            .expect("Cannot get the `event` array.")
+            .as_array()
+            .expect("Cannot read as an array.")[on_event as usize]
+            .to_owned()
+    }
 }
+pub async fn change_image(state: State, mut to: i64) -> Result<State, crate::Error> {
+    match state.stage {
+        Stage::ChoosingCharacter(ref chosen) => {
+            let cnt = state
+            .idxtable
+            .get("together_events")
+            .expect("Didn't find together_events in the indextable.")
+            .as_integer()
+            .expect("together_events is not an integer");
+            let mut chosen = chosen.clone();
+            if to >= cnt {
+                to = 0;
+            }
+            if to < 0 {
+                to = cnt - 1;
+            }
+            chosen.on_event = to as u32;
+            let mut img_path = state
+                .get_current_event(chosen.on_event)
+                .get("image")
+                .expect("No image value in the item.")
+                .as_array()
+                .expect("Cannot read the path.")[chosen.on_image as usize]
+                .to_owned()
+                .to_string();
+            img_path.pop();
+            chosen.image = Some(
+                state
+                    .get_image(img_path.split_off(1))
+                    .await
+                    .expect("Cannot get image."),
+            );
+            Ok(State {
+                stage: Stage::ChoosingCharacter(chosen),
+                ..state
+            })
+        }
+        _ => Ok(state),
+    }
+}
+
 pub async fn load_image(state: State) -> Result<State, crate::Error> {
     match state.stage {
         Stage::ChoosingCharacter(ref chosen) => {
             let mut chosen = chosen.clone();
             let mut img_path = state
-                .idxtable
+                .get_current_event(chosen.on_event)
                 .get("image")
-                .expect("Cannot get item `image`")
+                .expect("No image value in the item.")
                 .as_array()
-                .expect("Cannot read as an array.")[chosen.on_image as usize]
-                .get("path")
-                .expect("No path value in the item.")
+                .expect("Cannot read the path.")[chosen.on_image as usize]
                 .to_owned()
                 .to_string();
             img_path.pop();
-            // println!("img_path: {}", img_path.to_string());
             chosen.image = Some(
                 state
                     .get_image(img_path.split_off(1))

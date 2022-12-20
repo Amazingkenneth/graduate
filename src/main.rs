@@ -186,7 +186,8 @@ impl Application for Memories {
                                     include_bytes!("./runtime/arrow-right.svg").to_vec()
                                 )
                             ))
-                            .width(Length::Units(20))
+                            .style(iced::theme::Button::Text)
+                            .width(Length::Units(80))
                             .on_press(Message::NextEvent)
                         ]
                         .spacing(20),

@@ -114,19 +114,19 @@ pub async fn get_photos(mut state: State) -> Result<State, crate::Error> {
                 .as_array()
                 .expect("Cannot read the path.")
                 .to_owned();
-            //let mut preload = chosen.preload[chosen.on_event].to_owned();
             for photo in 1..(img_array.len() as usize) {
+                let mut relative_path = img_array[photo].to_string();
+                relative_path.pop();
                 let handle = get_image(
                     &state.storage,
                     &state.client,
                     &state.url_prefix,
-                    img_array[photo].to_string(),
+                    relative_path.split_off(1),
                 )
                 .await
                 .expect("Cannot get image.");
                 chosen.preload[chosen.on_event].push(handle);
             }
-            //chosen.preload[chosen.on_event]
             Ok(state)
         }
         _ => Ok(state),
@@ -165,38 +165,3 @@ pub async fn get_image(
     }
     .await
 }
-
-/*
-pub async fn change_image(
-    state: State,
-    mut to_event: i64,
-    to_image: i64,
-) -> Result<State, crate::Error> {
-    match state.stage {
-        Stage::EntryEvents(ref chosen) => {
-            let cnt = chosen.preload.len() as i64;
-            let mut chosen = chosen.clone();
-            let img_array = state
-                .get_current_event(chosen.on_event)
-                .get("image")
-                .expect("No image value in the item.")
-                .as_array()
-                .expect("Cannot read the path.")
-                .to_owned();
-            to_event = (to_event + cnt) % cnt;
-            chosen.on_event = to_event as u32;
-            chosen.on_image = ((to_image as usize) + img_array.len()) % img_array.len();
-            let mut img_path = img_array[chosen.on_image].to_owned().to_string();
-            img_path.pop();
-            chosen.image = state
-                .get_image(img_path.split_off(1))
-                .await
-                .expect("Cannot get image.");
-            Ok(State {
-                stage: Stage::EntryEvents(chosen),
-                ..state
-            })
-        }
-        _ => Ok(state),
-    }
-}*/

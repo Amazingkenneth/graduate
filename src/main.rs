@@ -190,7 +190,7 @@ impl Application for Memories {
         }
     }
     fn view(&self) -> Element<Message> {
-        println!("On view()... self = {:?}", self);
+        //println!("On view()... self.stage = {:?}", self.stage);
         match self {
             Memories::Loading => {
                 println!("On Memories::Loading");
@@ -211,13 +211,6 @@ impl Application for Memories {
                 println!("Loaded Image!");
                 match &state.stage {
                     Stage::EntryEvents(chosen) => row![
-                        /*match &chosen.image {
-                            Some(handle) => {
-                                println!("handle: {:?}", handle);
-                                Element::from(image::viewer(handle.clone()))
-                            }
-                            None => Element::from(text("Not able to load image.").size(40)),
-                        }*/
                         Element::from(image::viewer(
                             chosen.preload[chosen.on_event as usize][chosen.on_image].clone()
                         )),

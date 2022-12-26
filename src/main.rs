@@ -50,25 +50,36 @@ pub struct State {
 
 #[derive(Clone, Debug)]
 enum Stage {
+    EntryEvents(EntryState),
     ChoosingCharacter(ChoosingState),
     ShowingPlots,
     Graduated,
 }
 
 #[derive(Clone, Debug, Default)]
+pub struct EntryState {
+    on_event: usize,
+    on_image: usize,
+    preload: Vec<Vec<image::Handle>>,
+    // 当前图片为 preload[on_event][on_image]
+}
+
+#[derive(Clone, Debug, Default)]
 pub struct ChoosingState {
-    on_event: u32,
-    on_image: u32,
+    on_character: Option<u32>,
     image: Option<image::Handle>,
-    // 当前图片为 idx[on_image]
 }
 
 #[derive(Clone, Debug)]
-enum Message {
+pub enum Message {
     Loaded(Result<State, Error>),
     FetchImage(Result<State, Error>),
-    LoadedImage(Result<ChoosingState, Error>),
+    LoadedImage(Result<EntryState, Error>),
+    PreviousEvent,
     NextEvent,
+    PreviousPhoto,
+    NextPhoto,
+    StartChoosingCharacters,
 }
 
 #[derive(Clone, Debug)]
@@ -87,7 +98,7 @@ impl Application for Memories {
     fn new(_flags: ()) -> (Memories, Command<Message>) {
         (
             Memories::Loading,
-            Command::perform(State::get_idx(), Message::FetchImage),
+            Command::perform(State::get_idx(), Message::Loaded),
         )
     }
 
@@ -102,10 +113,11 @@ impl Application for Memories {
         println!("On update()");
         match self {
             Memories::Loading => match message {
-                Message::FetchImage(Ok(state)) => {
+                /*Message::FetchImage(Ok(state)) => {
                     // *self = Memories::Loading;
-                    Command::perform(exchange::load_image(state), Message::Loaded)
-                }
+                    // let
+                    Command::perform(exchange::change_image(state, 0, 0), Message::Loaded)
+                }*/
                 Message::Loaded(Ok(state)) => {
                     *self = Memories::Loaded(state);
                     Command::none()
@@ -118,15 +130,50 @@ impl Application for Memories {
             Memories::Loaded(state) => {
                 println!("Loaded...");
                 match state.stage {
-                    Stage::ChoosingCharacter(ref chosen) => match message {
-                        Message::NextEvent => {
-                            let to: i64 = (chosen.on_event + 1).into();
-                            let state = state.clone();
-                            *self = Memories::Loading;
-                            Command::perform(exchange::change_image(state, to), Message::Loaded)
+                    Stage::EntryEvents(ref mut chosen) => match message {
+                        Message::PreviousEvent => {
+                            chosen.on_event =
+                                (chosen.on_event + chosen.preload.len() - 1) % chosen.preload.len();
+                            Command::none()
                         }
+                        Message::NextEvent => {
+                            chosen.on_event = (chosen.on_event + 1) % chosen.preload.len();
+                            Command::none()
+                        }
+                        Message::PreviousPhoto => {
+                            if chosen.preload[chosen.on_event].len() == 1 {
+                                let state = state.to_owned();
+                                *self = Memories::Loading;
+                                return Command::perform(
+                                    exchange::get_photos(state),
+                                    Message::Loaded,
+                                );
+                            }
+                            chosen.on_image =
+                                (chosen.on_image + chosen.preload[chosen.on_event].len() - 1)
+                                    % chosen.preload[chosen.on_event].len();
+                            Command::none()
+                        }
+                        Message::NextPhoto => {
+                            if chosen.preload[chosen.on_event].len() == 1 {
+                                let state = state.to_owned();
+                                *self = Memories::Loading;
+                                return Command::perform(
+                                    exchange::get_photos(state),
+                                    Message::Loaded,
+                                );
+                            }
+                            chosen.on_image =
+                                (chosen.on_image + 1) % chosen.preload[chosen.on_event].len();
+                            Command::none()
+                        }
+
                         Message::Loaded(_) => {
                             println!("On Message::Loaded");
+                            Command::none()
+                        }
+                        Message::StartChoosingCharacters => {
+                            state.stage = Stage::ChoosingCharacter(Default::default());
                             Command::none()
                         }
                         _ => {
@@ -163,14 +210,17 @@ impl Application for Memories {
             Memories::Loaded(state) => {
                 println!("Loaded Image!");
                 match &state.stage {
-                    Stage::ChoosingCharacter(chosen) => row![
-                        match &chosen.image {
+                    Stage::EntryEvents(chosen) => row![
+                        /*match &chosen.image {
                             Some(handle) => {
                                 println!("handle: {:?}", handle);
                                 Element::from(image::viewer(handle.clone()))
                             }
                             None => Element::from(text("Not able to load image.").size(40)),
-                        },
+                        }*/
+                        Element::from(image::viewer(
+                            chosen.preload[chosen.on_event as usize][chosen.on_image].clone()
+                        )),
                         column![
                             text(
                                 state
@@ -181,14 +231,46 @@ impl Application for Memories {
                                     .expect("cannot convert into &str")
                             )
                             .size(50),
-                            widget::Button::new(widget::Svg::new(
-                                widget::svg::Handle::from_memory(
+                            widget::Button::new(text("从这里开始！").size(25))
+                                .padding(20)
+                                .style(iced::theme::Button::Positive)
+                                .on_press(Message::StartChoosingCharacters),
+                            row![
+                                button_from_svg(
+                                    include_bytes!("./runtime/arrow-left.svg").to_vec()
+                                )
+                                .width(Length::Units(80))
+                                .on_press(Message::PreviousEvent),
+                                if state
+                                    .get_current_event(chosen.on_event)
+                                    .get("image")
+                                    .expect("No image value in the item.")
+                                    .as_array()
+                                    .expect("Cannot read the path.")
+                                    .len()
+                                    > 1
+                                {
+                                    Element::from(column![
+                                        button_from_svg(
+                                            include_bytes!("./runtime/up.svg").to_vec()
+                                        )
+                                        .width(Length::Units(40))
+                                        .on_press(Message::PreviousPhoto),
+                                        button_from_svg(
+                                            include_bytes!("./runtime/down.svg").to_vec()
+                                        )
+                                        .width(Length::Units(40))
+                                        .on_press(Message::NextPhoto)
+                                    ])
+                                } else {
+                                    Element::from(horizontal_space(Length::Units(40)))
+                                },
+                                button_from_svg(
                                     include_bytes!("./runtime/arrow-right.svg").to_vec()
                                 )
-                            ))
-                            .style(iced::theme::Button::Text)
-                            .width(Length::Units(80))
-                            .on_press(Message::NextEvent)
+                                .width(Length::Units(80))
+                                .on_press(Message::NextEvent),
+                            ]
                         ]
                         .spacing(20),
                     ]
@@ -198,4 +280,9 @@ impl Application for Memories {
             }
         }
     }
+}
+
+pub fn button_from_svg(position: Vec<u8>) -> widget::Button<'static, Message> {
+    widget::Button::new(widget::Svg::new(widget::svg::Handle::from_memory(position)))
+        .style(iced::theme::Button::Text)
 }

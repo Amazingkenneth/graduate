@@ -124,7 +124,7 @@ pub async fn get_photos(mut state: State) -> Result<State, crate::Error> {
                 )
                 .await
                 .expect("Cannot get image.");
-                    chosen.preload[chosen.on_event].push(handle);
+                chosen.preload[chosen.on_event].push(handle);
             }
             //chosen.preload[chosen.on_event]
             Ok(state)

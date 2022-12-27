@@ -3,7 +3,10 @@ mod exchange;
 use iced::widget::{
     self, column, container, horizontal_space, image, row, text, vertical_space, Column,
 };
-use iced::{window, Application, Color, Command, Element, Length, Settings, Theme};
+use iced::{
+    keyboard, subscription, window, Application, Color, Command, Element, Event, Length, Settings,
+    Theme,
+};
 use reqwest::Client;
 use toml::value::Table;
 
@@ -134,35 +137,21 @@ impl Application for Memories {
                         Message::PreviousEvent => {
                             chosen.on_event =
                                 (chosen.on_event + chosen.preload.len() - 1) % chosen.preload.len();
+                            chosen.on_image = 0;
                             Command::none()
                         }
                         Message::NextEvent => {
                             chosen.on_event = (chosen.on_event + 1) % chosen.preload.len();
+                            chosen.on_image = 0;
                             Command::none()
                         }
                         Message::PreviousPhoto => {
-                            if chosen.preload[chosen.on_event].len() == 1 {
-                                let state = state.to_owned();
-                                *self = Memories::Loading;
-                                return Command::perform(
-                                    exchange::get_photos(state),
-                                    Message::Loaded,
-                                );
-                            }
                             chosen.on_image =
                                 (chosen.on_image + chosen.preload[chosen.on_event].len() - 1)
                                     % chosen.preload[chosen.on_event].len();
                             Command::none()
                         }
                         Message::NextPhoto => {
-                            if chosen.preload[chosen.on_event].len() == 1 {
-                                let state = state.to_owned();
-                                *self = Memories::Loading;
-                                return Command::perform(
-                                    exchange::get_photos(state),
-                                    Message::Loaded,
-                                );
-                            }
                             chosen.on_image =
                                 (chosen.on_image + 1) % chosen.preload[chosen.on_event].len();
                             Command::none()
@@ -272,6 +261,31 @@ impl Application for Memories {
                 }
             }
         }
+    }
+    fn subscription(&self) -> iced::Subscription<Message> {
+        use keyboard::KeyCode;
+        subscription::events_with(|event, _status| match event {
+            Event::Keyboard(keyboard_event) => match keyboard_event {
+                keyboard::Event::KeyPressed {
+                    key_code: keyboard::KeyCode::Left,
+                    modifiers: _,
+                } => Some(Message::PreviousEvent),
+                keyboard::Event::KeyPressed {
+                    key_code: keyboard::KeyCode::Right,
+                    modifiers: _,
+                } => Some(Message::NextEvent),
+                keyboard::Event::KeyPressed {
+                    key_code: keyboard::KeyCode::Up,
+                    modifiers: _,
+                } => Some(Message::PreviousPhoto),
+                keyboard::Event::KeyPressed {
+                    key_code: keyboard::KeyCode::Down,
+                    modifiers: _,
+                } => Some(Message::NextPhoto),
+                _ => None,
+            },
+            _ => None,
+        })
     }
 }
 

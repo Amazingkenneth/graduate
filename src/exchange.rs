@@ -47,37 +47,41 @@ impl State {
         let mut preload: Vec<Vec<image::Handle>> = Vec::with_capacity(cnt as usize);
         //preload.resize(cnt as usize);
         for i in 0..(cnt as usize) {
-            let mut img_path_string = fetch_files[i]
+            let mut fillin: Vec<image::Handle> = Vec::new();
+            let fetching = fetch_files[i]
                 .get("image")
                 .expect("Cannot get the `image` array..")
                 .as_array()
-                .expect("Cannot parse image as an array.")[0]
-                .to_owned()
-                .to_string();
-            img_path_string.pop();
-            let relative_path = img_path_string.split_off(1);
-            let img_dir = format!("{}{}", storage, relative_path);
-            let img_path = Path::new(&img_dir);
-            if img_path.is_file() {
-                preload.push(vec![image::Handle::from_path(&img_dir)]);
-                continue;
+                .expect("Cannot parse image as an array.");
+            for cur_image in fetching {
+                let mut img_path_string = cur_image.to_owned().to_string();
+                img_path_string.pop();
+                let relative_path = img_path_string.split_off(1);
+                let img_dir = format!("{}{}", storage, relative_path);
+                let img_path = Path::new(&img_dir);
+                if img_path.is_file() {
+                    fillin.push(image::Handle::from_path(&img_dir));
+                    continue;
+                }
+                fs::create_dir_all(img_path.parent().expect("Cannot parse the path.")).unwrap();
+                let url = format!("{}{}", location, relative_path);
+                println!("url: {}", url);
+                let bytes = cli
+                    .get(&url)
+                    .send()
+                    .await
+                    .expect("Cannot send request")
+                    .bytes()
+                    .await
+                    .expect("Cannot read the image into bytes.");
+                println!("Done processing image!");
+                let mut file =
+                    std::fs::File::create(&img_dir).expect("Failed to create image file.");
+                file.write_all(&bytes)
+                    .expect("Failed to write the image into file in the project directory.");
+                fillin.push(image::Handle::from_memory(bytes.as_ref().to_vec()));
             }
-            fs::create_dir_all(img_path.parent().expect("Cannot parse the path.")).unwrap();
-            let url = format!("{}{}", location, relative_path);
-            println!("url: {}", url);
-            let bytes = cli
-                .get(&url)
-                .send()
-                .await
-                .expect("Cannot send request")
-                .bytes()
-                .await
-                .expect("Cannot read the image into bytes.");
-            println!("Done processing image!");
-            let mut file = std::fs::File::create(&img_dir).expect("Failed to create image file.");
-            file.write_all(&bytes)
-                .expect("Failed to write the image into file in the project directory.");
-            preload.push(vec![image::Handle::from_memory(bytes.as_ref().to_vec())]);
+            preload.push(fillin);
         }
         Ok(State {
             stage: Stage::EntryEvents(EntryState {

@@ -10,6 +10,14 @@ use iced::{
 use reqwest::Client;
 use toml::value::Table;
 
+macro_rules! with_key {
+    ($key: path) => {
+        keyboard::Event::KeyPressed {
+            key_code: $key,
+            modifiers: _,
+        }
+    };
+}
 const INITIAL_WIDTH: u32 = 1400;
 const INITIAL_HEIGHT: u32 = 800;
 
@@ -82,7 +90,7 @@ pub enum Message {
     NextEvent,
     PreviousPhoto,
     NextPhoto,
-    StartChoosingCharacters,
+    NextStage,
 }
 
 #[derive(Clone, Debug)]
@@ -133,43 +141,38 @@ impl Application for Memories {
             Memories::Loaded(state) => {
                 println!("Loaded...");
                 match state.stage {
-                    Stage::EntryEvents(ref mut chosen) => match message {
-                        Message::PreviousEvent => {
-                            chosen.on_event =
-                                (chosen.on_event + chosen.preload.len() - 1) % chosen.preload.len();
-                            chosen.on_image = 0;
-                            Command::none()
+                    Stage::EntryEvents(ref mut chosen) => {
+                        match message {
+                            Message::PreviousEvent => {
+                                chosen.on_event = (chosen.on_event + chosen.preload.len() - 1)
+                                    % chosen.preload.len();
+                                chosen.on_image = 0;
+                            }
+                            Message::NextEvent => {
+                                chosen.on_event = (chosen.on_event + 1) % chosen.preload.len();
+                                chosen.on_image = 0;
+                            }
+                            Message::PreviousPhoto => {
+                                chosen.on_image =
+                                    (chosen.on_image + chosen.preload[chosen.on_event].len() - 1)
+                                        % chosen.preload[chosen.on_event].len();
+                            }
+                            Message::NextPhoto => {
+                                chosen.on_image =
+                                    (chosen.on_image + 1) % chosen.preload[chosen.on_event].len();
+                            }
+                            Message::Loaded(_) => {
+                                println!("On Message::Loaded");
+                            }
+                            Message::NextStage => {
+                                state.stage = Stage::ChoosingCharacter(Default::default());
+                            }
+                            _ => {
+                                println!("Not regular message");
+                            }
                         }
-                        Message::NextEvent => {
-                            chosen.on_event = (chosen.on_event + 1) % chosen.preload.len();
-                            chosen.on_image = 0;
-                            Command::none()
-                        }
-                        Message::PreviousPhoto => {
-                            chosen.on_image =
-                                (chosen.on_image + chosen.preload[chosen.on_event].len() - 1)
-                                    % chosen.preload[chosen.on_event].len();
-                            Command::none()
-                        }
-                        Message::NextPhoto => {
-                            chosen.on_image =
-                                (chosen.on_image + 1) % chosen.preload[chosen.on_event].len();
-                            Command::none()
-                        }
-
-                        Message::Loaded(_) => {
-                            println!("On Message::Loaded");
-                            Command::none()
-                        }
-                        Message::StartChoosingCharacters => {
-                            state.stage = Stage::ChoosingCharacter(Default::default());
-                            Command::none()
-                        }
-                        _ => {
-                            println!("Not regular message");
-                            Command::none()
-                        }
-                    },
+                        Command::none()
+                    }
                     _ => {
                         println!("Some other message.");
                         Command::none()
@@ -213,10 +216,23 @@ impl Application for Memories {
                                     .expect("cannot convert into &str")
                             )
                             .size(50),
+                            text(format!(
+                                "拍摄于 {}",
+                                state
+                                    .get_current_event(chosen.on_event)
+                                    .get("date")
+                                    .expect("No date value in the item.")
+                                    .as_datetime()
+                                    .expect("cannot convert into datetime")
+                                    .date
+                                    .as_ref()
+                                    .expect("Cannot get its date")
+                            ))
+                            .size(30),
                             widget::Button::new(text("从这里开始！").size(25))
                                 .padding(20)
                                 .style(iced::theme::Button::Positive)
-                                .on_press(Message::StartChoosingCharacters),
+                                .on_press(Message::NextStage),
                             row![
                                 button_from_svg(
                                     include_bytes!("./runtime/arrow-left.svg").to_vec()
@@ -264,28 +280,32 @@ impl Application for Memories {
     }
     fn subscription(&self) -> iced::Subscription<Message> {
         use keyboard::KeyCode;
-        subscription::events_with(|event, _status| match event {
-            Event::Keyboard(keyboard_event) => match keyboard_event {
-                keyboard::Event::KeyPressed {
-                    key_code: keyboard::KeyCode::Left,
-                    modifiers: _,
-                } => Some(Message::PreviousEvent),
-                keyboard::Event::KeyPressed {
-                    key_code: keyboard::KeyCode::Right,
-                    modifiers: _,
-                } => Some(Message::NextEvent),
-                keyboard::Event::KeyPressed {
-                    key_code: keyboard::KeyCode::Up,
-                    modifiers: _,
-                } => Some(Message::PreviousPhoto),
-                keyboard::Event::KeyPressed {
-                    key_code: keyboard::KeyCode::Down,
-                    modifiers: _,
-                } => Some(Message::NextPhoto),
-                _ => None,
+        match self {
+            Memories::Loading => iced::Subscription::none(),
+            Memories::Loaded(state) => match state.stage {
+                Stage::EntryEvents(_) => subscription::events_with(|event, _status| match event {
+                    Event::Keyboard(keyboard_event) => match keyboard_event {
+                        with_key!(KeyCode::Left) => Some(Message::PreviousEvent),
+                        with_key!(KeyCode::Right) => Some(Message::NextEvent),
+                        with_key!(keyboard::KeyCode::Up) => Some(Message::PreviousPhoto),
+                        with_key!(keyboard::KeyCode::Down) => Some(Message::NextPhoto),
+                        keyboard::Event::KeyPressed {
+                            key_code: keyboard::KeyCode::Tab,
+                            modifiers,
+                        } => Some(if modifiers.shift() {
+                            Message::PreviousEvent
+                        } else {
+                            Message::NextEvent
+                        }),
+                        with_key!(keyboard::KeyCode::Space) => Some(Message::NextEvent),
+                        with_key!(keyboard::KeyCode::Enter) => Some(Message::NextStage),
+                        _ => None,
+                    },
+                    _ => None,
+                }),
+                _ => iced::Subscription::none(),
             },
-            _ => None,
-        })
+        }
     }
 }
 

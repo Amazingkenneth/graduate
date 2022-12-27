@@ -1,0 +1,23 @@
+nickname = [
+    "怪",
+    "小垃圾箱",
+    "又高又帅",
+    "峰哥",
+]
+relationship = []
+plots = []
+[[comment]]
+from = 5
+date = 2022-12-03
+description = """Some of us get dipped in flat, some in satin, some in gloss; but every once in a while, you find someone who's iridescent, and once you do, nothing will ever compare.
+《Flipped》从来没见过你这么完美的人哦，不想夸你了怕你骄傲。祝你头发一直都那么多，越来越优秀，我们有缘再见吧，俊希~"""
+[[comment]]
+from = 25
+date = 2022-12-03
+description = """刘俊希，又高又帅，性格豪爽。他体育十分强，是国家二级运动员，游泳拿过许多奖项，而且跑步足球篮球都在行，他是我们班唯一一个能扣篮的人，他是计分表上的常客，有扣分也有加分。
+事件：上英语网课时，一不小心打开麦克风，“世界杯”这个关键词被老师听到。在车上上网课时睡着，被老师以为旷课。
+他和谁都合得来，他有很广的人脉。他虽然看上去像个调皮捣蛋的孩子，但他其实学习很认真。我不知道他的梦想，但目前看来，他的前途一片光明。"""
+[[comment]]
+from = 16
+date = 2022-12-05
+description = """好一个凡尔赛老祖！真是低调做人高调做事啊！体育场上，你健步如飞，大放异彩，是我们班的骄傲。一副矫健的身躯，让你把无数金牌纳入囊中，拿到手软。聪慧的思维，让你的破题、解题无懈可击。无论是体育还是学习，你都有远超常人的潜力与能力。即使你藏得再深，也不能掩盖你的光芒。"""

@@ -1,0 +1,314 @@
+number_of_people = 55
+together_events = 5   # events with one or more group photos.
+
+# Students are numbered under 1-35, by their student number in Grade 7,
+# while memorable teachers are numbered from 36.
+[profile]
+1 = "敖卓茵"
+2 = "任恩琦"
+3 = "刘佳庚"
+4 = "何好"
+5 = "杨珺婷"
+6 = "柳昱嘉"
+7 = "钟彦慷"
+8 = "林子钰"
+9 = "陈琛杨"
+10 = "李瑗"
+11 = "林泓睿"
+12 = "陆英卉"
+13 = "夏钰喆"
+14 = "刘俊希"
+15 = "周诺"
+16 = "欧嘉杰"
+17 = "张灿"
+18 = "林家希"
+19 = "伍纯菲"
+20 = "符玉雅云"
+21 = "陈匡莹"
+22 = "李荣晋"
+23 = "黄嘉玉"
+24 = "周盈盈"
+25 = "黎鹏飞"
+26 = "陈思瑶"
+27 = "张芷瑜"
+28 = "黄森"
+29 = "罗心懿"
+30 = "曾铉雅"
+31 = "江浩哲"
+32 = "容颖贤"
+33 = "苏逸菲"
+34 = "曾韬展"
+35 = "周晋宇"
+36 = "单爱丽"            # Teachers start by here.
+37 = "张婷"
+38 = "黄嘉炜"
+39 = "欧晓然"
+40 = "霍翔凌"
+41 = "蔡芸"
+42 = "梁康锡"
+43 = "石瑾"
+44 = "李嘉源"
+45 = "李佩云"
+46 = "万芳"
+47 = "张翠平"
+48 = "邓九贵"
+49 = "翟哲"
+50 = "刘秀珍"
+51 = "何树声"
+52 = "郑小兵"
+53 = "温雷"
+54 = "Mr. Macfarlane"
+55 = "韩恩"
+
+[audio]
+exercise = ["/audio/课间操/我们都是追梦人.mp3", "/audio/课间操/Deep Side - Booty Music.mp3"]
+bellring = ["/audio/铃声/瓦妮莎的微笑.m4a"]
+
+[[event]]
+date = 2020-08-28 16:27:00
+description = "第一张合照~"
+image = ["/image/grade7/开学合照.jpg"]
+
+[[event]]
+date = 2020-10-20
+description = "足球联赛"
+image = [
+    "/image/grade7/足球联赛-合照.jpg",
+    "/image/grade7/足球联赛-横排.jpg",
+    "/image/grade7/足球联赛-站队.jpg",
+]
+
+[[event]]
+date = 2020-11-12
+description = "七年级的春游"
+image = ["/image/grade7/春游-狮子.jpg", "/image/grade7/春游-树下.jpg"]
+
+[[event]]
+date = 2021-02-17
+description = "大夫山春游"
+image = [
+    "/image/grade7/大夫山-树荫.jpg",
+    "/image/grade7/大夫山-笑.jpg",
+    "/image/grade7/大夫山-不笑.jpg",
+]
+
+[[event]]
+date = 2021-11-19
+description = "八年级运动会"
+image = [
+    "/image/grade8/运动会-草坪.jpg",
+    "/image/grade8/运动会-全景.jpg",
+    "/image/grade8/运动会-墙边1.jpg",
+    "/image/grade8/运动会-墙边2.jpg",
+    "/image/grade8/运动会-墙边3.jpg",
+]
+
+[[event]]
+date = 2020-07-28
+description = "张婷代课，何树声演讲"
+image = []
+
+[[event]]
+date = 2020-09-01
+description = "何校扬言“窜退”我们"
+image = []
+
+[[event]]
+date = 2020-10-01
+description = "唱《我和我的祖国》"
+image = []
+
+[[event]]
+date = 2020-10-12
+description = "开展语文课前演讲"
+image = []
+
+[[event]]
+date = 2020-11-11
+description = "石老师使用大黄蜂，绘制精美路线图"
+image = []
+
+[[event]]
+date = 2020-11-20
+description = "七年级的运动会"
+image = []
+
+[[event]]
+date = 2020-12-18
+description = "“校园模型”建模大赛"
+image = []
+
+[[event]]
+date = 2020-12-30
+description = "元旦晚会"
+image = []
+
+[[event]]
+date = 2021-02-17
+description = "大夫山春游"
+image = []
+
+[[event]]
+date = 2021-03-19
+description = "阿杠和阿怪的吃福橘表演"
+image = []
+
+[[event]]
+date = 2021-05-11
+description = "改8班小测"
+image = []
+
+[[event]]
+date = 2021-05-27
+description = "温雷与老鼠"
+image = []
+
+[[event]]
+date = 2021-06-02
+description = "温妈妈的“he~~tui”和“把你的臭嘴打两下”"
+image = []
+
+[[event]]
+date = 2021-09-01
+description = "再见“周测”、“月考”；你好“大型作业”、“学习习惯过程性诊断”！"
+image = []
+
+[[event]]
+date = 2021-09-01
+description = "欧老师开展演讲制度（拖时间）"
+image = []
+
+[[event]]
+date = 2021-11-09
+description = "万老师经典名言：怎么还有声音啊？是要我来——了，你们才——走吗"
+image = []
+
+[[event]]
+date = 2021-11-15
+description = "期中考体育考试，集体摆烂"
+image = []
+
+[[event]]
+date = 2021-11-18
+description = "万老师之凸透镜成像规律.pptx"
+image = []
+
+[[event]]
+date = 2021-12-24
+description = "“最美乡村”建模大赛"
+image = []
+
+[[event]]
+date = 2022-02-18
+description = "开学利是发放，拼凑“欢”“喜”“乐”“福”“顺”"
+image = []
+
+[[event]]
+date = 2022-03-15
+description = "英语课上袜子飞灯上"
+image = []
+
+[[event]]
+date = 2022-03-16
+description = "太极图跪拜求雨避体育考试"
+image = []
+
+[[event]]
+date = 2022-03-17
+description = "周诺师范大学及其附属中学成立！"
+image = []
+
+[[event]]
+date = 2022-04-13
+description = "教室房地产制度推行"
+image = []
+
+[[event]]
+date = 2022-06-10
+description = "观高三毕业典礼，不停鼓掌"
+image = []
+
+[[event]]
+date = 2022-06-29
+description = "龟龟《万唯》丢失，韩老师神侦探"
+image = []
+
+[[event]]
+date = 2022-06-30
+description = "生物地理机考"
+image = []
+
+[[event]]
+date = 2022-09-01
+description = "霍老师上任，杠、狗被镇压"
+image = []
+
+[[event]]
+date = 2022-09-09
+description = "霍老师“我那么和蔼可亲”、“小心得糖尿病”"
+image = []
+
+[[event]]
+date = 2022-09-29
+description = "中秋灯笼，下暴雨，水浸，一楼游泳"
+image = []
+
+[[event]]
+date = 2022-10-04
+description = "飞盘+野炊+CS"
+image = []
+
+[[event]]
+date = 2022-10-10
+description = "钟帅，我给你一个老师都没有的颜色~"
+image = []
+
+[[event]]
+date = 2022-10-14
+description = "黎鹏飞发表激情演讲"
+image = []
+
+[[event]]
+date = 2022-10-17
+description = "元旦晚会筹划"
+image = []
+
+[[event]]
+date = 2022-10-28
+description = "垃圾桶“扣篮大赛”"
+image = []
+
+[[event]]
+date = 2022-11-02
+description = "手推车“Noise Maker”"
+image = []
+
+[[event]]
+date = 2022-11-03
+description = "黎班上任三把火"
+image = []
+
+[[event]]
+date = 2022-11-09
+description = "某体锻龟龟翘课被发现"
+image = []
+
+[[event]]
+date = 2022-11-18
+description = "万老师曰：“这个灯泡不能发光的原因是因为电流表短路的缘故造成的。”"
+image = []
+
+[[event]]
+date = 2022-11-30
+description = "停课风波"
+image = []
+
+[[event]]
+date = 2022-12-01
+description = "黎班带全班看“世界杯”"
+image = []
+
+[[event]]
+date = 2022-12-07
+description = "网课期间，钟帅跳印度舞"
+image = []

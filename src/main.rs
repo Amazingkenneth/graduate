@@ -1,5 +1,6 @@
 #![allow(dead_code, unused_imports)]
-mod exchange;
+mod entries;
+mod choosing;
 use iced::widget::{
     self, column, container, horizontal_space, image, row, text, vertical_space, Column,
 };
@@ -54,9 +55,9 @@ enum Memories {
 pub struct State {
     stage: Stage,
     idxtable: Table,
-    client: Client,
-    url_prefix: String,
     storage: String,
+    scale_factor: f64,
+    from_date: toml::value::Datetime,
 }
 
 #[derive(Clone, Debug)]
@@ -78,7 +79,8 @@ pub struct EntryState {
 #[derive(Clone, Debug, Default)]
 pub struct ChoosingState {
     on_character: Option<u32>,
-    image: Option<image::Handle>,
+    profiles: Vec<choosing::Profile>,
+    photos: Vec<Option<image::Handle>>,
 }
 
 #[derive(Clone, Debug)]
@@ -91,6 +93,9 @@ pub enum Message {
     PreviousPhoto,
     NextPhoto,
     NextStage,
+    ScaleDown,
+    ScaleEnlarge,
+    ScaleRestore,
 }
 
 #[derive(Clone, Debug)]
@@ -99,12 +104,18 @@ pub enum Error {
     LanguageError,
     ParseError,
 }
+use tokio::task::JoinError;
+impl From<JoinError> for Error {
+    fn from(_: JoinError) -> Error {
+        crate::Error::APIError
+    }
+}
 
 impl Application for Memories {
     type Executor = iced::executor::Default;
-    type Flags = ();
     type Message = Message;
     type Theme = Theme;
+    type Flags = ();
 
     fn new(_flags: ()) -> (Memories, Command<Message>) {
         (
@@ -140,6 +151,21 @@ impl Application for Memories {
             },
             Memories::Loaded(state) => {
                 println!("Loaded...");
+                match message {
+                    Message::ScaleDown => {
+                        state.scale_factor *= 0.95;
+                        return Command::none();
+                    }
+                    Message::ScaleEnlarge => {
+                        state.scale_factor *= 1.06;
+                        return Command::none();
+                    }
+                    Message::ScaleRestore => {
+                        state.scale_factor = 1.0;
+                        return Command::none();
+                    }
+                    _ => (),
+                }
                 match state.stage {
                     Stage::EntryEvents(ref mut chosen) => {
                         match message {
@@ -165,7 +191,19 @@ impl Application for Memories {
                                 println!("On Message::Loaded");
                             }
                             Message::NextStage => {
-                                state.stage = Stage::ChoosingCharacter(Default::default());
+                                let cur_event = chosen.on_event;
+                                state.from_date = state
+                                    .get_current_event(cur_event)
+                                    .get("date")
+                                    .expect("No date value in the item.")
+                                    .as_datetime()
+                                    .expect("cannot convert into datetime")
+                                    .to_owned();
+                                let state = state.clone();
+                                return Command::perform(
+                                    choosing::get_configs(state),
+                                    Message::Loaded,
+                                );
                             }
                             _ => {
                                 println!("Not regular message");
@@ -289,6 +327,23 @@ impl Application for Memories {
                         with_key!(KeyCode::Right) => Some(Message::NextEvent),
                         with_key!(keyboard::KeyCode::Up) => Some(Message::PreviousPhoto),
                         with_key!(keyboard::KeyCode::Down) => Some(Message::NextPhoto),
+                        with_key!(keyboard::KeyCode::Space) => Some(Message::NextEvent),
+                        with_key!(keyboard::KeyCode::Enter) => Some(Message::NextStage),
+                        keyboard::Event::KeyPressed {
+                            modifiers,
+                            key_code,
+                        } if modifiers.command() => match key_code {
+                            keyboard::KeyCode::Plus | keyboard::KeyCode::NumpadAdd => {
+                                Some(Message::ScaleEnlarge)
+                            }
+                            keyboard::KeyCode::Minus | keyboard::KeyCode::NumpadSubtract => {
+                                Some(Message::ScaleDown)
+                            }
+                            keyboard::KeyCode::Equals | keyboard::KeyCode::NumpadEquals => {
+                                Some(Message::ScaleRestore)
+                            }
+                            _ => None,
+                        },
                         keyboard::Event::KeyPressed {
                             key_code: keyboard::KeyCode::Tab,
                             modifiers,
@@ -297,14 +352,18 @@ impl Application for Memories {
                         } else {
                             Message::NextEvent
                         }),
-                        with_key!(keyboard::KeyCode::Space) => Some(Message::NextEvent),
-                        with_key!(keyboard::KeyCode::Enter) => Some(Message::NextStage),
                         _ => None,
                     },
                     _ => None,
                 }),
                 _ => iced::Subscription::none(),
             },
+        }
+    }
+    fn scale_factor(&self) -> f64 {
+        match self {
+            Memories::Loading => 1.0,
+            Memories::Loaded(state) => state.scale_factor,
         }
     }
 }

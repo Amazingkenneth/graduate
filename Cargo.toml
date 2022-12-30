@@ -9,6 +9,7 @@ license = "GPL-3.0"
 repository = "https://github.com/Amazingkenneth/graduate"
 
 [dependencies]
+serde = { version = "1", features = ["derive"] }
 toml = "0"
 rodio = "0"
 iced = { version = "0", features = ["image", "canvas", "svg", "tokio"] }

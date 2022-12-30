@@ -1,6 +1,6 @@
 #![allow(dead_code, unused_imports)]
-mod entries;
 mod choosing;
+mod entries;
 use iced::widget::{
     self, column, container, horizontal_space, image, row, text, vertical_space, Column,
 };

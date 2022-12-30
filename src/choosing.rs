@@ -1,4 +1,4 @@
-use crate::{State, ChoosingState};
+use crate::{ChoosingState, State};
 use iced::widget::image;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -50,8 +50,10 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
         .expect("cannot convert into str.")
         .to_string();
     let mut threads = vec![];
-    fs::create_dir_all(Path::new(&format!("{}/profile", state.storage))).expect("Cannot create the directory for profile.");
-    fs::create_dir_all(Path::new(&format!("{}/image/known_people", state.storage))).expect("Cannot create the directory for image.");
+    fs::create_dir_all(Path::new(&format!("{}/profile", state.storage)))
+        .expect("Cannot create the directory for profile.");
+    fs::create_dir_all(Path::new(&format!("{}/image/known_people", state.storage)))
+        .expect("Cannot create the directory for image.");
     for num in 1..=names.len() {
         let img_mutex = img_mutex.clone();
         let profile_mutex = profile_mutex.clone();
@@ -60,7 +62,8 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
 
         let t = tokio::spawn(async move {
             let profile_path = Path::new(&format!("{}/profile/{}.toml", storage, num)).to_owned();
-            let img_path = Path::new(&format!("{}/image/known_people/{}.jpg", storage, num)).to_owned();
+            let img_path =
+                Path::new(&format!("{}/image/known_people/{}.jpg", storage, num)).to_owned();
             let profile_url = format!("{}/profile/{}.toml", url_prefix, num);
             let img_url = format!("{}/image/known_people/{}.jpg", url_prefix, num);
             let cli = Client::new();
@@ -83,7 +86,8 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
                     .expect("Failed to write the image into file in the project directory.");
             }
             if profile_path.is_file() {
-                let profile_text = fs::read_to_string(&profile_path).expect("Cannot read profile from file.");
+                let profile_text =
+                    fs::read_to_string(&profile_path).expect("Cannot read profile from file.");
                 if let Ok(res) = toml::from_str(profile_text.as_str()) {
                     let mut profile_array = profile_mutex.lock().unwrap();
                     profile_array[num] = res;
@@ -104,7 +108,8 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
                 .write_all(&profile_text.as_bytes())
                 .expect("Failed to write the image into file in the project directory.");
             let mut profile_array = profile_mutex.lock().unwrap();
-            profile_array[num] = toml::from_str(profile_text.as_str()).expect("Cannot parse into `Profile` type.");
+            profile_array[num] =
+                toml::from_str(profile_text.as_str()).expect("Cannot parse into `Profile` type.");
         });
         threads.push(t);
     }

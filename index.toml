@@ -1,5 +1,6 @@
 number_of_people = 55
 together_events = 5   # events with one or more group photos.
+url_prefix = "https://graduate-1313398930.cos.ap-guangzhou.myqcloud.com"
 
 # Students are numbered under 1-35, by their student number in Grade 7,
 # while memorable teachers are numbered from 36.
@@ -59,6 +60,7 @@ together_events = 5   # events with one or more group photos.
 53 = "温雷"
 54 = "Mr. Macfarlane"
 55 = "韩恩"
+56 = "黎志辉"
 
 [audio]
 exercise = ["/audio/课间操/我们都是追梦人.mp3", "/audio/课间操/Deep Side - Booty Music.mp3"]

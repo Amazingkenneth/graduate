@@ -8,7 +8,6 @@ relationship = [
     { with = 7, is = "手机智慧助手" },
     { with = 31, is = "语法修正器" }
 ]
-plots = []
 [[comment]]
 from = 25
 date = 2022-12-03

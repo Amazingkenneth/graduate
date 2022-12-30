@@ -3,7 +3,6 @@ relationship = [
     { with = 2, is = "九年老同学" },
     { with = 7, is = "男神" }
 ]
-plots = []
 [[comment]]
 from = 34
 date = 2022-12-03

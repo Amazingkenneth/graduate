@@ -3,8 +3,6 @@ nickname = [
     "奶狗",
     "小神童",
 ]
-relationship = []
-plots = []
 [[comment]]
 from = 25
 date = 2022-12-03

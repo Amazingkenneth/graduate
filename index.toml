@@ -1,6 +1,6 @@
 number_of_people = 55
 together_events = 5   # events with one or more group photos.
-url_prefix = "https://graduate-1313398930.cos.ap-guangzhou.myqcloud.com"
+url_prefix = "https://graduate-cdn.netlify.app"
 
 # Students are numbered under 1-35, by their student number in Grade 7,
 # while memorable teachers are numbered from 36.

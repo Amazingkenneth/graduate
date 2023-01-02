@@ -8,12 +8,18 @@ use std::path::Path;
 use std::sync::{Arc, Mutex};
 use toml::value::{Array, Table};
 
-#[derive(Clone, Deserialize, Debug)]
+#[derive(Clone, Default, Deserialize, Debug)]
 pub struct Profile {
     nickname: Option<Array>,
     plots: Option<Array>,
     relationship: Option<Array>,
     comments: Option<Array>,
+}
+
+#[derive(Clone, Debug)]
+pub struct Avatar {
+    pub name: String,
+    pub photo: image::Handle,
 }
 
 pub async fn get_configs(state: State) -> Result<State, crate::Error> {
@@ -22,22 +28,23 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
         .get("profile")
         .expect("Cannot get profile.")
         .as_table()
-        .expect("Cannot read as an array")
+        .expect("Cannot read as toml::table")
         .to_owned();
     let mut names: Vec<String> = Vec::with_capacity(has.len());
     names.push(String::from("合照"));
-    for value in has.values() {
-        let mut name = value
-            .as_str()
-            .expect("Cannot convert into `String`")
-            .to_string();
-        name.pop();
-        names.push(name.split_off(1));
+    for value in 1..has.len() {
+        names.push(
+            has.get(&value.to_string())
+                .expect("Cannot find the name of the given number")
+                .as_str()
+                .expect("Cannot convert into `String`")
+                .to_string(),
+        );
     }
     let mut img_array: Vec<Option<image::Handle>> = Vec::new();
     img_array.resize(names.len(), Default::default());
-    let profile_array: Vec<Profile> = Vec::new();
-    img_array.resize(names.len(), Default::default());
+    let mut profile_array: Vec<Profile> = Vec::new();
+    profile_array.resize(names.len(), Default::default());
 
     let img_mutex: Arc<Mutex<Vec<_>>> = Arc::new(Mutex::new(img_array));
     let profile_mutex: Arc<Mutex<Vec<_>>> = Arc::new(Mutex::new(profile_array));
@@ -54,7 +61,7 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
         .expect("Cannot create the directory for profile.");
     fs::create_dir_all(Path::new(&format!("{}/image/known_people", state.storage)))
         .expect("Cannot create the directory for image.");
-    for num in 1..=names.len() {
+    for num in 1..names.len() {
         let img_mutex = img_mutex.clone();
         let profile_mutex = profile_mutex.clone();
         let storage = state.storage.clone();
@@ -68,8 +75,8 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
             let img_url = format!("{}/image/known_people/{}.jpg", url_prefix, num);
             let cli = Client::new();
             if img_path.is_file() {
-                let mut img_mutex = img_mutex.lock().unwrap();
-                img_mutex[num] = Some(image::Handle::from_path(&img_path));
+                let mut img_array = img_mutex.lock().unwrap();
+                img_array[num] = Some(image::Handle::from_path(&img_path));
             } else {
                 let img_bytes = cli
                     .get(&img_url)
@@ -84,6 +91,8 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
                 img_file
                     .write_all(&img_bytes)
                     .expect("Failed to write the image into file in the project directory.");
+                let mut img_array = img_mutex.lock().unwrap();
+                img_array[num] = Some(image::Handle::from_memory(img_bytes.to_vec()));
             }
             if profile_path.is_file() {
                 let profile_text =
@@ -108,6 +117,7 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
                 .write_all(&profile_text.as_bytes())
                 .expect("Failed to write the image into file in the project directory.");
             let mut profile_array = profile_mutex.lock().unwrap();
+            println!("{}", profile_text);
             profile_array[num] =
                 toml::from_str(profile_text.as_str()).expect("Cannot parse into `Profile` type.");
         });
@@ -118,13 +128,23 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
     for t in threads {
         t.await?;
     }
-    let img_fetched = img_mutex.lock().unwrap();
+    let img_fetched = img_mutex.lock().unwrap().to_vec();
     let profile_fetched = profile_mutex.lock().unwrap();
+    let mut avatars: Vec<Avatar> = Vec::with_capacity(img_fetched.len());
+    for it in 0..img_fetched.len() {
+        if let Some(img) = &img_fetched[it] {
+            avatars.push(Avatar {
+                name: names[it].to_owned(),
+                photo: img.to_owned(),
+            });
+        }
+    }
     Ok(State {
         stage: crate::Stage::ChoosingCharacter(ChoosingState {
-            photos: img_fetched.to_vec(),
+            avatars,
             profiles: profile_fetched.to_vec(),
             on_character: None,
+            description: String::from(""),
         }),
         ..state
     })

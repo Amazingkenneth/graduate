@@ -1,12 +1,14 @@
 #![allow(dead_code, unused_imports)]
 mod choosing;
 mod entries;
+use iced::alignment::Horizontal;
 use iced::widget::{
-    self, column, container, horizontal_space, image, row, text, vertical_space, Column,
+    self, column, container, horizontal_space, image, radio, row, scrollable, text, text_input,
+    vertical_space, Column, Row,
 };
 use iced::{
-    keyboard, subscription, window, Application, Color, Command, Element, Event, Length, Settings,
-    Theme,
+    keyboard, subscription, window, Alignment, Application, Color, Command, Element, Event, Length,
+    Settings, Theme,
 };
 use reqwest::Client;
 use toml::value::Table;
@@ -40,7 +42,7 @@ pub fn main() -> iced::Result {
             size: (INITIAL_WIDTH, INITIAL_HEIGHT),
             ..window::Settings::default()
         },
-        default_font: Some(include_bytes!("./YangRenDongZhuShiTi-Light-2.ttf")),
+        default_font: Some(include_bytes!("./YeZiGongChangFuJiYaTi-2.ttf")),
         ..Settings::default()
     })
 }
@@ -57,6 +59,7 @@ pub struct State {
     idxtable: Table,
     storage: String,
     scale_factor: f64,
+    theme: Theme,
     from_date: toml::value::Datetime,
 }
 
@@ -78,9 +81,10 @@ pub struct EntryState {
 
 #[derive(Clone, Debug, Default)]
 pub struct ChoosingState {
-    on_character: Option<u32>,
+    on_character: Option<usize>,
     profiles: Vec<choosing::Profile>,
-    photos: Vec<Option<image::Handle>>,
+    avatars: Vec<choosing::Avatar>,
+    description: String,
 }
 
 #[derive(Clone, Debug)]
@@ -93,9 +97,13 @@ pub enum Message {
     PreviousPhoto,
     NextPhoto,
     NextStage,
+    DescriptionEdited(String),
+    FinishedTyping,
+    ChoseCharacter(usize),
     ScaleDown,
     ScaleEnlarge,
     ScaleRestore,
+    SwapTheme,
 }
 
 #[derive(Clone, Debug)]
@@ -153,15 +161,22 @@ impl Application for Memories {
                 println!("Loaded...");
                 match message {
                     Message::ScaleDown => {
-                        state.scale_factor *= 0.95;
+                        state.scale_factor /= 1.05;
                         return Command::none();
                     }
                     Message::ScaleEnlarge => {
-                        state.scale_factor *= 1.06;
+                        state.scale_factor *= 1.05;
                         return Command::none();
                     }
                     Message::ScaleRestore => {
                         state.scale_factor = 1.0;
+                        return Command::none();
+                    }
+                    Message::SwapTheme => {
+                        state.theme = match state.theme {
+                            Theme::Dark => Theme::Light,
+                            Theme::Light | Theme::Custom(_) => Theme::Dark,
+                        };
                         return Command::none();
                     }
                     _ => (),
@@ -200,6 +215,7 @@ impl Application for Memories {
                                     .expect("cannot convert into datetime")
                                     .to_owned();
                                 let state = state.clone();
+                                *self = Memories::Loading;
                                 return Command::perform(
                                     choosing::get_configs(state),
                                     Message::Loaded,
@@ -211,8 +227,20 @@ impl Application for Memories {
                         }
                         Command::none()
                     }
+                    Stage::ChoosingCharacter(ref mut choosing) => {
+                        match message {
+                            Message::DescriptionEdited(new_description) => {
+                                choosing.description = new_description;
+                            }
+                            Message::ChoseCharacter(chosen) => {
+                                choosing.on_character = Some(chosen);
+                            }
+                            _ => {}
+                        }
+                        Command::none()
+                    }
                     _ => {
-                        println!("Some other message.");
+                        println!("On other stages.");
                         Command::none()
                     }
                 }
@@ -226,8 +254,8 @@ impl Application for Memories {
                 println!("On Memories::Loading");
                 container(
                     column![
-                        text("正在加载中  Loading...").size(40),
-                        text("有你，才是一班。").size(20)
+                        text("正在加载中  Loading...").size(60),
+                        text("有你，才是一班。").size(30)
                     ]
                     .width(Length::Shrink),
                 )
@@ -306,11 +334,91 @@ impl Application for Memories {
                                 )
                                 .width(Length::Units(80))
                                 .on_press(Message::NextEvent),
-                            ]
+                            ],
+                            widget::Button::new(text("切换主题").size(25))
+                                .padding(20)
+                                .style(iced::theme::Button::Secondary)
+                                .on_press(Message::SwapTheme),
                         ]
                         .spacing(20),
                     ]
                     .into(),
+                    Stage::ChoosingCharacter(choosing) => {
+                        let searchbox = row![
+                            horizontal_space(Length::FillPortion(191)),
+                            text_input(
+                                "输入以搜索",
+                                &choosing.description,
+                                Message::DescriptionEdited,
+                            )
+                            .on_submit(Message::FinishedTyping)
+                            .padding(10)
+                            .width(Length::FillPortion(618)),
+                            horizontal_space(Length::FillPortion(191))
+                        ];
+                        let mut heads = vec![vec![]];
+                        let mut on_head: usize = 0;
+                        let mut cur_width = 0;
+                        let avail_width = 300;
+                        for i in 0..choosing.avatars.len() {
+                            let photo = choosing.avatars[i].photo.to_owned();
+                            let mut viewer = Element::from(image::viewer(photo.clone()));
+                            // println!("{} is {:?}", i, viewer.as_widget().width());
+                            let mut width = match viewer.as_widget().width() {
+                                Length::Units(unit) => unit,
+                                _ => 75,
+                            };
+                            if width > 80 {
+                                viewer = Element::from(
+                                    image::viewer(photo.to_owned()).width(Length::Units(80)),
+                                );
+                                width = 80;
+                            }
+                            if width + cur_width > avail_width {
+                                on_head += 1;
+                                cur_width = 0;
+                                heads.push(vec![]);
+                            }
+                            cur_width += width;
+                            heads[on_head].push(
+                                column![
+                                    viewer,
+                                    widget::Button::new(
+                                        text(choosing.avatars[i].name.to_owned()).size(30)
+                                    )
+                                    .style(iced::theme::Button::Text)
+                                    .padding(10)
+                                    .on_press(Message::ChoseCharacter(i))
+                                ]
+                                .width(Length::FillPortion(1)),
+                            );
+                        }
+                        let mut scroll_head = column![];
+                        for it in heads {
+                            let mut cur_row = row![];
+                            for j in it {
+                                cur_row = cur_row.push(j);
+                            }
+                            scroll_head = scroll_head.push(cur_row);
+                        }
+                        let apply_button = row![
+                            widget::Button::new(text("选好啦").size(40))
+                                .padding(15)
+                                .style(iced::theme::Button::Positive)
+                                .on_press(Message::NextStage),
+                            horizontal_space(Length::Units(20))
+                        ];
+                        let content = scrollable(
+                            column![
+                                searchbox,
+                                vertical_space(Length::Units(10)),
+                                scroll_head,
+                                apply_button
+                            ]
+                            .align_items(Alignment::End),
+                        );
+                        container(content).width(Length::Fill).into()
+                    }
                     _ => row![column![text("Not implemented").size(50)].spacing(20)].into(),
                 }
             }
@@ -342,6 +450,7 @@ impl Application for Memories {
                             keyboard::KeyCode::Equals | keyboard::KeyCode::NumpadEquals => {
                                 Some(Message::ScaleRestore)
                             }
+                            keyboard::KeyCode::T => Some(Message::SwapTheme),
                             _ => None,
                         },
                         keyboard::Event::KeyPressed {
@@ -364,6 +473,13 @@ impl Application for Memories {
         match self {
             Memories::Loading => 1.0,
             Memories::Loaded(state) => state.scale_factor,
+        }
+    }
+
+    fn theme(&self) -> Theme {
+        match self {
+            Memories::Loading => Theme::Light,
+            Memories::Loaded(state) => state.theme.clone(),
         }
     }
 }

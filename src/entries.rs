@@ -1,5 +1,6 @@
 use crate::{EntryState, Error, Memories, Stage, State};
 use iced::widget::image;
+use iced::Theme;
 use reqwest::Client;
 use std::fs::{self, File};
 use std::io::{Read, Write};
@@ -121,6 +122,7 @@ impl State {
             idxtable,
             storage: storage.to_string(),
             scale_factor: 1.0,
+            theme: Theme::Light,
             from_date: Datetime {
                 date: Some(toml::value::Date {
                     year: 2020,

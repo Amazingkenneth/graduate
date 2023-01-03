@@ -10,10 +10,10 @@ use toml::value::{Array, Table};
 
 #[derive(Clone, Default, Deserialize, Debug)]
 pub struct Profile {
-    nickname: Option<Array>,
-    plots: Option<Array>,
-    relationship: Option<Array>,
-    comments: Option<Array>,
+    pub nickname: Option<Array>,
+    pub plots: Option<Array>,
+    pub relationship: Option<Array>,
+    pub comment: Option<Array>,
 }
 
 #[derive(Clone, Debug)]
@@ -139,13 +139,18 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
             });
         }
     }
-    Ok(State {
-        stage: crate::Stage::ChoosingCharacter(ChoosingState {
-            avatars,
-            profiles: profile_fetched.to_vec(),
-            on_character: None,
-            description: String::from(""),
-        }),
-        ..state
-    })
+    if let crate::Stage::EntryEvents(previous) = state.stage {
+        Ok(State {
+            stage: crate::Stage::ChoosingCharacter(ChoosingState {
+                avatars,
+                profiles: profile_fetched.to_vec(),
+                on_character: None,
+                description: String::from(""),
+                previous_stage: previous,
+            }),
+            ..state
+        })
+    } else {
+        panic!("State is not EntryState!")
+    }
 }

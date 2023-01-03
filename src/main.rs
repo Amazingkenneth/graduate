@@ -450,9 +450,18 @@ impl Application for Memories {
                                 content = content
                                     .push(show_profiles(profile.nickname, "ta 的昵称"))
                                     .push(show_profiles(profile.plots, "ta 的小日常"));
+                                if let Some(intro) = profile.introduction {
+                                    content = content.push(column![
+                                        text("ta 的自传").size(50),
+                                        row![
+                                            horizontal_space(Length::Units(20)),
+                                            text(intro).size(30)
+                                        ],
+                                    ])
+                                }
                                 if let Some(relations) = profile.relationship {
                                     let mut lists = column![];
-                                    for relation in relations {
+                                    for relation in &relations {
                                         let cur_relation =
                                             relation.as_table().expect("Cannot read as a table");
                                         lists = lists.push(
@@ -471,14 +480,16 @@ impl Application for Memories {
                                             .size(30),
                                         );
                                     }
-                                    content = content.push(column![
-                                        text("ta 的人物关系").size(50),
-                                        row![horizontal_space(Length::Units(20)), lists,]
-                                    ]);
+                                    if relations.len() > 0 {
+                                        content = content.push(column![
+                                            text("ta 的人物关系").size(50),
+                                            row![horizontal_space(Length::Units(20)), lists,]
+                                        ]);
+                                    }
                                 }
                                 if let Some(comments) = profile.comment {
                                     let mut lists = column![].spacing(15);
-                                    for comment in comments {
+                                    for comment in &comments {
                                         let cur_comment =
                                             comment.as_table().expect("Cannot read as table");
                                         lists = lists.push(column![
@@ -519,10 +530,12 @@ impl Application for Memories {
                                             ]
                                         ]);
                                     }
-                                    content = content.push(column![
-                                        text("大家对 ta 的评价").size(50),
-                                        row![horizontal_space(Length::Units(20)), lists,]
-                                    ]);
+                                    if comments.len() > 0 {
+                                        content = content.push(column![
+                                            text("大家对 ta 的评价").size(50),
+                                            row![horizontal_space(Length::Units(20)), lists,]
+                                        ]);
+                                    }
                                 }
                                 container(scrollable(
                                     column![content, apply_button].align_items(Alignment::End),

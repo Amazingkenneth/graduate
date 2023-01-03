@@ -14,6 +14,7 @@ pub struct Profile {
     pub plots: Option<Array>,
     pub relationship: Option<Array>,
     pub comment: Option<Array>,
+    pub introduction: Option<String>,
 }
 
 #[derive(Clone, Debug)]

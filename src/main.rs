@@ -349,10 +349,14 @@ impl Application for Memories {
                                 .width(Length::Units(80))
                                 .on_press(Message::NextEvent),
                             ],
-                            widget::Button::new(column![text("切换主题").size(30), text("Ctrl + T").size(20)].align_items(Alignment::Center).spacing(15))
-                                .padding(10)
-                                .style(iced::theme::Button::Secondary)
-                                .on_press(Message::SwapTheme),
+                            widget::Button::new(
+                                column![text("切换主题").size(30), text("Ctrl + T").size(20)]
+                                    .align_items(Alignment::Center)
+                                    .spacing(15)
+                            )
+                            .padding(10)
+                            .style(iced::theme::Button::Secondary)
+                            .on_press(Message::SwapTheme),
                         ]
                         .spacing(20)
                         .align_items(Alignment::Center),

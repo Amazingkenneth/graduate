@@ -309,8 +309,8 @@ impl Application for Memories {
                                     .expect("Cannot get its date")
                             ))
                             .size(30),
-                            widget::Button::new(text("从这里开始！").size(25))
-                                .padding(20)
+                            widget::Button::new(text("从这里开始！").size(35))
+                                .padding(15)
                                 .style(iced::theme::Button::Positive)
                                 .on_press(Message::NextStage),
                             row![
@@ -349,8 +349,8 @@ impl Application for Memories {
                                 .width(Length::Units(80))
                                 .on_press(Message::NextEvent),
                             ],
-                            widget::Button::new(text("切换主题").size(25))
-                                .padding(20)
+                            widget::Button::new(column![text("切换主题").size(30), text("Ctrl + T").size(20)].align_items(Alignment::Center).spacing(15))
+                                .padding(10)
                                 .style(iced::theme::Button::Secondary)
                                 .on_press(Message::SwapTheme),
                         ]
@@ -542,6 +542,7 @@ impl Application for Memories {
                                 ))
                                 //.width(Length::Fill)
                                 .center_x()
+                                .center_y()
                                 .into()
                             }
                         }

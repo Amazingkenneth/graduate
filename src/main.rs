@@ -244,7 +244,10 @@ impl Application for Memories {
                             Message::NextStage => {
                                 let state = state.clone();
                                 *self = Memories::Loading;
-                                return Command::perform(visiting::get_queue(state), Message::Loaded);
+                                return Command::perform(
+                                    visiting::get_queue(state),
+                                    Message::Loaded,
+                                );
                             }
                             _ => {}
                         }

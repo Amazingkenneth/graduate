@@ -30,19 +30,24 @@ pub fn get_dir(width: u32, height: u32) -> LayoutDirection {
     }
 }*/
 
+#[cfg(target_os = "windows")]
+fn hide_window() {
+    use winapi::um::{
+        wincon::GetConsoleWindow,
+        winuser::{ShowWindow, SW_HIDE},
+    };
+    unsafe {
+        let window = GetConsoleWindow();
+        println!("window handle = {:?}", window);
+        if !window.is_null() {
+            ShowWindow(window, SW_HIDE);
+        }
+    }
+}
+
 pub fn main() -> iced::Result {
     if cfg!(target_os = "windows") {
-        use winapi::um::{
-            wincon::GetConsoleWindow,
-            winuser::{ShowWindow, SW_HIDE},
-        };
-        unsafe {
-            let window = GetConsoleWindow();
-            println!("window handle = {:?}", window);
-            if !window.is_null() {
-                ShowWindow(window, SW_HIDE);
-            }
-        }
+        hide_window();
     }
     Memories::run(Settings {
         window: window::Settings {

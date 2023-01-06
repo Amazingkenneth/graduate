@@ -1,27 +1,20 @@
 #![allow(dead_code, unused_imports)]
 mod choosing;
 mod entries;
+mod subscriptions;
 mod visiting;
 use iced::widget::{
     self, column, container, horizontal_space, image, radio, row, scrollable, text, text_input,
     vertical_space, Column, Row,
 };
 use iced::{
-    alignment, keyboard, subscription, window, Alignment, Application, Color, Command, Element,
-    Event, Length, Settings, Theme,
+    alignment, subscription, window, Alignment, Application, Color, Command, Element, Event,
+    Length, Settings, Theme,
 };
 use rand::Rng;
 use reqwest::Client;
 use toml::value::Table;
 
-macro_rules! with_key {
-    ($key: path) => {
-        keyboard::Event::KeyPressed {
-            key_code: $key,
-            modifiers: _,
-        }
-    };
-}
 const INITIAL_WIDTH: u32 = 1400;
 const INITIAL_HEIGHT: u32 = 800;
 
@@ -43,7 +36,7 @@ pub fn main() -> iced::Result {
             size: (INITIAL_WIDTH, INITIAL_HEIGHT),
             ..window::Settings::default()
         },
-        default_font: Some(include_bytes!("./YeZiGongChangFuJiYaTi-2.ttf")),
+        default_font: Some(include_bytes!("./YEFONTFuJiYaTi-3.ttf")),
         ..Settings::default()
     })
 }
@@ -108,18 +101,19 @@ pub enum Message {
     ScaleEnlarge,
     ScaleRestore,
     SwapTheme,
+    OpenInExplorer,
 }
 
 #[derive(Clone, Debug)]
 pub enum Error {
     APIError,
-    LanguageError,
+    JoinError,
     ParseError,
 }
 use tokio::task::JoinError;
 impl From<JoinError> for Error {
     fn from(_: JoinError) -> Error {
-        crate::Error::APIError
+        crate::Error::JoinError
     }
 }
 
@@ -156,13 +150,11 @@ impl Application for Memories {
                     *self = Memories::Loaded(state);
                     Command::none()
                 }
-                _ => {
-                    println!("Error Processing: {:#?}", message);
-                    Command::none()
-                }
+                _ => Command::none(),
             },
             Memories::Loaded(state) => {
                 println!("Loaded...");
+
                 match message {
                     Message::ScaleDown => {
                         state.scale_factor /= 1.05;
@@ -181,6 +173,59 @@ impl Application for Memories {
                             Theme::Dark => Theme::Light,
                             Theme::Light | Theme::Custom(_) => Theme::Dark,
                         };
+                        return Command::none();
+                    }
+                    Message::OpenInExplorer => {
+                        let mut is_file = true;
+                        let filename = match &state.stage {
+                            Stage::EntryEvents(ref chosen) => format!(
+                                "{}{}",
+                                state.storage,
+                                state
+                                    .get_current_event(chosen.on_event)
+                                    .get("image")
+                                    .expect("cannot parse `image` into an array.")
+                                    .as_array()
+                                    .expect("Cannot read the paths")[chosen.on_image]
+                                    .as_str()
+                                    .expect("Cannot convert it into String")
+                                    .to_string()
+                            ),
+                            Stage::ChoosingCharacter(choosing) => match choosing.on_character {
+                                Some(chosen) => {
+                                    format!("{}/profile/{}.toml", state.storage, chosen)
+                                }
+                                None => {
+                                    is_file = false;
+                                    format!("{}/image/known_people", state.storage)
+                                }
+                            },
+                            _ => "".to_string(),
+                        };
+                        if cfg!(target_os = "windows") {
+                            if is_file {
+                                std::process::Command::new("cmd")
+                                    .args(["/C", &filename])
+                                    .output()
+                                    .expect("failed to execute process");
+                            } else {
+                                println!("filename: {}", &filename);
+                                std::process::Command::new("explorer")
+                                    .arg(&filename.replace("/", "\\"))
+                                    .output()
+                                    .expect("failed to execute process");
+                            }
+                        } else if cfg!(target_os = "macos") {
+                            std::process::Command::new("open")
+                                .arg(&filename)
+                                .output()
+                                .expect("failed to execute process.");
+                        } else {
+                            std::process::Command::new("eog")
+                                .arg(&filename)
+                                .output()
+                                .expect("failed to execute process");
+                        }
                         return Command::none();
                     }
                     _ => (),
@@ -233,6 +278,7 @@ impl Application for Memories {
                             }
                             Message::ChoseCharacter(chosen) => {
                                 choosing.on_character = Some(chosen + 1);
+                                return scrollable::snap_to(choosing::generate_id(chosen + 1), 0.0);
                             }
                             Message::UnChoose => {
                                 choosing.on_character = None;
@@ -262,7 +308,6 @@ impl Application for Memories {
         }
     }
     fn view(&self) -> Element<Message> {
-        //println!("On view()... self.stage = {:?}", self.stage);
         match self {
             Memories::Loading => {
                 println!("On Memories::Loading");
@@ -285,7 +330,8 @@ impl Application for Memories {
                     Stage::EntryEvents(chosen) => row![
                         image::viewer(
                             chosen.preload[chosen.on_event as usize][chosen.on_image].clone()
-                        ),
+                        )
+                        .width(Length::Units(1400)),
                         column![
                             text(
                                 state
@@ -324,7 +370,7 @@ impl Application for Memories {
                                     .get("image")
                                     .expect("No image value in the item.")
                                     .as_array()
-                                    .expect("Cannot read the path.")
+                                    .expect("Cannot read the paths.")
                                     .len()
                                     > 1
                                 {
@@ -349,14 +395,28 @@ impl Application for Memories {
                                 .width(Length::Units(80))
                                 .on_press(Message::NextEvent),
                             ],
-                            widget::Button::new(column![text("切换主题").size(30), text("Ctrl + T").size(20)].align_items(Alignment::Center).spacing(15))
-                                .padding(10)
-                                .style(iced::theme::Button::Secondary)
-                                .on_press(Message::SwapTheme),
+                            widget::Button::new(
+                                column![text("切换主题").size(30), text("Ctrl + T").size(20)]
+                                    .align_items(Alignment::Center)
+                                    .spacing(15)
+                            )
+                            .padding(10)
+                            .style(iced::theme::Button::Secondary)
+                            .on_press(Message::SwapTheme),
+                            widget::Button::new(
+                                column![text("打开对应文件").size(30), text("Ctrl + O").size(20)]
+                                    .align_items(Alignment::Center)
+                                    .spacing(15)
+                            )
+                            .padding(10)
+                            .style(iced::theme::Button::Text)
+                            .on_press(Message::OpenInExplorer),
                         ]
                         .spacing(20)
-                        .align_items(Alignment::Center),
+                        .align_items(Alignment::Center)
+                        .width(Length::Fill),
                     ]
+                    .align_items(Alignment::Center)
                     .into(),
                     Stage::ChoosingCharacter(choosing) => {
                         match choosing.on_character {
@@ -384,7 +444,6 @@ impl Application for Memories {
                                             .width(Length::FillPortion(rng.gen_range(100..=140)))
                                             .height(Length::Units(200)),
                                     );
-                                    // println!("{} is {:?}", i, viewer.as_widget().width());
                                     if containing == 0 {
                                         on_head += 1;
                                         containing = rng.gen_range(6..=8);
@@ -401,7 +460,8 @@ impl Application for Memories {
                                             .padding(10)
                                             .on_press(Message::ChoseCharacter(i))
                                         ]
-                                        .width(Length::FillPortion(1)),
+                                        .width(Length::FillPortion(1))
+                                        .align_items(Alignment::Center),
                                     );
                                 }
                                 let mut scroll_head = column![];
@@ -434,7 +494,17 @@ impl Application for Memories {
                             }
                             Some(chosen) => {
                                 let profile = choosing.profiles[chosen].clone();
-                                let mut content = column![];
+                                let mut content =
+                                    column![text(if let Some(name_en) = profile.name_en {
+                                        format!(
+                                            "{} ({})",
+                                            choosing.avatars[chosen - 1].name,
+                                            name_en
+                                        )
+                                    } else {
+                                        choosing.avatars[chosen].name.clone()
+                                    })
+                                    .size(50)];
                                 let apply_button = row![
                                     widget::Button::new(text("返回").size(40))
                                         .padding(15)
@@ -537,9 +607,12 @@ impl Application for Memories {
                                         ]);
                                     }
                                 }
-                                container(scrollable(
-                                    column![content, apply_button].align_items(Alignment::End),
-                                ))
+                                container(
+                                    scrollable(
+                                        column![content, apply_button].align_items(Alignment::End),
+                                    )
+                                    .id(choosing::generate_id(chosen)),
+                                )
                                 //.width(Length::Fill)
                                 .center_x()
                                 .center_y()
@@ -553,46 +626,16 @@ impl Application for Memories {
         }
     }
     fn subscription(&self) -> iced::Subscription<Message> {
-        use keyboard::KeyCode;
+        // from iced_native::events_with
         match self {
             Memories::Loading => iced::Subscription::none(),
             Memories::Loaded(state) => match state.stage {
-                Stage::EntryEvents(_) => subscription::events_with(|event, _status| match event {
-                    Event::Keyboard(keyboard_event) => match keyboard_event {
-                        with_key!(KeyCode::Left) => Some(Message::PreviousEvent),
-                        with_key!(KeyCode::Right) => Some(Message::NextEvent),
-                        with_key!(keyboard::KeyCode::Up) => Some(Message::PreviousPhoto),
-                        with_key!(keyboard::KeyCode::Down) => Some(Message::NextPhoto),
-                        with_key!(keyboard::KeyCode::Space) => Some(Message::NextEvent),
-                        with_key!(keyboard::KeyCode::Enter) => Some(Message::NextStage),
-                        keyboard::Event::KeyPressed {
-                            modifiers,
-                            key_code,
-                        } if modifiers.command() => match key_code {
-                            keyboard::KeyCode::Plus | keyboard::KeyCode::NumpadAdd => {
-                                Some(Message::ScaleEnlarge)
-                            }
-                            keyboard::KeyCode::Minus | keyboard::KeyCode::NumpadSubtract => {
-                                Some(Message::ScaleDown)
-                            }
-                            keyboard::KeyCode::Equals | keyboard::KeyCode::NumpadEquals => {
-                                Some(Message::ScaleRestore)
-                            }
-                            keyboard::KeyCode::T => Some(Message::SwapTheme),
-                            _ => None,
-                        },
-                        keyboard::Event::KeyPressed {
-                            key_code: keyboard::KeyCode::Tab,
-                            modifiers,
-                        } => Some(if modifiers.shift() {
-                            Message::PreviousEvent
-                        } else {
-                            Message::NextEvent
-                        }),
-                        _ => None,
-                    },
-                    _ => None,
-                }),
+                Stage::EntryEvents(_) => {
+                    iced::subscription::events_with(subscriptions::on_entry_state)
+                }
+                Stage::ChoosingCharacter(_) => {
+                    iced::subscription::events_with(subscriptions::on_choosing_character)
+                }
                 _ => iced::Subscription::none(),
             },
         }

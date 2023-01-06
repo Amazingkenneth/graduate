@@ -10,6 +10,7 @@ use toml::value::{Array, Table};
 
 #[derive(Clone, Default, Deserialize, Debug)]
 pub struct Profile {
+    pub name_en: Option<String>,
     pub nickname: Option<Array>,
     pub plots: Option<Array>,
     pub relationship: Option<Array>,
@@ -118,7 +119,6 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
                 .write_all(&profile_text.as_bytes())
                 .expect("Failed to write the image into file in the project directory.");
             let mut profile_array = profile_mutex.lock().unwrap();
-            println!("{}", profile_text);
             profile_array[num] =
                 toml::from_str(profile_text.as_str()).expect("Cannot parse into `Profile` type.");
         });
@@ -154,4 +154,8 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
     } else {
         panic!("State is not EntryState!")
     }
+}
+
+pub fn generate_id(i: usize) -> iced::widget::scrollable::Id {
+    iced::widget::scrollable::Id::new(format!("ChoosingCharacter-{}", i))
 }

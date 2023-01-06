@@ -9,7 +9,6 @@ license = "GPL-3.0"
 repository = "https://github.com/Amazingkenneth/graduate"
 
 [dependencies]
-winapi = { version = "0", features = ["winuser"] }
 serde = { version = "1", features = ["derive"] }
 toml = "0"
 rodio = "0"
@@ -19,6 +18,9 @@ reqwest = "0"
 tokio = { version = "1", features = ["full"] }
 directories = "4"
 rand = "0"
+
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0", features = ["winuser"] }
 
 [profile.release]
 lto = "fat"

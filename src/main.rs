@@ -31,6 +31,19 @@ pub fn get_dir(width: u32, height: u32) -> LayoutDirection {
 }*/
 
 pub fn main() -> iced::Result {
+    if cfg!(target_os = "windows") {
+        use winapi::um::{
+            wincon::GetConsoleWindow,
+            winuser::{ShowWindow, SW_HIDE},
+        };
+        unsafe {
+            let window = GetConsoleWindow();
+            println!("window handle = {:?}", window);
+            if !window.is_null() {
+                ShowWindow(window, SW_HIDE);
+            }
+        }
+    }
     Memories::run(Settings {
         window: window::Settings {
             size: (INITIAL_WIDTH, INITIAL_HEIGHT),
@@ -97,6 +110,8 @@ pub enum Message {
     FinishedTyping,
     ChoseCharacter(usize),
     UnChoose,
+    PreviousPerson,
+    NextPerson,
     ScaleDown,
     ScaleEnlarge,
     ScaleRestore,
@@ -272,30 +287,67 @@ impl Application for Memories {
                         Command::none()
                     }
                     Stage::ChoosingCharacter(ref mut choosing) => {
-                        match message {
-                            Message::DescriptionEdited(new_description) => {
-                                choosing.description = new_description;
-                            }
-                            Message::ChoseCharacter(chosen) => {
-                                choosing.on_character = Some(chosen + 1);
-                                return scrollable::snap_to(choosing::generate_id(chosen + 1), 0.0);
-                            }
-                            Message::UnChoose => {
-                                choosing.on_character = None;
-                            }
-                            Message::BackStage => {
-                                state.stage =
-                                    Stage::EntryEvents(choosing.previous_stage.to_owned());
-                            }
-                            Message::NextStage => {
-                                let state = state.clone();
-                                *self = Memories::Loading;
-                                return Command::perform(
-                                    visiting::get_queue(state),
-                                    Message::Loaded,
-                                );
-                            }
-                            _ => {}
+                        match choosing.on_character {
+                            None => match message {
+                                Message::DescriptionEdited(new_description) => {
+                                    choosing.description = new_description;
+                                    for avatar in &mut choosing.avatars {
+                                        if let Some(_) =
+                                            avatar.name.find(choosing.description.as_str())
+                                        {
+                                            avatar.shown = true;
+                                        } else {
+                                            avatar.shown = false;
+                                        }
+                                    }
+                                }
+                                Message::FinishedTyping => {
+                                    for (index, avatar) in choosing.avatars.iter().enumerate() {
+                                        if let Some(_) =
+                                            avatar.name.find(choosing.description.as_str())
+                                        {
+                                            choosing.on_character = Some(index + 1);
+                                            return Command::none();
+                                        }
+                                    }
+                                }
+                                Message::ChoseCharacter(chosen) => {
+                                    choosing.on_character = Some(chosen + 1);
+                                    return scrollable::snap_to(
+                                        choosing::generate_id(chosen + 1),
+                                        0.0,
+                                    );
+                                }
+                                Message::BackStage => {
+                                    state.stage =
+                                        Stage::EntryEvents(choosing.previous_stage.to_owned());
+                                }
+                                _ => {}
+                            },
+                            Some(chosen) => match message {
+                                Message::UnChoose => {
+                                    choosing.on_character = None;
+                                }
+                                Message::NextStage => {
+                                    let state = state.clone();
+                                    *self = Memories::Loading;
+                                    return Command::perform(
+                                        visiting::get_queue(state),
+                                        Message::Loaded,
+                                    );
+                                }
+                                Message::NextPerson => {
+                                    choosing.on_character =
+                                        Some((chosen + 1) % choosing.avatars.len());
+                                }
+                                Message::PreviousPerson => {
+                                    choosing.on_character = Some(
+                                        (chosen + choosing.avatars.len() - 1)
+                                            % choosing.avatars.len(),
+                                    );
+                                }
+                                _ => {}
+                            },
                         }
                         Command::none()
                     }
@@ -434,23 +486,24 @@ impl Application for Memories {
                                     horizontal_space(Length::FillPortion(191)),
                                 ];
                                 let mut heads = vec![vec![]];
-                                let mut on_head: usize = 0;
                                 let mut rng = rand::thread_rng();
                                 let mut containing: usize = rng.gen_range(6..=8);
-                                for i in 0..choosing.avatars.len() {
-                                    let photo = choosing.avatars[i].photo.to_owned();
+                                for (i, avatar) in choosing.avatars.iter().enumerate() {
+                                    if !avatar.shown {
+                                        continue;
+                                    }
+                                    let photo = avatar.photo.to_owned();
                                     let viewer = Element::from(
                                         image::viewer(photo.clone())
                                             .width(Length::FillPortion(rng.gen_range(100..=140)))
                                             .height(Length::Units(200)),
                                     );
                                     if containing == 0 {
-                                        on_head += 1;
                                         containing = rng.gen_range(6..=8);
                                         heads.push(vec![]);
                                     }
                                     containing -= 1;
-                                    heads[on_head].push(
+                                    heads.last_mut().expect("Cannot get the last value.").push(
                                         column![
                                             viewer,
                                             widget::Button::new(
@@ -550,7 +603,7 @@ impl Application for Memories {
                                             .size(30),
                                         );
                                     }
-                                    if relations.len() > 0 {
+                                    if !relations.is_empty() {
                                         content = content.push(column![
                                             text("ta 的人物关系").size(50),
                                             row![horizontal_space(Length::Units(20)), lists,]
@@ -600,7 +653,7 @@ impl Application for Memories {
                                             ]
                                         ]);
                                     }
-                                    if comments.len() > 0 {
+                                    if !comments.is_empty() {
                                         content = content.push(column![
                                             text("大家对 ta 的评价").size(50),
                                             row![horizontal_space(Length::Units(20)), lists,]
@@ -666,7 +719,7 @@ fn show_profiles(item: Option<toml::value::Array>, with_name: &str) -> Element<M
         for i in &item {
             lists = lists.push(text(i.as_str().expect("Not valid String").to_string()).size(40));
         }
-        if item.len() > 0 {
+        if !item.is_empty() {
             return Element::from(column![
                 text(with_name).size(50),
                 row![horizontal_space(Length::Units(20)), lists,]

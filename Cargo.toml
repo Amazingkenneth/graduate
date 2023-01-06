@@ -9,10 +9,11 @@ license = "GPL-3.0"
 repository = "https://github.com/Amazingkenneth/graduate"
 
 [dependencies]
+winapi = { version = "0", features = ["winuser"] }
 serde = { version = "1", features = ["derive"] }
 toml = "0"
 rodio = "0"
-iced = { version = "0", features = ["image", "canvas", "svg", "tokio"] }
+iced = { version = "0", features = ["image", "svg", "tokio"] }
 iced_native = { version = "0" }
 reqwest = "0"
 tokio = { version = "1", features = ["full"] }

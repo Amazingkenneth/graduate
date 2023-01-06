@@ -22,6 +22,7 @@ pub struct Profile {
 pub struct Avatar {
     pub name: String,
     pub photo: image::Handle,
+    pub shown: bool,
 }
 
 pub async fn get_configs(state: State) -> Result<State, crate::Error> {
@@ -132,11 +133,12 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
     let img_fetched = img_mutex.lock().unwrap().to_vec();
     let profile_fetched = profile_mutex.lock().unwrap();
     let mut avatars: Vec<Avatar> = Vec::with_capacity(img_fetched.len());
-    for it in 0..img_fetched.len() {
-        if let Some(img) = &img_fetched[it] {
+    for (index, value) in img_fetched.iter().enumerate() {
+        if let Some(img) = &value {
             avatars.push(Avatar {
-                name: names[it].to_owned(),
+                name: names[index].to_owned(),
                 photo: img.to_owned(),
+                shown: true,
             });
         }
     }

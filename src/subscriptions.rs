@@ -14,7 +14,6 @@ macro_rules! with_key {
 
 fn global_response(event: keyboard::Event) -> Option<Message> {
     match event {
-        with_key!(keyboard::KeyCode::Enter) => Some(Message::NextStage),
         keyboard::Event::KeyPressed {
             modifiers,
             key_code,
@@ -41,6 +40,7 @@ pub fn on_entry_state(event: Event, _: iced::event::Status) -> Option<Message> {
                 return Some(ret);
             }
             match keyboard_event {
+                with_key!(keyboard::KeyCode::Enter) => Some(Message::NextStage),
                 with_key!(KeyCode::Left) => Some(Message::PreviousEvent),
                 with_key!(KeyCode::Right) => Some(Message::NextEvent),
                 with_key!(keyboard::KeyCode::Up) => Some(Message::PreviousPhoto),
@@ -67,7 +67,20 @@ pub fn on_choosing_character(event: Event, _: iced::event::Status) -> Option<Mes
             if let Some(ret) = global_response(keyboard_event) {
                 return Some(ret);
             }
-            None
+            match keyboard_event {
+                with_key!(KeyCode::Left) => Some(Message::PreviousPerson),
+                with_key!(KeyCode::Right) => Some(Message::NextPerson),
+                with_key!(keyboard::KeyCode::Space) => Some(Message::NextStage),
+                keyboard::Event::KeyPressed {
+                    key_code: keyboard::KeyCode::Tab,
+                    modifiers,
+                } => Some(if modifiers.shift() {
+                    Message::PreviousPerson
+                } else {
+                    Message::NextPerson
+                }),
+                _ => None,
+            }
         }
         _ => None,
     }

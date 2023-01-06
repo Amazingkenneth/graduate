@@ -144,47 +144,6 @@ impl State {
     }
 }
 
-pub async fn get_photos(mut state: State) -> Result<State, crate::Error> {
-    match state.stage {
-        Stage::EntryEvents(ref mut chosen) => {
-            let img_array = state
-                .idxtable
-                .get("event")
-                .expect("Cannot get the `event` array.")
-                .as_array()
-                .expect("Cannot read as an array.")[chosen.on_event]
-                .get("image")
-                .expect("No image value in the item.")
-                .as_array()
-                .expect("Cannot read the path.")
-                .to_owned();
-            let cli = Client::new();
-            let url_prefix = state
-                .idxtable
-                .get("url_prefix")
-                .expect("Cannot get url prefix.")
-                .as_str()
-                .expect("Cannot convert into string.")
-                .to_string();
-            for photo in 1..(img_array.len() as usize) {
-                let mut relative_path = img_array[photo].to_string();
-                relative_path.pop();
-                let handle = get_image(
-                    &state.storage,
-                    &cli,
-                    &url_prefix,
-                    relative_path.split_off(1),
-                )
-                .await
-                .expect("Cannot get image.");
-                chosen.preload[chosen.on_event].push(handle);
-            }
-            Ok(state)
-        }
-        _ => Ok(state),
-    }
-}
-
 pub async fn get_image(
     storage: &String,
     cli: &reqwest::Client,

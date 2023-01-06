@@ -1,9 +1,5 @@
 name_en = "Nok"
-nickname = [
-    "诺哥",
-    "周校",
-    "脑壳",
-]
+nickname = ["诺哥", "周校", "脑壳"]
 relationship = [
     { with = 22, is = "朋友" },
     { with = 11, is = "知己" },

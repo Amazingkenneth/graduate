@@ -1,14 +1,6 @@
 name_en = "Yabbie"
-nickname = [
-    "papa",
-    "Yabbie",
-    "绿箩妈妈",
-    "老曾",
-]
-relationship = [
-    { with = 23, is = "儿子" },
-    { with = 5, is = "儿子" }
-]
+nickname = ["papa", "Yabbie", "绿箩妈妈", "老曾"]
+relationship = [{ with = 23, is = "儿子" }, { with = 5, is = "儿子" }]
 [[comment]]
 from = 23
 date = 2022-12-03

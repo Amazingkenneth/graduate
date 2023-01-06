@@ -1,10 +1,5 @@
 name_en = "Eric"
-nickname = [
-    "怪",
-    "小垃圾箱",
-    "又高又帅",
-    "峰哥",
-]
+nickname = ["怪", "小垃圾箱", "又高又帅", "峰哥"]
 [[comment]]
 from = 5
 date = 2022-12-03

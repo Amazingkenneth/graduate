@@ -1,12 +1,10 @@
 name_en = "Susan"
-nickname = [
-    "阿贤",
-]
+nickname = ["阿贤"]
 relationship = [
     { with = 2, is = "朋友" },
     { with = 19, is = "朋友" },
     { with = 1, is = "朋友" },
-    { with = 21, is = "朋友" }
+    { with = 21, is = "朋友" },
 ]
 [[comment]]
 from = 33

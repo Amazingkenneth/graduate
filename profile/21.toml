@@ -1,13 +1,10 @@
 name_en = "Queen"
-nickname = [
-    "匡匡",
-    "cky",
-]
+nickname = ["匡匡", "cky"]
 relationship = [
     { with = 1, is = "儿子" },
     { with = 17, is = "儿子" },
     { with = 8, is = "女儿" },
-    { with = 20, is = "狗子" }
+    { with = 20, is = "狗子" },
 ]
 plots = [
     "和妹妹一起去上学开始",

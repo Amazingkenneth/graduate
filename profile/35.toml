@@ -1,14 +1,9 @@
 name_en = "Jarvis"
-nickname = [
-    "黑鸭",
-    "鸭鸭",
-    "鸭子",
-    "鸭劳➗",
-]
+nickname = ["黑鸭", "鸭鸭", "鸭子", "鸭劳➗"]
 relationship = [
     { with = 6, is = "儿子" },
     { with = 14, is = "儿子" },
-    { with = 3, is = "儿子" }
+    { with = 3, is = "儿子" },
 ]
 [[comment]]
 from = 7

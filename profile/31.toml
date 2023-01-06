@@ -1,13 +1,9 @@
 name_en = "John"
-nickname = [
-    "江哥",
-    "脏狗",
-    "题之恶魔",
-]
+nickname = ["江哥", "脏狗", "题之恶魔"]
 relationship = [
     { with = 9, is = "兄弟" },
     { with = 34, is = "兄弟、损友" },
-    { with = 18, is = "儿子" }
+    { with = 18, is = "儿子" },
 ]
 plots = [
     "餐厅卫生糟",

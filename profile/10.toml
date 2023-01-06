@@ -1,10 +1,5 @@
 name_en = "Bonnie"
-nickname = [
-    "bobo",
-    "李王爱",
-    "李王八",
-    "皮皮",
-]
+nickname = ["bobo", "李王爱", "李王八", "皮皮"]
 relationship = [
     { with = 29, is = "n年老友" },
     { with = 5, is = "好friend" },

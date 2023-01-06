@@ -1,10 +1,5 @@
 name_en = "Jerry"
-nickname = [
-    "吉吉king",
-    "xyz",
-    "夏钰吉",
-    "猴子",
-]
+nickname = ["吉吉king", "xyz", "夏钰吉", "猴子"]
 relationship = [
     { with = 25, is = "88世孙" },
     { with = 9, is = "87世孙" },

@@ -1,16 +1,11 @@
 name_en = "Augustine"
-nickname = [
-    "龟",
-    "七分之四百九十五",
-]
+nickname = ["龟", "七分之四百九十五"]
 relationship = [
     { with = 34, is = "儿子" },
     { with = 35, is = "儿子" },
     { with = 14, is = "儿子" },
 ]
-plots = [
-    "打狗子",
-]
+plots = ["打狗子"]
 [[comment]]
 from = 20
 date = 2022-12-04

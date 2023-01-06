@@ -1,8 +1,5 @@
 name_en = "Sunny"
-nickname = [
-    "林主持",
-    "泓睿",
-]
+nickname = ["林主持", "泓睿"]
 relationship = [
     { with = 15, is = "老铁、飞友" },
     { with = 18, is = "基友" },
@@ -12,10 +9,7 @@ relationship = [
     { with = 25, is = "跑友" },
     { with = 9, is = "车友" },
 ]
-plots = [
-    "元旦晚会朗诵",
-    "开放日主持",
-]
+plots = ["元旦晚会朗诵", "开放日主持"]
 [[comment]]
 from = 30
 date = 2022-12-03

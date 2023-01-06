@@ -1,22 +1,13 @@
 name_en = "Sophia"
-nickname = [
-    "菲姐",
-    "苏er菲",
-    "苏公鸡",
-    "苏菲~",
-    "菲菲", 
-    "苏伊士运河", 
-]
+nickname = ["菲姐", "苏er菲", "苏公鸡", "苏菲~", "菲菲", "苏伊士运河"]
 relationship = [
     { with = 30, is = "八世孙" },
     { with = 23, is = "儿子" },
     { with = 5, is = "儿子" },
     { with = 2, is = "女神" },
-    { with = 10, is = "死忠粉" }
+    { with = 10, is = "死忠粉" },
 ]
-plots = [
-    "上课睡觉，下课疯玩",
-]
+plots = ["上课睡觉，下课疯玩"]
 [[comment]]
 from = 35
 date = 2022-12-03

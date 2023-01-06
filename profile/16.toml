@@ -1,13 +1,9 @@
 name_en = "Jacky"
-nickname = [
-    "ou",
-    "男神",
-    "杰哥",
-]
+nickname = ["ou", "男神", "杰哥"]
 relationship = [
     { with = 11, is = "猪队友" },
     { with = 7, is = "手机智慧助手" },
-    { with = 31, is = "语法修正器" }
+    { with = 31, is = "语法修正器" },
 ]
 [[comment]]
 from = 25

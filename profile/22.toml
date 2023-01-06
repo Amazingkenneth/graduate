@@ -1,10 +1,5 @@
 name_en = "Benson"
-nickname = [
-    "小自信",
-    "笨孙子",
-    "自信男人",
-    "Benben",
-]
+nickname = ["小自信", "笨孙子", "自信男人", "Benben"]
 [[comment]]
 from = 23
 date = 2022-12-03

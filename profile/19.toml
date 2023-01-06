@@ -1,13 +1,9 @@
 name_en = "Fiona"
-nickname = [
-    "frog",
-    "芳菲",
-    "大芳菲",
-]
+nickname = ["frog", "芳菲", "大芳菲"]
 relationship = [
     { with = 20, is = "好friend" },
     { with = 29, is = "好盆友" },
-    { with = 10, is = "好朋友" }
+    { with = 10, is = "好朋友" },
 ]
 [[comment]]
 from = 32

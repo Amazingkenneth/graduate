@@ -1,17 +1,10 @@
 name_en = "Danny"
-nickname = [
-    "森妈",
-    "共由三木",
-    "森哥",
-    "森森",
-    "三木",
-    "林森",
-]
+nickname = ["森妈", "共由三木", "森哥", "森森", "三木", "林森"]
 relationship = [
     { with = 22, is = "儿子" },
     { with = 5, is = "女儿" },
     { with = 4, is = "革命盟友" },
-    { with = 24, is = "老朋友" }
+    { with = 24, is = "老朋友" },
 ]
 [[comment]]
 from = 25

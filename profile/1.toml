@@ -1,16 +1,7 @@
 name_en = "Clarissa"
-nickname = [
-    "敖丙",
-    "敖子",
-    "只因",
-]
-relationship = [
-    { with = 20, is = "亲爱的金主爸爸" },
-    { with = 21, is = "“好弟弟”" },
-]
-plots = [
-    "中午关怀",
-]
+nickname = ["敖丙", "敖子", "只因"]
+relationship = [{ with = 20, is = "亲爱的金主爸爸" }, { with = 21, is = "“好弟弟”" }]
+plots = ["中午关怀"]
 [[comment]]
 from = 5
 date = 2022-12-03

@@ -1,10 +1,5 @@
 name_en = "Derek"
-nickname = [
-    "ccy",
-    "yy",
-    "吹杨",
-    "yy姐姐",
-]
+nickname = ["ccy", "yy", "吹杨", "yy姐姐"]
 relationship = [
     { with = 25, is = "好朋友" },
     { with = 31, is = "好朋友" },

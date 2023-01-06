@@ -46,9 +46,9 @@ fn hide_window() {
 }
 
 pub fn main() -> iced::Result {
-    if cfg!(target_os = "windows") {
-        hide_window();
-    }
+    #[cfg(target_os = "windows")]
+    hide_window();
+
     Memories::run(Settings {
         window: window::Settings {
             size: (INITIAL_WIDTH, INITIAL_HEIGHT),

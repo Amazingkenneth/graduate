@@ -264,9 +264,7 @@ impl Application for Memories {
                                 Message::DescriptionEdited(new_description) => {
                                     choosing.description = new_description;
                                     for avatar in &mut choosing.avatars {
-                                        if let Some(_) =
-                                            avatar.name.find(choosing.description.as_str())
-                                        {
+                                        if avatar.name.contains(choosing.description.as_str()) {
                                             avatar.shown = true;
                                         } else {
                                             avatar.shown = false;
@@ -275,9 +273,7 @@ impl Application for Memories {
                                 }
                                 Message::FinishedTyping => {
                                     for (index, avatar) in choosing.avatars.iter().enumerate() {
-                                        if let Some(_) =
-                                            avatar.name.find(choosing.description.as_str())
-                                        {
+                                        if avatar.name.contains(choosing.description.as_str()) {
                                             choosing.on_character = Some(index + 1);
                                             return Command::none();
                                         }

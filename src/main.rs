@@ -4,7 +4,7 @@ mod entries;
 mod subscriptions;
 mod visiting;
 use iced::widget::{
-    self, column, container, horizontal_space, image, radio, row, scrollable, text, text_input,
+    self, column, container, horizontal_space, image, row, scrollable, text, text_input,
     vertical_space, Column, Row,
 };
 use iced::{
@@ -16,7 +16,6 @@ use reqwest::Client;
 use toml::value::Table;
 
 pub fn main() -> iced::Result {
-
     Memories::run(Settings {
         window: window::Settings {
             size: (1400, 800),

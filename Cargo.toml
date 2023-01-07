@@ -22,7 +22,7 @@ rand = "0"
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0", features = ["winuser"] }
 
-[profile.release-opt]
+[profile.release]
 lto = "fat"
 codegen-units = 1
 panic = "abort"
@@ -30,6 +30,6 @@ strip = true  # Automatically strip symbols from the binary.
 
 [package.metadata.deb]
 assets = [
-    ["target/release-opt/graduate", "usr/bin/graduate", "755"],
+    ["target/release/graduate", "usr/bin/graduate", "755"],
     ["graduate.desktop", "usr/share/applications/", "644"],
 ]

@@ -35,3 +35,4 @@ assets = [
     ["target/release/graduate", "usr/bin/graduate", "755"],
     ["graduate.desktop", "usr/share/applications/", "644"],
 ]
+depends = "libasound2-dev"

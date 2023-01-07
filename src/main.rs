@@ -15,43 +15,11 @@ use rand::Rng;
 use reqwest::Client;
 use toml::value::Table;
 
-const INITIAL_WIDTH: u32 = 1400;
-const INITIAL_HEIGHT: u32 = 800;
-
-/*pub enum LayoutDirection {
-    Horizontal,
-    Upright,
-}
-pub fn get_dir(width: u32, height: u32) -> LayoutDirection {
-    let upr = width * INITIAL_HEIGHT > height * INITIAL_WIDTH;
-    match upr {
-        true => LayoutDirection::Upright,
-        false => LayoutDirection::Horizontal,
-    }
-}*/
-
-#[cfg(target_os = "windows")]
-fn hide_window() {
-    use winapi::um::{
-        wincon::GetConsoleWindow,
-        winuser::{ShowWindow, SW_HIDE},
-    };
-    unsafe {
-        let window = GetConsoleWindow();
-        println!("window handle = {:?}", window);
-        if !window.is_null() {
-            ShowWindow(window, SW_HIDE);
-        }
-    }
-}
-
 pub fn main() -> iced::Result {
-    #[cfg(target_os = "windows")]
-    hide_window();
 
     Memories::run(Settings {
         window: window::Settings {
-            size: (INITIAL_WIDTH, INITIAL_HEIGHT),
+            size: (1400, 800),
             ..window::Settings::default()
         },
         default_font: Some(include_bytes!("./YEFONTFuJiYaTi-3.ttf")),

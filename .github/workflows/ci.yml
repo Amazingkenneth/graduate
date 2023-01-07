@@ -1,6 +1,5 @@
-on: [push, pull_request]
-
 name: CI
+on: [push, pull_request]
 
 jobs:
   Format:
@@ -15,51 +14,112 @@ jobs:
       - uses: mbrobbel/rustfmt-check@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-  build:
-    strategy:
-      matrix:
-        include:
-          - os: windows-latest
-            abbr: Windows
-            exec_path: ./target/release/graduate.exe
-          - os: ubuntu-latest
-            abbr: Linux(Ubuntu)
-            exec_path: ./target/release/graduate
-          - os: macos-latest
-            abbr: Mac
-            exec_path: ./target/release/graduate
-    runs-on: ${{ matrix.os }}
-    name: Build Executable on ${{ matrix.abbr }}
+  build_linux:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@main
-      - name: Install build dependency of RustAudio/cpal
-        if: matrix.os == 'ubuntu-latest'
-        shell: bash
-        run: sudo apt install libasound2-dev
-      - uses: actions-rs/toolchain@master
-        with:
-          toolchain: stable
-      - uses: actions-rs/cargo@master
-        with:
-          command: build
-          args: --release
-      - uses: SebRollen/toml-action@main
-        id: read_toml
-        with:
-          file: 'Cargo.toml'
-          field: 'package.version'
-      - uses: actions/upload-artifact@main
-        with:
-          name: graduate-v${{ steps.read_toml.outputs.value }}-${{ matrix.abbr }}
-          path:
-            ${{ matrix.exec_path }}
-      - name: Compress binaries
-        uses: svenstaro/upx-action@master
-        with:
-          file: ${{ matrix.exec_path }}
-          args: --best --lzma
-      - uses: actions/upload-artifact@main
-        with:
-          name: graduate-v${{ steps.read_toml.outputs.value }}-${{ matrix.abbr }}-minsized
-          path:
-            ${{ matrix.exec_path }}
+    - uses: hecrj/setup-rust-action@v1
+    - name: Install cargo-deb
+      run: cargo install cargo-deb
+    - uses: actions/checkout@master
+    - name: Install dependencies
+      run: |
+        export DEBIAN_FRONTED=noninteractive
+        sudo apt-get -qq update
+        sudo apt-get install -y libxkbcommon-dev libasound2-dev
+    - name: Build graduate binary
+      run: cargo build --verbose --profile release-opt
+    - name: Archive graduate binary (Uncompressed)
+      uses: actions/upload-artifact@v1
+      with:
+        name: graduate-x86_64-unknown-linux-gnu-uncompressed
+        path: target/release-opt/graduate
+    - name: Compress binaries
+      uses: svenstaro/upx-action@master
+      with:
+        file: ${{ matrix.exec_path }}
+        args: --best --lzma
+    - name: Archive graduate binary
+      uses: actions/upload-artifact@v1
+      with:
+        name: graduate-x86_64-unknown-linux-gnu
+        path: target/release-opt/graduate
+    - name: Pack graduate .deb package
+      run: cargo deb --no-build --profile release-opt
+    - name: Rename graduate .deb package
+      run: mv target/debian/*.deb target/debian/graduate-x86_64-debian-linux-gnu.deb
+    - name: Archive graduate .deb package
+      uses: actions/upload-artifact@v1
+      with:
+        name: graduate-x86_64-debian-linux-gnu
+        path: target/debian/graduate-x86_64-debian-linux-gnu.deb
+
+  build_windows:
+    runs-on: windows-latest
+    steps:
+    - uses: hecrj/setup-rust-action@v1
+    - uses: actions/checkout@master
+    - name: Enable static CRT linkage
+      run: |
+        mkdir .cargo
+        echo '[target.x86_64-pc-windows-msvc]' >> .cargo/config
+        echo 'rustflags = ["-Ctarget-feature=+crt-static"]' >> .cargo/config
+    - name: Run the application without starting the shell
+      run: |
+        sed -i '1 i\#![windows_subsystem = \"windows\"]' examples/graduate/src/main.rs
+    - name: Build graduate binary
+      run: cargo build --verbose --profile release-opt
+    - name: Archive graduate binary (Uncompressed)
+      uses: actions/upload-artifact@v1
+      with:
+        name: graduate-x86_64-pc-windows-uncompressed
+        path: target/release-opt/graduate.exe
+    - name: Compress binaries
+      uses: svenstaro/upx-action@master
+      with:
+        file: ${{ matrix.exec_path }}
+        args: --best --lzma
+    - name: Archive graduate binary
+      uses: actions/upload-artifact@v1
+      with:
+        name: graduate-x86_64-pc-windows
+        path: target/release-opt/graduate.exe
+
+  build_macos:
+    runs-on: macOS-latest
+    steps:
+    - uses: hecrj/setup-rust-action@v1
+    - uses: actions/checkout@master
+    - name: Build graduate binary
+      run: cargo build --verbose --profile release-opt
+    - name: Open binary via double-click
+      run: chmod +x target/release-opt/graduate
+    - name: Archive graduate binary (Uncompressed)
+      uses: actions/upload-artifact@v1
+      with:
+        name: graduate-x86_64-apple-darwin-uncompressed
+        path: target/release-opt/graduate
+    - name: Compress binaries
+      uses: svenstaro/upx-action@master
+      with:
+        file: ${{ matrix.exec_path }}
+        args: --best --lzma
+    - name: Archive graduate binary
+      uses: actions/upload-artifact@v1
+      with:
+        name: graduate-x86_64-apple-darwin
+        path: target/release-opt/graduate
+
+  build_raspberry:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: hecrj/setup-rust-action@v1
+    - uses: actions/checkout@master
+    - name: Install cross
+      run: cargo install cross
+    - name: Build graduate binary for Raspberry Pi 3/4 (64 bits)
+      run: cross build --verbose --profile release-opt --target aarch64-unknown-linux-gnu
+    - name: Archive graduate binary (Uncompressed)
+      uses: actions/upload-artifact@v1
+      with:
+        name: graduate-aarch64-unknown-linux-gnu-uncompressed
+        path: target/aarch64-unknown-linux-gnu/release-opt/graduate

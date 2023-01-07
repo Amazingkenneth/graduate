@@ -2,7 +2,9 @@
 name = "graduate"
 version = "0.1.0"
 edition = "2021"
-
+authors = ["Amazingkenneth <amazingkenneth@outlook.com>"]
+description = "这是一个纪实性项目；打开它，一起回忆过往美好初中生活。"
+readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 license = "GPL-3.0"

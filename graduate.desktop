@@ -2,6 +2,6 @@
 Encoding=UTF-8
 Name=Graduate
 Name[zh_CN]=回忆美好·有你，才是一班
-Comment=这是一个纪实性项目；点开它，一起回忆过往美好初中生活。
+Comment=这是一个纪实性项目；打开它，一起回忆过往美好初中生活。
 Exec=graduate
 Type=Application

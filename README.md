@@ -10,9 +10,9 @@
 ## 我想看看你们的成果！
 ### 下载可执行文件进行测试
 在 [GitHub Artifacts](https://github.com/Amazingkenneth/graduate/actions/workflows/ci.yml?query=is%3Asuccess) 上找到最新的一次 CI Action，点进去并划到页面最底端，会看到如下图所示的不同系统的可执行文件供下载。
-<img width="923" alt="image" src="https://user-images.githubusercontent.com/81886982/210323936-3f5215b1-2390-4355-8a4e-f719dbb65c63.png">
+<img width="918" alt="image" src="https://user-images.githubusercontent.com/81886982/211135228-014a6c72-7047-49e3-b927-f29d70f7a714.png">
 
-在如上图的界面中找到你自己的系统对应的文件（建议选择带 minsized 压缩过的），下载后解压缩直接运行即可（无需安装）。
+在如上图的界面中找到你自己的系统对应的可执行文件（建议选择压缩过的，也就是没有 `-uncompressed` 后缀的）
 
 > 注：Linux 系统上需要安装 `libasound2-dev`（Debian / Ubuntu）或 `alsa-lib-devel`（Fedora）作为声音模块 [RustAudio/cpal](https://github.com/RustAudio/cpal) 的依赖项
 >

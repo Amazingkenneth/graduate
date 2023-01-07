@@ -36,7 +36,7 @@ jobs:
     - name: Compress binaries
       uses: svenstaro/upx-action@master
       with:
-        file: ${{ matrix.exec_path }}
+        file: target/release/graduate
         args: --best --lzma
     - name: Archive graduate binary
       uses: actions/upload-artifact@v1
@@ -65,7 +65,7 @@ jobs:
         echo 'rustflags = ["-Ctarget-feature=+crt-static"]' >> .cargo/config
     - name: Run the application without starting the shell
       run: |
-        sed -i '1 i\#![windows_subsystem = \"windows\"]' graduate/src/main.rs
+        sed -i '1 i\#![windows_subsystem = \"windows\"]' src/main.rs
     - name: Build graduate binary
       run: cargo build --verbose --release
     - name: Archive graduate binary (Uncompressed)
@@ -76,7 +76,7 @@ jobs:
     - name: Compress binaries
       uses: svenstaro/upx-action@master
       with:
-        file: ${{ matrix.exec_path }}
+        file: target/release/graduate.exe
         args: --best --lzma
     - name: Archive graduate binary
       uses: actions/upload-artifact@v1
@@ -101,7 +101,7 @@ jobs:
     - name: Compress binaries
       uses: svenstaro/upx-action@master
       with:
-        file: ${{ matrix.exec_path }}
+        file: target/release/graduate
         args: --best --lzma
     - name: Archive graduate binary
       uses: actions/upload-artifact@v1

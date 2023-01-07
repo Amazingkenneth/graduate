@@ -26,9 +26,9 @@ jobs:
         export DEBIAN_FRONTED=noninteractive
         sudo apt-get -qq update
         sudo apt-get install -y libxkbcommon-dev libasound2-dev
-    - name: Build graduate binary
+    - name: Build binary
       run: cargo build --verbose --release
-    - name: Archive graduate binary (Uncompressed)
+    - name: Archive binary (Uncompressed)
       uses: actions/upload-artifact@v1
       with:
         name: graduate-x86_64-unknown-linux-gnu-uncompressed
@@ -38,7 +38,7 @@ jobs:
       with:
         file: target/release/graduate
         args: --best --lzma
-    - name: Archive graduate binary
+    - name: Archive binary
       uses: actions/upload-artifact@v1
       with:
         name: graduate-x86_64-unknown-linux-gnu
@@ -52,6 +52,17 @@ jobs:
       with:
         name: graduate-x86_64-debian-linux-gnu
         path: target/debian/graduate-x86_64-debian-linux-gnu.deb
+    - name: Install cross
+      run: |
+        cargo clean
+        cargo install cross
+    - name: Build binary for Raspberry Pi 3/4 (64 bits)
+      run: cross build --verbose --release --target aarch64-unknown-linux-gnu
+    - name: Archive binary
+      uses: actions/upload-artifact@v1
+      with:
+        name: graduate-aarch64-unknown-linux-gnu-uncompressed
+        path: target/aarch64-unknown-linux-gnu/release/graduate
 
   build_windows:
     runs-on: windows-latest
@@ -66,9 +77,9 @@ jobs:
     - name: Run the application without starting the shell
       run: |
         sed -i '1 i\#![windows_subsystem = \"windows\"]' src/main.rs
-    - name: Build graduate binary
+    - name: Build binary
       run: cargo build --verbose --release
-    - name: Archive graduate binary (Uncompressed)
+    - name: Archive binary (Uncompressed)
       uses: actions/upload-artifact@v1
       with:
         name: graduate-x86_64-pc-windows-uncompressed
@@ -78,7 +89,7 @@ jobs:
       with:
         file: target/release/graduate.exe
         args: --best --lzma
-    - name: Archive graduate binary
+    - name: Archive binary
       uses: actions/upload-artifact@v1
       with:
         name: graduate-x86_64-pc-windows
@@ -89,11 +100,11 @@ jobs:
     steps:
     - uses: hecrj/setup-rust-action@v1
     - uses: actions/checkout@master
-    - name: Build graduate binary
+    - name: Build binary
       run: cargo build --verbose --release
     - name: Open binary via double-click
       run: chmod +x target/release/graduate
-    - name: Archive graduate binary (Uncompressed)
+    - name: Archive binary (Uncompressed)
       uses: actions/upload-artifact@v1
       with:
         name: graduate-x86_64-apple-darwin-uncompressed
@@ -103,23 +114,8 @@ jobs:
       with:
         file: target/release/graduate
         args: --best --lzma
-    - name: Archive graduate binary
+    - name: Archive binary
       uses: actions/upload-artifact@v1
       with:
         name: graduate-x86_64-apple-darwin
         path: target/release/graduate
-
-  build_raspberry:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: hecrj/setup-rust-action@v1
-    - uses: actions/checkout@master
-    - name: Install cross
-      run: cargo install cross
-    - name: Build graduate binary for Raspberry Pi 3/4 (64 bits)
-      run: cross build --verbose --release --target aarch64-unknown-linux-gnu
-    - name: Archive graduate binary (Uncompressed)
-      uses: actions/upload-artifact@v1
-      with:
-        name: graduate-aarch64-unknown-linux-gnu-uncompressed
-        path: target/aarch64-unknown-linux-gnu/release/graduate

@@ -1,5 +1,5 @@
 number_of_people = 55
-together_events = 5   # events with one or more group photos.
+together_events = 5                                                      # events with one or more group photos.
 url_prefix = "https://graduate-1313398930.cos.ap-guangzhou.myqcloud.com"
 
 # Students are numbered under 1-35, by their student number in Grade 7,
@@ -66,6 +66,14 @@ url_prefix = "https://graduate-1313398930.cos.ap-guangzhou.myqcloud.com"
 [audio]
 exercise = ["/audio/课间操/我们都是追梦人.mp3", "/audio/课间操/Deep Side - Booty Music.mp3"]
 bellring = ["/audio/铃声/瓦妮莎的微笑.m4a"]
+records = [
+    "/audio/老师录音锦集/同学们坐下来吧.mp3",
+    "/audio/老师录音锦集/回座位！安静下来.mp3",
+    "/audio/老师录音锦集/怎么还有声音啊.mp3",
+    "/audio/老师录音锦集/是你是老师还是我是老师啊.mp3",
+    "/audio/老师录音锦集/江哥-邓九贵老师1.mp3",
+    "/audio/老师录音锦集/江哥-邓九贵老师2.mp3",
+]
 
 [[event]]
 date = 2020-08-28 16:27:00

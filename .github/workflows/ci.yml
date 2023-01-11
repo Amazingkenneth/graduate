@@ -7,9 +7,20 @@ jobs:
     steps:
       - uses: actions/checkout@main
       - uses: dtolnay/rust-toolchain@stable
-      - uses: mbrobbel/rustfmt-check@master
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check if formatted
+        id: FormatCheck
+        shell: bash
+        run: |
+          find ./src -type f -print0 | xargs -0 sha256sum | sort >commit.txt
+          cargo fmt
+          find ./src -type f -print0 | xargs -0 sha256sum | sort >formatted.txt
+          exit (diff commit.txt formatted.txt)
+      - name: Remove hash files
+        if: ${{ steps.FormatCheck.conclusion == 'failure' }}
+        shell: bash
+        run: rm commit.txt formatted.txt
+      - uses: GuillaumeFalourd/git-commit-push@main
+        if: ${{ steps.FormatCheck.conclusion == 'failure' }}
   build_linux:
     runs-on: ubuntu-latest
     steps:

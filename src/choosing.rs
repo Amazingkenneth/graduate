@@ -132,7 +132,12 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
     }
     let img_fetched = img_mutex.lock().unwrap().to_vec();
     let profile_fetched = profile_mutex.lock().unwrap();
-    let mut avatars: Vec<Avatar> = Vec::with_capacity(img_fetched.len());
+    let mut avatars: Vec<Avatar> = Vec::with_capacity(img_fetched.len() + 1);
+    avatars.push(Avatar {
+        name: String::from(""),
+        photo: image::Handle::from_memory(vec![]),
+        shown: false,
+    });
     for (index, value) in img_fetched.iter().enumerate() {
         if let Some(img) = &value {
             avatars.push(Avatar {

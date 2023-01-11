@@ -1,4 +1,5 @@
 #![allow(dead_code, unused_imports)]
+mod audio;
 mod choosing;
 mod entries;
 mod subscriptions;
@@ -274,17 +275,14 @@ impl Application for Memories {
                                 Message::FinishedTyping => {
                                     for (index, avatar) in choosing.avatars.iter().enumerate() {
                                         if avatar.name.contains(choosing.description.as_str()) {
-                                            choosing.on_character = Some(index + 1);
+                                            choosing.on_character = Some(index);
                                             return Command::none();
                                         }
                                     }
                                 }
                                 Message::ChoseCharacter(chosen) => {
-                                    choosing.on_character = Some(chosen + 1);
-                                    return scrollable::snap_to(
-                                        choosing::generate_id(chosen + 1),
-                                        0.0,
-                                    );
+                                    choosing.on_character = Some(chosen);
+                                    return scrollable::snap_to(choosing::generate_id(chosen), 0.0);
                                 }
                                 Message::BackStage => {
                                     state.stage =
@@ -305,8 +303,7 @@ impl Application for Memories {
                                     );
                                 }
                                 Message::NextPerson => {
-                                    choosing.on_character =
-                                        Some((chosen + 1) % choosing.avatars.len());
+                                    choosing.on_character = Some((chosen) % choosing.avatars.len());
                                 }
                                 Message::PreviousPerson => {
                                     choosing.on_character = Some(
@@ -464,7 +461,9 @@ impl Application for Memories {
                                     let viewer = Element::from(
                                         image::viewer(photo.clone())
                                             .width(Length::FillPortion(rng.gen_range(100..=140)))
-                                            .height(Length::Units(200)),
+                                            .height(Length::Units(200))
+                                            .min_scale(0.8)
+                                            .max_scale(4.0),
                                     );
                                     if containing == 0 {
                                         containing = rng.gen_range(6..=8);
@@ -515,13 +514,13 @@ impl Application for Memories {
                             }
                             Some(chosen) => {
                                 let profile = choosing.profiles[chosen].clone();
+                                println!(
+                                    "chosen = {}, name = {}",
+                                    chosen, choosing.avatars[chosen].name
+                                );
                                 let mut content =
                                     column![text(if let Some(name_en) = profile.name_en {
-                                        format!(
-                                            "{} ({})",
-                                            choosing.avatars[chosen - 1].name,
-                                            name_en
-                                        )
+                                        format!("{} ({})", choosing.avatars[chosen].name, name_en)
                                     } else {
                                         choosing.avatars[chosen].name.clone()
                                     })
@@ -563,9 +562,8 @@ impl Application for Memories {
                                                     .expect("Cannot get `with`")
                                                     .as_integer()
                                                     .expect("`with` isn't a valid integer")
-                                                    as usize
-                                                    - 1]
-                                                .name,
+                                                    as usize]
+                                                    .name,
                                                 cur_relation.get("is").expect("Cannot get `is`")
                                             ))
                                             .size(30),
@@ -591,9 +589,8 @@ impl Application for Memories {
                                                     .expect("Cannot get `from`")
                                                     .as_integer()
                                                     .expect("`from` isn't a valid integer")
-                                                    as usize
-                                                    - 1]
-                                                .name
+                                                    as usize]
+                                                    .name
                                             ))
                                             .size(40),
                                             row![
@@ -630,7 +627,8 @@ impl Application for Memories {
                                 }
                                 container(
                                     scrollable(
-                                        column![content, apply_button].align_items(Alignment::End),
+                                        column![content.spacing(5), apply_button]
+                                            .align_items(Alignment::End),
                                     )
                                     .id(choosing::generate_id(chosen)),
                                 )

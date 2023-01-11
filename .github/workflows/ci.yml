@@ -34,10 +34,10 @@ jobs:
         name: graduate-x86_64-unknown-linux-gnu-uncompressed
         path: target/release/graduate
     - name: Compress binaries
-      shell: pwsh
+      shell: bash
       run: |
-        Invoke-WebRequest -Uri "https://github.com/upx/upx/releases/download/v4.0.1/upx-4.0.1-win64.zip" -OutFile "upx.zip"
-        Expand-Archive -Path upx.zip -DestinationPath upx
+        wget https://github.com/upx/upx/releases/download/v4.0.1/upx-4.0.1-amd64_linux.tar.xz -O upx.tar.xz
+        tar xvJf upx.tar.xz
         upx target/release/graduate --best --lzma
     - name: Archive binary
       uses: actions/upload-artifact@v1

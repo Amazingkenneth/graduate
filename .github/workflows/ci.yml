@@ -34,10 +34,11 @@ jobs:
         name: graduate-x86_64-unknown-linux-gnu-uncompressed
         path: target/release/graduate
     - name: Compress binaries
-      uses: svenstaro/upx-action@master
-      with:
-        file: target/release/graduate
-        args: --best --lzma
+      shell: pwsh
+      run: |
+        Invoke-WebRequest -Uri "https://github.com/upx/upx/releases/download/v4.0.1/upx-4.0.1-win64.zip" -OutFile "upx.zip"
+        Expand-Archive -Path upx.zip -DestinationPath upx
+        upx target/release/graduate --best --lzma
     - name: Archive binary
       uses: actions/upload-artifact@v1
       with:
@@ -74,10 +75,11 @@ jobs:
         name: graduate-x86_64-pc-windows-uncompressed
         path: target/release/graduate.exe
     - name: Compress binaries
-      uses: svenstaro/upx-action@master
-      with:
-        file: target/release/graduate.exe
-        args: --best --lzma
+      shell: pwsh
+      run: |
+        Invoke-WebRequest -Uri "https://github.com/upx/upx/releases/download/v4.0.1/upx-4.0.1-win64.zip" -OutFile "upx.zip"
+        Expand-Archive -Path upx.zip -DestinationPath upx.exe
+        ./upx.exe target/release/graduate.exe --best --lzma
     - name: Archive binary
       uses: actions/upload-artifact@v1
       with:
@@ -99,10 +101,11 @@ jobs:
         name: graduate-x86_64-apple-darwin-uncompressed
         path: target/release/graduate
     - name: Compress binaries
-      uses: svenstaro/upx-action@master
-      with:
-        file: target/release/graduate
-        args: --best --lzma
+      shell: pwsh
+      run: |
+        brew update
+        brew install upx
+        upx target/release/graduate --best --lzma
     - name: Archive binary
       uses: actions/upload-artifact@v1
       with:

@@ -6,18 +6,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@main
-      - uses: actions-rs/toolchain@master
-        with:
-            toolchain: stable
-            components: rustfmt
-            override: true
+      - uses: dtolnay/rust-toolchain@stable
       - uses: mbrobbel/rustfmt-check@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
   build_linux:
     runs-on: ubuntu-latest
     steps:
-    - uses: hecrj/setup-rust-action@v1
+    - uses: dtolnay/rust-toolchain@stable
     - name: Install cargo-deb
       run: cargo install cargo-deb
     - uses: actions/checkout@master
@@ -57,7 +53,7 @@ jobs:
   build_windows:
     runs-on: windows-latest
     steps:
-    - uses: hecrj/setup-rust-action@v1
+    - uses: dtolnay/rust-toolchain@stable
     - uses: actions/checkout@master
     - name: Enable static CRT linkage
       run: |
@@ -79,7 +75,7 @@ jobs:
       run: |
         Invoke-WebRequest -Uri "https://github.com/upx/upx/releases/download/v4.0.1/upx-4.0.1-win64.zip" -OutFile "upx.zip"
         Expand-Archive -Path upx.zip -DestinationPath upx.exe
-        ./upx.exe target/release/graduate.exe --best --lzma
+        .\upx.exe target\release\graduate.exe --best --lzma
     - name: Archive binary
       uses: actions/upload-artifact@v1
       with:
@@ -89,7 +85,7 @@ jobs:
   build_macos:
     runs-on: macOS-latest
     steps:
-    - uses: hecrj/setup-rust-action@v1
+    - uses: dtolnay/rust-toolchain@stable
     - uses: actions/checkout@master
     - name: Build binary
       run: cargo build --verbose --release
@@ -101,7 +97,7 @@ jobs:
         name: graduate-x86_64-apple-darwin-uncompressed
         path: target/release/graduate
     - name: Compress binaries
-      shell: pwsh
+      shell: bash
       run: |
         brew update
         brew install upx

@@ -1,4 +1,4 @@
-# graduate &emsp; [![CI](https://github.com/Amazingkenneth/graduate/actions/workflows/ci.yml/badge.svg)](https://github.com/Amazingkenneth/graduate/actions/workflows/ci.yml) [![Clippy Check](https://github.com/Amazingkenneth/graduate/actions/workflows/clippy-check.yml/badge.svg)](https://github.com/Amazingkenneth/graduate/actions/workflows/clippy-check.yml)
+# graduate &emsp; [![CI](https://github.com/Amazingkenneth/graduate/actions/workflows/ci.yml/badge.svg)](https://github.com/Amazingkenneth/graduate/actions/workflows/ci.yml)
 
 ***有你，才是一班。***
 
@@ -12,7 +12,7 @@
 在 [GitHub Artifacts](https://github.com/Amazingkenneth/graduate/actions/workflows/ci.yml?query=is%3Asuccess) 上找到最新的一次 CI Action，点进去并划到页面最底端，会看到如下图所示的不同系统的可执行文件供下载。
 <img width="918" alt="image" src="https://user-images.githubusercontent.com/81886982/211135228-014a6c72-7047-49e3-b927-f29d70f7a714.png">
 
-在如上图的界面中找到你自己的系统对应的可执行文件（建议选择压缩过的，也就是没有 `-uncompressed` 后缀的）
+在如上图的界面中找到你自己的系统对应的可执行文件压缩包（建议选择压缩过的，也就是没有 `-uncompressed` 后缀的），下载后解压 zip 后就可以运行啦。
 
 > 注：Linux 系统上需要安装 `libasound2-dev`（Debian / Ubuntu）或 `alsa-lib-devel`（Fedora）作为声音模块 [RustAudio/cpal](https://github.com/RustAudio/cpal) 的依赖项
 >

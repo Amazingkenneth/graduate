@@ -14,7 +14,7 @@ jobs:
           find ./src -type f -print0 | xargs -0 sha256sum | sort >commit.txt
           cargo fmt
           find ./src -type f -print0 | xargs -0 sha256sum | sort >formatted.txt
-          exit (diff commit.txt formatted.txt)
+          diff commit.txt formatted.txt
       - name: Remove hash files
         if: ${{ steps.FormatCheck.conclusion == 'failure' }}
         shell: bash
@@ -85,7 +85,7 @@ jobs:
       shell: pwsh
       run: |
         Invoke-WebRequest -Uri "https://github.com/upx/upx/releases/download/v4.0.1/upx-4.0.1-win64.zip" -OutFile "upx.zip"
-        Expand-Archive -Path upx.zip -DestinationPath upx.exe
+        Expand-Archive -Path upx.zip -DestinationPath .\
         .\upx.exe target\release\graduate.exe --best --lzma
     - name: Archive binary
       uses: actions/upload-artifact@v1

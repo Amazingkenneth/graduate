@@ -129,11 +129,6 @@ impl Application for Memories {
         println!("On update()");
         match self {
             Memories::Loading => match message {
-                /*Message::FetchImage(Ok(state)) => {
-                    // *self = Memories::Loading;
-                    // let
-                    Command::perform(exchange::change_image(state, 0, 0), Message::Loaded)
-                }*/
                 Message::Loaded(Ok(state)) => {
                     *self = Memories::Loaded(state);
                     Command::none()
@@ -271,6 +266,7 @@ impl Application for Memories {
                                             avatar.shown = false;
                                         }
                                     }
+                                    choosing.avatars[0].shown = false;
                                 }
                                 Message::FinishedTyping => {
                                     for (index, avatar) in choosing.avatars.iter().enumerate() {

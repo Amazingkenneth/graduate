@@ -1,7 +1,9 @@
-use crate::{EntryState, Error, Memories, Stage, State};
+use crate::{audio, EntryState, Error, Memories, Stage, State};
 use iced::widget::image;
 use iced::Theme;
 use reqwest::Client;
+use rodio::source::from_iter;
+use rodio::Decoder;
 use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::path::Path;
@@ -41,6 +43,12 @@ impl State {
             .as_array()
             .expect("Cannot read as an array.")
             .to_owned();
+        let fetch_audios = idxtable
+            .get("audio")
+            .expect("Cannot get the `audio` table.")
+            .as_table()
+            .expect("Cannot read as a table.")
+            .to_owned();
         let cnt = idxtable
             .get("together_events")
             .expect("Didn't find together_events in the indextable.")
@@ -52,20 +60,65 @@ impl State {
             .as_str()
             .expect("Cannot convert into string.")
             .to_string();
-        let mut preload: Vec<Vec<image::Handle>> = Vec::new();
-        preload.resize(cnt as usize, vec![]);
-        let m: Arc<Mutex<Vec<_>>> = Arc::new(Mutex::new(preload));
+        let mut images: Vec<Vec<image::Handle>> = Vec::new();
+        images.resize(cnt as usize, vec![]);
+        let img_mutex: Arc<Mutex<Vec<_>>> = Arc::new(Mutex::new(images));
+        let audios: Vec<String> = Vec::new();
+        let aud_mutex: Arc<Mutex<Vec<_>>> = Arc::new(Mutex::new(audios));
         // 循环中创建多个线程
         let mut threads = vec![];
+        for audio_type in fetch_audios.values() {
+            let cur_audios = audio_type
+                .as_array()
+                .expect("cannot parse into an array")
+                .to_owned();
+            for fetching in cur_audios {
+                let aud_mutex = aud_mutex.clone();
+                let location = location.clone();
+                let relative_path = fetching
+                    .as_str()
+                    .expect("Cannot read as a string")
+                    .to_owned()
+                    .to_string();
+                let audio_dir = format!("{}{}", &storage, relative_path);
+                let t = tokio::spawn(async move {
+                    let cli = Client::new();
+                    let audio_path = Path::new(&audio_dir);
+                    if !audio_path.is_file() {
+                        fs::create_dir_all(audio_path.parent().expect("Cannot parse the path."))
+                            .unwrap();
+                        let url = format!("{}{}", location, relative_path);
+                        println!("url: {}", url);
+                        let bytes = cli
+                            .get(&url)
+                            .send()
+                            .await
+                            .expect("Cannot send request")
+                            .bytes()
+                            .await
+                            .expect("Cannot read the image into bytes.");
+                        println!("Done processing image!");
+                        let mut file = std::fs::File::create(&audio_dir)
+                            .expect("Failed to create image file.");
+                        file.write_all(&bytes).expect(
+                            "Failed to write the audio into file in the project directory.",
+                        );
+                    }
+                    let mut aud_paths = aud_mutex.lock().unwrap();
+                    aud_paths.push(audio_dir);
+                });
+                threads.push(t);
+            }
+        }
         for i in 0..(cnt as usize) {
             // m具有了clone方法
-            let m = m.clone();
             let fetching = fetch_files[i]
                 .get("image")
                 .expect("Cannot get the `image` array..")
                 .as_array()
                 .expect("Cannot parse image as an array.")
                 .to_owned();
+            let img_mutex = img_mutex.clone();
             let storage = storage.clone();
             let location = location.clone();
             // 创建线程
@@ -101,10 +154,10 @@ impl State {
                         .expect("Failed to write the image into file in the project directory.");
                     fillin.push(image::Handle::from_memory(bytes.as_ref().to_vec()));
                 }
-                let mut preload = m.lock().unwrap();
+                let mut images = img_mutex.lock().unwrap();
 
                 // 修改共享内存
-                preload[i] = fillin;
+                images[i] = fillin;
             });
             threads.push(t);
         }
@@ -113,7 +166,17 @@ impl State {
         for t in threads {
             t.await?;
         }
-        let fetched = m.lock().unwrap();
+        let audio_paths: Vec<String> = std::mem::take(&mut aud_mutex.lock().unwrap());
+        let audio_length = idxtable
+            .get("total_length")
+            .expect("Cannot fetch the audio length")
+            .as_integer()
+            .expect("Cannot convert the length into an integer") as u64;
+        println!("reached before...");
+        std::thread::spawn(move || {
+            audio::play_music(audio_paths, audio_length);
+        });
+        let fetched = img_mutex.lock().unwrap();
         Ok(State {
             stage: Stage::EntryEvents(EntryState {
                 preload: fetched.to_vec(),
@@ -142,38 +205,4 @@ impl State {
             .expect("Cannot read as an array.")[on_event]
             .to_owned()
     }
-}
-
-pub async fn get_image(
-    storage: &String,
-    cli: &reqwest::Client,
-    url_prefix: &String,
-    path: String,
-) -> Result<image::Handle, reqwest::Error> {
-    println!("Calling get_image({})", path);
-    let img_dir = format!("{}{}", storage, path);
-    println!("Calling get_image({})", img_dir);
-    let img_path = Path::new(&img_dir);
-    if img_path.is_file() {
-        return Ok(image::Handle::from_path(&img_dir));
-    }
-    fs::create_dir_all(img_path.parent().expect("Cannot parse the path.")).unwrap();
-    async {
-        let url = format!("{}{}", url_prefix, path);
-        println!("url: {}", url);
-        let bytes = cli
-            .get(&url)
-            .send()
-            .await
-            .expect("Cannot send request")
-            .bytes()
-            .await
-            .expect("Cannot read the image into bytes.");
-        println!("Done processing image!");
-        let mut file = std::fs::File::create(&img_dir).expect("Failed to create image file.");
-        file.write_all(&bytes)
-            .expect("Failed to write the image into file in the project directory.");
-        Ok(image::Handle::from_memory(bytes.as_ref().to_vec()))
-    }
-    .await
 }

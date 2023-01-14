@@ -15,12 +15,16 @@ jobs:
           cargo fmt
           find ./src -type f -print0 | xargs -0 sha256sum | sort >formatted.txt
           diff commit.txt formatted.txt
-      - name: Remove hash files
-        if: ${{ steps.FormatCheck.conclusion == 'failure' }}
+      - name: Push formatted code.
+        if: ${{ failure() && steps.FormatCheck.conclusion == 'failure' }}
         shell: bash
-        run: rm commit.txt formatted.txt
-      - uses: GuillaumeFalourd/git-commit-push@main
-        if: ${{ steps.FormatCheck.conclusion == 'failure' }}
+        run: |
+          rm commit.txt formatted.txt
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add .
+          git commit -m "Format Code."
+          git push
   build_linux:
     runs-on: ubuntu-latest
     steps:

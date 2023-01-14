@@ -279,7 +279,10 @@ impl Application for Memories {
                                 }
                                 Message::ChoseCharacter(chosen) => {
                                     choosing.on_character = Some(chosen);
-                                    return scrollable::snap_to(choosing::generate_id(chosen), scrollable::RelativeOffset::START);
+                                    return scrollable::snap_to(
+                                        choosing::generate_id(chosen),
+                                        scrollable::RelativeOffset::START,
+                                    );
                                 }
                                 Message::BackStage => {
                                     state.stage =
@@ -458,9 +461,10 @@ impl Application for Memories {
                                     let photo = avatar.photo.to_owned();
                                     let viewer = Element::from(
                                         widget::Button::new(widget::image(photo.clone()))
-        .style(iced::theme::Button::Text)
+                                            .style(iced::theme::Button::Text)
                                             .width(Length::FillPortion(rng.gen_range(100..=140)))
-                                            .height(Length::Units(200)).on_press(Message::ChangeEmoji(i)),
+                                            .height(Length::Units(200))
+                                            .on_press(Message::ChangeEmoji(i)),
                                     );
                                     if containing == 0 {
                                         containing = element_count;

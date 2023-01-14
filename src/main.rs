@@ -83,6 +83,7 @@ pub enum Message {
     FinishedTyping,
     ChoseCharacter(usize),
     UnChoose,
+    ChangeEmoji(usize),
     PreviousPerson,
     NextPerson,
     ScaleDown,
@@ -278,7 +279,7 @@ impl Application for Memories {
                                 }
                                 Message::ChoseCharacter(chosen) => {
                                     choosing.on_character = Some(chosen);
-                                    return scrollable::snap_to(choosing::generate_id(chosen), 0.0);
+                                    return scrollable::snap_to(choosing::generate_id(chosen), scrollable::RelativeOffset::START);
                                 }
                                 Message::BackStage => {
                                     state.stage =
@@ -448,21 +449,21 @@ impl Application for Memories {
                                 ];
                                 let mut heads = vec![vec![]];
                                 let mut rng = rand::thread_rng();
-                                let mut containing: usize = rng.gen_range(6..=8);
+                                let element_count: usize = rng.gen_range(5..=8);
+                                let mut containing: usize = element_count;
                                 for (i, avatar) in choosing.avatars.iter().enumerate() {
                                     if !avatar.shown {
                                         continue;
                                     }
                                     let photo = avatar.photo.to_owned();
                                     let viewer = Element::from(
-                                        image::viewer(photo.clone())
+                                        widget::Button::new(widget::image(photo.clone()))
+        .style(iced::theme::Button::Text)
                                             .width(Length::FillPortion(rng.gen_range(100..=140)))
-                                            .height(Length::Units(200))
-                                            .min_scale(0.8)
-                                            .max_scale(4.0),
+                                            .height(Length::Units(200)).on_press(Message::ChangeEmoji(i)),
                                     );
                                     if containing == 0 {
-                                        containing = rng.gen_range(6..=8);
+                                        containing = element_count;
                                         heads.push(vec![]);
                                     }
                                     containing -= 1;

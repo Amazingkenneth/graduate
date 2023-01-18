@@ -479,8 +479,6 @@ impl Application for Memories {
                                         .style(iced::theme::Button::Secondary)
                                         .on_press(Message::BackStage)
                                         .padding(15),
-                                    // .width(Length::FillPortion(150)),
-                                    // horizontal_space(Length::FillPortion(41)),
                                     text_input(
                                         "输入以搜索",
                                         &choosing.description,
@@ -489,8 +487,6 @@ impl Application for Memories {
                                     .size(28)
                                     .padding(15)
                                     .on_submit(Message::FinishedTyping),
-                                    // .width(Length::FillPortion(618)),
-                                    // horizontal_space(Length::FillPortion(191)),
                                 ];
                                 let mut heads = vec![vec![]];
                                 let mut containing: usize = choosing.element_count;
@@ -533,9 +529,8 @@ impl Application for Memories {
                                     }
                                     scroll_head = scroll_head.push(cur_row);
                                 }
-                                let content = scrollable(
-                                    column![searchbox, scroll_head,].spacing(10), /*.align_items(Alignment::Center)*/
-                                );
+                                let content =
+                                    scrollable(column![searchbox, scroll_head,].spacing(10));
                                 container(content).width(Length::Fill).into()
                             }
                             Some(chosen) => {
@@ -556,7 +551,6 @@ impl Application for Memories {
                                         .padding(15)
                                         .style(iced::theme::Button::Primary)
                                         .on_press(Message::NextStage),
-                                    //horizontal_space(Length::Units(20))
                                 ]
                                 .spacing(20);
                                 content =
@@ -665,7 +659,6 @@ impl Application for Memories {
                                     )
                                     .id(choosing::generate_id(chosen)),
                                 )
-                                //.width(Length::Fill)
                                 .center_x()
                                 .center_y()
                                 .into()

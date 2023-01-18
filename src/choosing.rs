@@ -24,7 +24,14 @@ pub struct Profile {
 pub struct Avatar {
     pub name: String,
     pub photo: image::Handle,
+    pub emoji: Vec<Emoji>,
     pub shown: bool,
+}
+
+#[derive(Clone, Debug)]
+pub struct Emoji {
+    pub emoji: image::Handle,
+    pub emoji_name: String,
 }
 
 pub async fn get_configs(state: State) -> Result<State, crate::Error> {
@@ -50,9 +57,12 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
     img_array.resize(names.len() + 1, Default::default());
     let mut profile_array: Vec<Profile> = Vec::new();
     profile_array.resize(names.len() + 1, Default::default());
+    let mut emoji_array: Vec<Vec<Emoji>> = Vec::new();
+    emoji_array.resize(names.len() + 1, Default::default());
 
     let img_mutex: Arc<Mutex<Vec<_>>> = Arc::new(Mutex::new(img_array));
     let profile_mutex: Arc<Mutex<Vec<_>>> = Arc::new(Mutex::new(profile_array));
+    let emoji_mutex: Arc<Mutex<Vec<_>>> = Arc::new(Mutex::new(emoji_array));
 
     let url_prefix = state
         .idxtable
@@ -66,7 +76,7 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
         .expect("Cannot create the directory for profile.");
     fs::create_dir_all(Path::new(&format!("{}/image/known_people", state.storage)))
         .expect("Cannot create the directory for image.");
-    println!("names.len = {}", names.len());
+
     for num in 1..names.len() {
         let img_mutex = img_mutex.clone();
         let profile_mutex = profile_mutex.clone();
@@ -129,16 +139,67 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
         threads.push(t);
     }
 
+    let emojis = state
+        .idxtable
+        .get("emoji")
+        .expect("Cannot get emoji array!")
+        .as_array()
+        .expect("Cannot convert emojis into an array");
+    for emoji in emojis {
+        let cur_path = emoji
+            .as_str()
+            .expect("Cannot convert emoji item into str")
+            .to_string();
+        let emoji_url = format!("{}/image/emoji/{}", url_prefix, cur_path);
+        let emoji_dir = format!("{}/image/emoji/{}", state.storage, cur_path);
+        let emoji_mutex = emoji_mutex.clone();
+        let t = tokio::spawn(async move {
+            let (num_str, emoji_name) =
+                cur_path.split_at(cur_path.find('/').expect("Not valid separator"));
+            let mut num_string = num_str.to_string();
+            num_string.pop();
+            let num = num_string.parse::<usize>().expect("Cannot parse the num");
+            let emoji_path = Path::new(&emoji_dir);
+            if emoji_path.is_file() {
+                let mut emoji_array = emoji_mutex.lock().unwrap();
+                emoji_array[num].push(Emoji {
+                    emoji_name: emoji_name.to_string(),
+                    emoji: image::Handle::from_path(&emoji_path),
+                });
+            } else {
+                let emoji_bytes = reqwest::get(&emoji_url)
+                    .await
+                    .expect("Cannot send request")
+                    .bytes()
+                    .await
+                    .expect("Cannot read the emoji into bytes.");
+                let mut emoji_file =
+                    std::fs::File::create(&emoji_path).expect("Failed to create image file.");
+                emoji_file
+                    .write_all(&emoji_bytes)
+                    .expect("Failed to write the image into file in the project directory.");
+                let mut emoji_array = emoji_mutex.lock().unwrap();
+                emoji_array[num].push(Emoji {
+                    emoji_name: emoji_name.to_string(),
+                    emoji: image::Handle::from_memory(emoji_bytes.to_vec()),
+                });
+            }
+        });
+        threads.push(t);
+    }
+
     // 等待所有线程结束
     for t in threads {
         t.await?;
     }
     let img_fetched = img_mutex.lock().unwrap().to_vec();
     let profile_fetched = profile_mutex.lock().unwrap();
+    let emoji_fetched = emoji_mutex.lock().unwrap();
     let mut avatars: Vec<Avatar> = Vec::with_capacity(img_fetched.len() + 1);
     avatars.push(Avatar {
         name: String::from(""),
         photo: image::Handle::from_memory(vec![]),
+        emoji: Vec::new(),
         shown: false,
     });
     for (index, value) in img_fetched.iter().enumerate() {
@@ -146,6 +207,7 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
             avatars.push(Avatar {
                 name: names[index].to_owned(),
                 photo: img.to_owned(),
+                emoji: emoji_fetched[index].to_owned(),
                 shown: true,
             });
         }

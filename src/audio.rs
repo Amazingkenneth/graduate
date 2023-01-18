@@ -32,10 +32,10 @@ pub async fn play_music(sink: Arc<Mutex<Box<rodio::Sink>>>, mut paths: Vec<Strin
             } else {
                 sink.append(source);
             }
-        println!("sink.empty = {}", sink.empty());
+            println!("sink.empty = {}", sink.empty());
         }
         sleep(std::time::Duration::from_secs(wait)).await;
-    let mut rng = rand::thread_rng();
+        let mut rng = rand::thread_rng();
         paths.shuffle(&mut rng);
     }
 }

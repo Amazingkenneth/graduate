@@ -1,5 +1,6 @@
 use crate::{ChoosingState, State};
 use iced::widget::image;
+use rand::Rng;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::fs::{self, File};
@@ -34,9 +35,9 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
         .as_table()
         .expect("Cannot read as toml::table")
         .to_owned();
-    let mut names: Vec<String> = Vec::with_capacity(has.len());
-    names.push(String::from("合照"));
-    for value in 1..has.len() {
+    let mut names: Vec<String> = Vec::with_capacity(has.len() + 1);
+    names.push(String::from(""));
+    for value in 1..=has.len() {
         names.push(
             has.get(&value.to_string())
                 .expect("Cannot find the name of the given number")
@@ -46,9 +47,9 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
         );
     }
     let mut img_array: Vec<Option<image::Handle>> = Vec::new();
-    img_array.resize(names.len(), Default::default());
+    img_array.resize(names.len() + 1, Default::default());
     let mut profile_array: Vec<Profile> = Vec::new();
-    profile_array.resize(names.len(), Default::default());
+    profile_array.resize(names.len() + 1, Default::default());
 
     let img_mutex: Arc<Mutex<Vec<_>>> = Arc::new(Mutex::new(img_array));
     let profile_mutex: Arc<Mutex<Vec<_>>> = Arc::new(Mutex::new(profile_array));
@@ -65,6 +66,7 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
         .expect("Cannot create the directory for profile.");
     fs::create_dir_all(Path::new(&format!("{}/image/known_people", state.storage)))
         .expect("Cannot create the directory for image.");
+    println!("names.len = {}", names.len());
     for num in 1..names.len() {
         let img_mutex = img_mutex.clone();
         let profile_mutex = profile_mutex.clone();
@@ -148,10 +150,13 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
             });
         }
     }
+    let mut rng = rand::thread_rng();
+    let element_count: usize = rng.gen_range(6..=8);
     if let crate::Stage::EntryEvents(previous) = state.stage {
         Ok(State {
             stage: crate::Stage::ChoosingCharacter(ChoosingState {
                 avatars,
+                element_count,
                 profiles: profile_fetched.to_vec(),
                 on_character: None,
                 description: String::from(""),

@@ -42,7 +42,7 @@ jobs:
     - name: Archive binary (Uncompressed)
       uses: actions/upload-artifact@v1
       with:
-        name: graduate-x86_64-unknown-linux-gnu-uncompressed
+        name: graduate-x64-Linux-gnu-uncompressed
         path: target/release/graduate
     - name: Compress binaries
       shell: bash
@@ -53,17 +53,17 @@ jobs:
     - name: Archive binary
       uses: actions/upload-artifact@v1
       with:
-        name: graduate-x86_64-unknown-linux-gnu
+        name: graduate-x64-Linux-gnu
         path: target/release/graduate
     - name: Pack graduate .deb package
       run: cargo deb --no-build --no-strip
     - name: Rename graduate .deb package
-      run: mv target/debian/*.deb target/debian/graduate-x86_64-debian-linux-gnu.deb
+      run: mv target/debian/*.deb target/debian/graduate-x64-debian-linux-gnu.deb
     - name: Archive graduate .deb package
       uses: actions/upload-artifact@v1
       with:
-        name: graduate-x86_64-debian-linux-gnu
-        path: target/debian/graduate-x86_64-debian-linux-gnu.deb
+        name: graduate-x64-Debian
+        path: target/debian/graduate-x64-debian-linux-gnu.deb
 
   build_windows:
     runs-on: windows-latest
@@ -73,7 +73,7 @@ jobs:
     - name: Enable static CRT linkage
       run: |
         mkdir .cargo
-        echo '[target.x86_64-pc-windows-msvc]' >> .cargo/config
+        echo '[target.x64-pc-windows-msvc]' >> .cargo/config
         echo 'rustflags = ["-Ctarget-feature=+crt-static"]' >> .cargo/config
     - name: Run the application without starting the shell
       run: |
@@ -83,7 +83,7 @@ jobs:
     - name: Archive binary (Uncompressed)
       uses: actions/upload-artifact@v1
       with:
-        name: graduate-x86_64-pc-windows-uncompressed
+        name: graduate-x64-Windows-uncompressed
         path: target/release/graduate.exe
     - name: Compress binaries
       shell: pwsh
@@ -94,11 +94,11 @@ jobs:
     - name: Archive binary
       uses: actions/upload-artifact@v1
       with:
-        name: graduate-x86_64-pc-windows
+        name: graduate-x64-Windows
         path: target/release/graduate.exe
 
   build_macos:
-    runs-on: macOS-latest
+    runs-on: macos-latest
     steps:
     - uses: dtolnay/rust-toolchain@stable
     - uses: actions/checkout@master
@@ -109,7 +109,7 @@ jobs:
     - name: Archive binary (Uncompressed)
       uses: actions/upload-artifact@v1
       with:
-        name: graduate-x86_64-apple-darwin-uncompressed
+        name: graduate-x64-MacOS-uncompressed
         path: target/release/graduate
     - name: Compress binaries
       shell: bash
@@ -120,5 +120,5 @@ jobs:
     - name: Archive binary
       uses: actions/upload-artifact@v1
       with:
-        name: graduate-x86_64-apple-darwin
+        name: graduate-x64-MacOS
         path: target/release/graduate

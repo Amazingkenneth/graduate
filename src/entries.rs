@@ -172,7 +172,6 @@ impl State {
             .expect("Cannot fetch the audio length")
             .as_integer()
             .expect("Cannot convert the length into an integer") as u64;
-        println!("reached before...");
         std::thread::spawn(move || {
             audio::play_music(audio_paths, audio_length);
         });

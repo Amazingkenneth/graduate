@@ -1,9 +1,9 @@
+use crate::audio::Audios;
 use crate::{audio, EntryState, Error, Memories, Stage, State};
 use iced::widget::image;
 use iced::Theme;
 use reqwest::Client;
-use rodio::source::from_iter;
-use rodio::Decoder;
+use rodio::Sink;
 use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::path::Path;
@@ -172,9 +172,15 @@ impl State {
             .expect("Cannot fetch the audio length")
             .as_integer()
             .expect("Cannot convert the length into an integer") as u64;
-        std::thread::spawn(move || {
-            audio::play_music(audio_paths, audio_length);
+
+        let (_stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
+        let sink = Sink::try_new(&stream_handle).unwrap();
+        let sink_mutex = Arc::new(Mutex::new(Box::new(sink)));
+        let given_mutex = sink_mutex.clone();
+        tokio::spawn(async move {
+            audio::play_music(given_mutex, audio_paths, audio_length).await;
         });
+
         let fetched = img_mutex.lock().unwrap();
         Ok(State {
             stage: Stage::EntryEvents(EntryState {
@@ -193,6 +199,10 @@ impl State {
                 }),
                 time: None,
                 offset: None,
+            },
+            aud_module: Audios {
+                volume: 1.0,
+                sink: sink_mutex,
             },
         })
     }

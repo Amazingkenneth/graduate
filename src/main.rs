@@ -41,6 +41,7 @@ pub struct State {
     scale_factor: f64,
     theme: Theme,
     from_date: toml::value::Datetime,
+    aud_module: audio::Audios,
 }
 
 #[derive(Clone, Debug)]

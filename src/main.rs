@@ -543,17 +543,6 @@ impl Application for Memories {
                                         choosing.avatars[chosen].name.clone()
                                     })
                                     .size(50)];
-                                let apply_button = row![
-                                    widget::Button::new(text("返回").size(40))
-                                        .padding(15)
-                                        .style(iced::theme::Button::Secondary)
-                                        .on_press(Message::UnChoose),
-                                    widget::Button::new(text("选好啦").size(40))
-                                        .padding(15)
-                                        .style(iced::theme::Button::Primary)
-                                        .on_press(Message::NextStage),
-                                ]
-                                .spacing(20);
                                 content =
                                     content.push(show_profiles(profile.nickname, "ta 的昵称"));
                                 if let Some(relations) = profile.relationship {
@@ -588,6 +577,22 @@ impl Application for Memories {
                                         ]);
                                     }
                                 }
+                                let mut emojis = row![].align_items(Alignment::Center).spacing(5);
+                                for i in &choosing.avatars[chosen].emoji {
+                                    emojis = emojis.push(
+                                        column![
+                                            widget::image::viewer(i.emoji.clone()),
+                                            text(i.emoji_name.clone()).size(30)
+                                        ]
+                                        .align_items(Alignment::Center),
+                                    );
+                                }
+                                let mut content = column![row![
+                                    content,
+                                    scrollable(emojis).horizontal_scroll(
+                                        iced::widget::scrollable::Properties::new()
+                                    ).height(Length::Shrink)
+                                ]];
                                 content = content.push(show_profiles(profile.plots, "ta 的小日常"));
                                 if let Some(intro) = profile.introduction {
                                     content = content.push(column![
@@ -653,6 +658,17 @@ impl Application for Memories {
                                         ]);
                                     }
                                 }
+                                let apply_button = row![
+                                    widget::Button::new(text("返回").size(40))
+                                        .padding(15)
+                                        .style(iced::theme::Button::Secondary)
+                                        .on_press(Message::UnChoose),
+                                    widget::Button::new(text("选好啦").size(40))
+                                        .padding(15)
+                                        .style(iced::theme::Button::Primary)
+                                        .on_press(Message::NextStage),
+                                ]
+                                .spacing(20);
                                 container(
                                     scrollable(
                                         column![content.spacing(5), apply_button]

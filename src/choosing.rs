@@ -158,15 +158,15 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
         let t = tokio::spawn(async move {
             let (num_str, emoji_name) =
                 cur_path.split_at(cur_path.find('/').expect("Not valid separator") + 1);
-            let mut num_string = num_str.to_string();
+            let (mut num_string, mut emoji_name) = (num_str.to_string(), emoji_name.to_string());
             num_string.pop();
-            println!("num_string = \"{}\"\n", num_string);
+            emoji_name.truncate(emoji_name.find('.').expect("Cannot find the suffix."));
             let num = num_string.parse::<usize>().expect("Cannot parse the num");
             let emoji_path = Path::new(&emoji_dir);
             if emoji_path.is_file() {
                 let mut emoji_array = emoji_mutex.lock().unwrap();
                 emoji_array[num].push(Emoji {
-                    emoji_name: emoji_name.to_string(),
+                    emoji_name,
                     emoji: image::Handle::from_path(&emoji_path),
                 });
             } else {
@@ -183,7 +183,7 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
                     .expect("Failed to write the image into file in the project directory.");
                 let mut emoji_array = emoji_mutex.lock().unwrap();
                 emoji_array[num].push(Emoji {
-                    emoji_name: emoji_name.to_string(),
+                    emoji_name,
                     emoji: image::Handle::from_memory(emoji_bytes.to_vec()),
                 });
             }

@@ -41,14 +41,8 @@ pub async fn play_music(
             } else {
                 sink.append(source);
             }
-<<<<<<< HEAD
         }
         sleep(Duration::from_secs(wait)).await;
-=======
-            println!("sink.empty = {}", sink.empty());
-        }
-        sleep(std::time::Duration::from_secs(wait)).await;
->>>>>>> 71ad8c8443eb31d414bb4c733e72f5633258a135
         let mut rng = rand::thread_rng();
         paths.shuffle(&mut rng);
     }

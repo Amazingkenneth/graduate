@@ -6,7 +6,9 @@ use reqwest::Client;
 use rodio::Sink;
 use std::fs::{self, File};
 use std::io::{Read, Write};
+use std::mem::ManuallyDrop;
 use std::path::Path;
+use std::pin;
 use std::sync::{Arc, Mutex};
 use toml::value::{self, Datetime};
 
@@ -173,15 +175,18 @@ impl State {
             .as_integer()
             .expect("Cannot convert the length into an integer") as u64;
 
-        let (_stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
-        let sink = Sink::try_new(&stream_handle).unwrap();
-        let sink_mutex = Arc::new(Mutex::new(Box::new(sink)));
+        let (stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
+        let sink = ManuallyDrop::new(audio::AudioStream {
+            sink: Sink::try_new(&stream_handle).unwrap(),
+            stream,
+        });
+        let sink_mutex = Arc::new(Mutex::new(sink));
         let given_mutex = sink_mutex.clone();
         tokio::spawn(async move {
             audio::play_music(given_mutex, audio_paths, audio_length).await;
         });
-
         let fetched = img_mutex.lock().unwrap();
+        // let try_mutex = sink_mutex.clone();
         Ok(State {
             stage: Stage::EntryEvents(EntryState {
                 preload: fetched.to_vec(),

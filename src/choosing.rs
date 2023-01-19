@@ -83,7 +83,7 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
         let storage = state.storage.clone();
         let url_prefix = url_prefix.clone();
         fs::create_dir_all(Path::new(&format!("{}/image/emoji/{}", state.storage, num)))
-        .expect("Cannot create the directory for emoji.");
+            .expect("Cannot create the directory for emoji.");
 
         let t = tokio::spawn(async move {
             let profile_path = Path::new(&format!("{}/profile/{}.toml", storage, num)).to_owned();
@@ -157,7 +157,7 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
         let emoji_mutex = emoji_mutex.clone();
         let t = tokio::spawn(async move {
             let (num_str, emoji_name) =
-                cur_path.split_at(cur_path.find('/').expect("Not valid separator")+1);
+                cur_path.split_at(cur_path.find('/').expect("Not valid separator") + 1);
             let mut num_string = num_str.to_string();
             num_string.pop();
             println!("num_string = \"{}\"\n", num_string);

@@ -1,4 +1,6 @@
-#include <bits/stdc++.h>
+#include <filesystem>
+#include <iostream>
+#include <vector>
 using namespace std;
 using namespace std::filesystem;
 char formatted[30];
@@ -11,7 +13,7 @@ int main() {
   path str(p);
   if (!exists(str))
     return 1;
-  directory_entry entry(str); //文件入口
+  directory_entry entry(str); // 文件入口
   if (entry.status().type() == file_type::directory)
     cerr << "Successfully read the directory:" << endl;
   else

@@ -1,9 +1,11 @@
 #![allow(dead_code, unused_imports)]
 mod audio;
 mod choosing;
+mod configs;
 mod entries;
 mod subscriptions;
 mod visiting;
+
 use iced::widget::{
     self, column, container, horizontal_space, image, row, scrollable, text, text_input,
     vertical_space, Column, Row,
@@ -38,10 +40,7 @@ pub struct State {
     stage: Stage,
     idxtable: Table,
     storage: String,
-    scale_factor: f64,
-    theme: Theme,
-    from_date: toml::value::Datetime,
-    aud_module: audio::Audios,
+    configs: configs::Configs,
 }
 
 #[derive(Clone, Debug)]
@@ -90,15 +89,19 @@ pub enum Message {
     FinishedTyping,
     ChoseCharacter(usize),
     UnChoose,
-    ChangeEmoji(usize),
+    SwitchMusicStatus,
+    DoneProcessingMusic(()),
+    ModifyVolume(iced_audio::Normal),
     PreviousPerson,
     NextPerson,
     ScaleDown,
     ScaleEnlarge,
     ScaleRestore,
-    SwapTheme,
+    IsDarkTheme(bool),
     OpenInExplorer,
     Refresh,
+    OpenSettings,
+    HideSettings,
 }
 
 #[derive(Clone, Debug)]
@@ -160,26 +163,44 @@ impl Application for Memories {
                 _ => Command::none(),
             },
             Memories::Loaded(state) => {
-                println!("Loaded...");
-
                 match message {
                     Message::ScaleDown => {
-                        state.scale_factor /= 1.05;
+                        state.configs.scale_factor /= 1.05;
                         return Command::none();
                     }
                     Message::ScaleEnlarge => {
-                        state.scale_factor *= 1.05;
+                        state.configs.scale_factor *= 1.05;
                         return Command::none();
                     }
                     Message::ScaleRestore => {
-                        state.scale_factor = 1.0;
+                        state.configs.scale_factor = 1.0;
                         return Command::none();
                     }
-                    Message::SwapTheme => {
-                        state.theme = match state.theme {
-                            Theme::Dark => Theme::Light,
-                            Theme::Light | Theme::Custom(_) => Theme::Dark,
-                        };
+                    Message::IsDarkTheme(is_dark) => {
+                        if is_dark {
+                            state.configs.theme = Theme::Dark;
+                        } else {
+                            state.configs.theme = Theme::Light;
+                        }
+                        return Command::none();
+                    }
+                    Message::OpenSettings => {
+                        state.configs.show = true;
+                        return Command::none();
+                    }
+                    Message::HideSettings => {
+                        state.configs.show = false;
+                        return Command::none();
+                    }
+                    Message::SwitchMusicStatus => {
+                        state.configs.aud_module.on_play ^= true;
+                        return Command::perform(
+                            audio::switch_pause_status(state.configs.aud_module.clone()),
+                            Message::DoneProcessingMusic,
+                        );
+                    }
+                    Message::ModifyVolume(new_volume) => {
+                        state.configs.aud_module.volume = new_volume.into();
                         return Command::none();
                     }
                     Message::OpenInExplorer => {
@@ -260,7 +281,7 @@ impl Application for Memories {
                             }
                             Message::NextStage => {
                                 let cur_event = chosen.on_event;
-                                state.from_date = state
+                                state.configs.from_date = state
                                     .get_current_event(cur_event)
                                     .get("date")
                                     .expect("No date value in the item.")
@@ -376,8 +397,7 @@ impl Application for Memories {
             .center_y()
             .into(),
             Memories::Loaded(state) => {
-                println!("Loaded Image!");
-                match &state.stage {
+                let content = match &state.stage {
                     Stage::EntryEvents(chosen) => row![
                         image::viewer(
                             chosen.preload[chosen.on_event as usize][chosen.on_image].clone()
@@ -446,21 +466,24 @@ impl Application for Memories {
                                 .width(Length::Units(80))
                                 .on_press(Message::NextEvent),
                             ],
-                            widget::Button::new(
+                            button_from_svg(include_bytes!("./runtime/sliders.svg").to_vec())
+                                .width(Length::Units(80))
+                                .on_press(Message::OpenSettings),
+                            /*widget::Button::new(
                                 column![text("切换主题").size(30), text("Ctrl + T").size(20)]
                                     .align_items(Alignment::Center)
                                     .spacing(15)
                             )
                             .padding(10)
                             .style(iced::theme::Button::Secondary)
-                            .on_press(Message::SwapTheme),
+                            .on_press(Message::SwapTheme)*/
                             widget::Button::new(
                                 column![text("打开对应文件").size(30), text("Ctrl + O").size(20)]
                                     .align_items(Alignment::Center)
                                     .spacing(15)
                             )
                             .padding(10)
-                            .style(iced::theme::Button::Text)
+                            .style(iced::theme::Button::Secondary)
                             .on_press(Message::OpenInExplorer),
                         ]
                         .spacing(20)
@@ -589,9 +612,11 @@ impl Application for Memories {
                                 }
                                 let mut content = column![row![
                                     content,
-                                    scrollable(emojis).horizontal_scroll(
-                                        iced::widget::scrollable::Properties::new()
-                                    ).height(Length::Shrink)
+                                    scrollable(emojis)
+                                        .horizontal_scroll(
+                                            iced::widget::scrollable::Properties::new()
+                                        )
+                                        .height(Length::Shrink)
                                 ]];
                                 content = content.push(show_profiles(profile.plots, "ta 的小日常"));
                                 if let Some(intro) = profile.introduction {
@@ -686,6 +711,11 @@ impl Application for Memories {
                         println!("current state: {:?}", state);
                         row![column![text("Not implemented").size(50)].spacing(20)].into()
                     }
+                };
+                if state.configs.show {
+                    configs::settings_over(state.configs.clone(), content)
+                } else {
+                    content
                 }
             }
         }
@@ -708,14 +738,14 @@ impl Application for Memories {
     fn scale_factor(&self) -> f64 {
         match self {
             Memories::Loading => 1.0,
-            Memories::Loaded(state) => state.scale_factor,
+            Memories::Loaded(state) => state.configs.scale_factor,
         }
     }
 
     fn theme(&self) -> Theme {
         match self {
             Memories::Loading => Theme::Light,
-            Memories::Loaded(state) => state.theme.clone(),
+            Memories::Loaded(state) => state.configs.theme.clone(),
         }
     }
 }

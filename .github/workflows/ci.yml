@@ -62,7 +62,7 @@ jobs:
     - name: Archive graduate .deb package
       uses: actions/upload-artifact@v1
       with:
-        name: graduate-x64-Debian
+        name: graduate-x64-Debian(dpkg)
         path: target/debian/graduate-x64-debian-linux-gnu.deb
 
   build_windows:

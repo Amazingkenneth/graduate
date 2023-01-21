@@ -9,6 +9,7 @@ use tokio::time::*;
 pub struct Audios {
     pub sink: Arc<std::sync::Mutex<ManuallyDrop<AudioStream>>>,
     pub volume: f32,
+    pub on_play: bool,
 }
 
 pub struct AudioStream {
@@ -45,5 +46,15 @@ pub async fn play_music(
         sleep(Duration::from_secs(wait)).await;
         let mut rng = rand::thread_rng();
         paths.shuffle(&mut rng);
+    }
+}
+
+pub async fn switch_pause_status(aud: Audios) {
+    if aud.on_play {
+        tokio::time::advance(tokio::time::Duration::ZERO).await;
+    } else {
+        let audio_stream = aud.sink.lock().unwrap();
+        audio_stream.sink.pause();
+        tokio::time::pause();
     }
 }

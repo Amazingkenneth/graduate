@@ -1,4 +1,5 @@
 use crate::audio::Audios;
+use crate::configs::Configs;
 use crate::{audio, EntryState, Error, Memories, Stage, State};
 use iced::widget::image;
 use iced::Theme;
@@ -194,20 +195,24 @@ impl State {
             }),
             idxtable,
             storage: storage.to_string(),
-            scale_factor: 1.0,
-            theme: Theme::Light,
-            from_date: Datetime {
-                date: Some(toml::value::Date {
-                    year: 2020,
-                    month: 6,
-                    day: 1,
-                }),
-                time: None,
-                offset: None,
-            },
-            aud_module: Audios {
-                volume: 1.0,
-                sink: sink_mutex,
+            configs: Configs {
+                scale_factor: 1.0,
+                theme: Theme::Light,
+                from_date: Datetime {
+                    date: Some(toml::value::Date {
+                        year: 2020,
+                        month: 6,
+                        day: 1,
+                    }),
+                    time: None,
+                    offset: None,
+                },
+                aud_module: Audios {
+                    volume: 1.0,
+                    sink: sink_mutex,
+                    on_play: true,
+                },
+                show: false,
             },
         })
     }

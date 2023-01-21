@@ -25,9 +25,9 @@ fn global_response(event: keyboard::Event) -> Option<Message> {
             keyboard::KeyCode::Equals | keyboard::KeyCode::NumpadEquals => {
                 Some(Message::ScaleRestore)
             }
-            keyboard::KeyCode::R => Some(Message::Refresh),
-            keyboard::KeyCode::T => Some(Message::SwapTheme),
             keyboard::KeyCode::O => Some(Message::OpenInExplorer),
+            keyboard::KeyCode::R => Some(Message::Refresh),
+            keyboard::KeyCode::S => Some(Message::OpenSettings),
             _ => None,
         },
         _ => None,

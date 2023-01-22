@@ -193,14 +193,17 @@ impl Application for Memories {
                         return Command::none();
                     }
                     Message::SwitchMusicStatus => {
-                        state.configs.aud_module.on_play ^= true;
-                        return Command::perform(
-                            audio::switch_pause_status(state.configs.aud_module.clone()),
-                            Message::DoneProcessingMusic,
-                        );
+                        let sink = &state.configs.aud_module.lock().unwrap().sink;
+                        if sink.is_paused() {
+                            sink.play();
+                        } else {
+                            sink.pause();
+                        }
+                        return Command::none();
                     }
                     Message::ModifyVolume(new_volume) => {
-                        state.configs.aud_module.volume = new_volume.into();
+                        let sink = &state.configs.aud_module.lock().unwrap().sink;
+                        sink.set_volume(new_volume.into());
                         return Command::none();
                     }
                     Message::OpenInExplorer => {

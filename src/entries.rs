@@ -1,4 +1,4 @@
-use crate::audio::Audios;
+use crate::audio::{AudioStream, Audios};
 use crate::configs::Configs;
 use crate::{audio, EntryState, Error, Memories, Stage, State};
 use iced::widget::image;
@@ -169,13 +169,8 @@ impl State {
         for t in threads {
             t.await?;
         }
-        let audio_paths: Vec<String> = std::mem::take(&mut aud_mutex.lock().unwrap());
-        let audio_length = idxtable
-            .get("total_length")
-            .expect("Cannot fetch the audio length")
-            .as_integer()
-            .expect("Cannot convert the length into an integer") as u64;
 
+        let audio_paths: Vec<String> = std::mem::take(&mut aud_mutex.lock().unwrap());
         let (stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
         let sink = ManuallyDrop::new(audio::AudioStream {
             sink: Sink::try_new(&stream_handle).unwrap(),
@@ -184,7 +179,7 @@ impl State {
         let sink_mutex = Arc::new(Mutex::new(sink));
         let given_mutex = sink_mutex.clone();
         tokio::spawn(async move {
-            audio::play_music(given_mutex, audio_paths, audio_length).await;
+            audio::play_music(given_mutex, audio_paths).await;
         });
         let fetched = img_mutex.lock().unwrap();
         // let try_mutex = sink_mutex.clone();
@@ -207,11 +202,7 @@ impl State {
                     time: None,
                     offset: None,
                 },
-                aud_module: Audios {
-                    volume: 1.0,
-                    sink: sink_mutex,
-                    on_play: true,
-                },
+                aud_module: sink_mutex,
                 show: false,
             },
         })

@@ -1,3 +1,4 @@
+use crate::audio::AudioStream;
 use crate::Message;
 use iced::widget::{
     self, column, container, horizontal_space, image, row, scrollable, text, text_input,
@@ -5,13 +6,16 @@ use iced::widget::{
 };
 use iced::{alignment, subscription, Alignment, Length, Theme};
 use iced_audio::native::h_slider::HSlider;
+use std::mem::ManuallyDrop;
+use std::sync::{Arc, Mutex};
+
 #[derive(Clone, Debug)]
 pub struct Configs {
     pub show: bool,
     pub scale_factor: f64,
     pub theme: Theme,
     pub from_date: toml::value::Datetime,
-    pub aud_module: crate::audio::Audios,
+    pub aud_module: Arc<std::sync::Mutex<ManuallyDrop<AudioStream>>>,
 }
 
 pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::Element<Message> {
@@ -27,12 +31,12 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                     ),
                     text("音量控制").size(25),
                     row![
-                        if config.aud_module.on_play {
-                            crate::button_from_svg(include_bytes!("./runtime/pause.svg").to_vec())
+                        if config.aud_module.lock().unwrap().sink.is_paused() {
+                            crate::button_from_svg(include_bytes!("./runtime/play.svg").to_vec())
                                 .width(Length::Units(40))
                                 .on_press(Message::SwitchMusicStatus)
                         } else {
-                            crate::button_from_svg(include_bytes!("./runtime/play.svg").to_vec())
+                            crate::button_from_svg(include_bytes!("./runtime/pause.svg").to_vec())
                                 .width(Length::Units(40))
                                 .on_press(Message::SwitchMusicStatus)
                         },

@@ -1,16 +1,12 @@
+use lofty::AudioFile;
 use rand::seq::SliceRandom;
 use rodio::source::{SineWave, Source};
 use rodio::{Decoder, OutputStream, Sink};
 use std::mem::ManuallyDrop;
+use std::sync::atomic::AtomicBool;
+use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
 use tokio::time::{sleep, Duration};
-
-#[derive(Clone)]
-pub struct Audios {
-    pub sink: Arc<std::sync::Mutex<ManuallyDrop<AudioStream>>>,
-    pub volume: f32,
-    pub on_play: bool,
-}
 
 pub struct AudioStream {
     pub sink: rodio::Sink,
@@ -25,24 +21,38 @@ impl std::fmt::Debug for AudioStream {
 }
 
 pub async fn play_music(
-    sink: Arc<std::sync::Mutex<ManuallyDrop<AudioStream>>>,
+    stream: Arc<std::sync::Mutex<ManuallyDrop<AudioStream>>>,
     mut paths: Vec<String>,
+    running_status: Arc<AtomicBool>,
 ) {
     let mut is_first_audio = true;
     loop {
-        let sink = &sink.lock().unwrap().sink;
         for audio_dir in &paths {
             let audio_buf = std::fs::File::open(&audio_dir).unwrap();
+            let cur_duration = {
+                let mut another_buf = std::fs::File::open(&audio_dir).unwrap();
+                let tagged_file =
+                    lofty::TaggedFile::read_from(&mut another_buf, lofty::ParseOptions::new())
+                        .unwrap();
+                tagged_file.properties().duration()
+            };
             let file = std::io::BufReader::new(audio_buf);
             let source = rodio::Decoder::new(file).unwrap();
             if is_first_audio {
-                sink.append(source.fade_in(Duration::from_secs(8)));
                 is_first_audio = false;
+                let sink = &stream.lock().unwrap().sink;
+                sink.append(source.fade_in(Duration::from_secs(8)));
             } else {
+                let sink = &stream.lock().unwrap().sink;
                 sink.append(source);
             }
+            sleep(cur_duration).await;
+            if stream.lock().unwrap().sink.is_paused() {
+                drop(stream.lock().unwrap());
+                running_status.store(false, Ordering::Relaxed);
+                return;
+            }
         }
-        sink.sleep_until_end();
         let mut rng = rand::thread_rng();
         paths.shuffle(&mut rng);
     }

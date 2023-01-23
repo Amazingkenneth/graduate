@@ -17,15 +17,13 @@ rodio = { version = "0", default-features = false, features = [
     "symphonia-all",
 ] }
 iced = { version = "0", features = ["image", "svg", "tokio"] }
-iced_audio = "0"
 iced_native = "0"
+iced_audio = "0"
+lofty = "0"
 reqwest = "0"
 tokio = { version = "1", features = ["full"] }
 directories = "4"
 rand = "0"
-
-[target.'cfg(windows)'.dependencies]
-winapi = { version = "0", features = ["winuser"] }
 
 [profile.release]
 lto = "fat"

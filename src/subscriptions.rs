@@ -26,6 +26,7 @@ fn global_response(event: keyboard::Event) -> Option<Message> {
                 Some(Message::ScaleRestore)
             }
             keyboard::KeyCode::O => Some(Message::OpenInExplorer),
+            keyboard::KeyCode::PlayPause => Some(Message::SwitchMusicStatus),
             keyboard::KeyCode::R => Some(Message::Refresh),
             keyboard::KeyCode::S => Some(Message::OpenSettings),
             _ => None,

@@ -1,6 +1,6 @@
-use crate::audio::{AudioStream, Audios};
+use crate::audio::{self, AudioStream};
 use crate::configs::Configs;
-use crate::{audio, EntryState, Error, Memories, Stage, State};
+use crate::{EntryState, Error, Memories, Stage, State};
 use iced::widget::image;
 use iced::Theme;
 use reqwest::Client;
@@ -9,8 +9,9 @@ use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::mem::ManuallyDrop;
 use std::path::Path;
-use std::pin;
+use std::sync::atomic::AtomicBool;
 use std::sync::{Arc, Mutex};
+use tokio::time::Duration;
 use toml::value::{self, Datetime};
 
 //type JoinHandle = std::thread::JoinHandle<_>;
@@ -164,13 +165,13 @@ impl State {
             });
             threads.push(t);
         }
-
         // 等待所有线程结束
         for t in threads {
             t.await?;
         }
 
         let audio_paths: Vec<String> = std::mem::take(&mut aud_mutex.lock().unwrap());
+        let given_paths = audio_paths.clone();
         let (stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
         let sink = ManuallyDrop::new(audio::AudioStream {
             sink: Sink::try_new(&stream_handle).unwrap(),
@@ -178,11 +179,12 @@ impl State {
         });
         let sink_mutex = Arc::new(Mutex::new(sink));
         let given_mutex = sink_mutex.clone();
+        let daemon_status = Arc::new(AtomicBool::new(true));
+        let given_status = daemon_status.clone();
         tokio::spawn(async move {
-            audio::play_music(given_mutex, audio_paths).await;
+            audio::play_music(given_mutex, given_paths, given_status).await;
         });
         let fetched = img_mutex.lock().unwrap();
-        // let try_mutex = sink_mutex.clone();
         Ok(State {
             stage: Stage::EntryEvents(EntryState {
                 preload: fetched.to_vec(),
@@ -203,7 +205,9 @@ impl State {
                     offset: None,
                 },
                 aud_module: sink_mutex,
-                show: false,
+                daemon_running: daemon_status,
+                audio_paths,
+                shown: false,
             },
         })
     }

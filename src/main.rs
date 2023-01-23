@@ -16,6 +16,8 @@ use iced::{
 };
 use rand::Rng;
 use reqwest::Client;
+use std::sync::atomic::Ordering;
+use std::sync::{Arc, Mutex};
 use toml::value::Table;
 
 pub fn main() -> iced::Result {
@@ -185,19 +187,40 @@ impl Application for Memories {
                         return Command::none();
                     }
                     Message::OpenSettings => {
-                        state.configs.show = true;
+                        state.configs.shown = true;
                         return Command::none();
                     }
                     Message::HideSettings => {
-                        state.configs.show = false;
+                        state.configs.shown = false;
                         return Command::none();
                     }
                     Message::SwitchMusicStatus => {
-                        let sink = &state.configs.aud_module.lock().unwrap().sink;
-                        if sink.is_paused() {
-                            sink.play();
+                        if state
+                            .configs
+                            .daemon_running
+                            .load(std::sync::atomic::Ordering::Relaxed)
+                        {
+                            let sink = &state.configs.aud_module.lock().unwrap().sink;
+                            if sink.is_paused() {
+                                sink.play();
+                            } else {
+                                sink.pause();
+                            }
                         } else {
-                            sink.pause();
+                            let (stream, stream_handle) =
+                                rodio::OutputStream::try_default().unwrap();
+                            let audio_stream = std::mem::ManuallyDrop::new(audio::AudioStream {
+                                sink: rodio::Sink::try_new(&stream_handle).unwrap(),
+                                stream,
+                            });
+                            state.configs.aud_module = Arc::new(Mutex::new(audio_stream));
+                            let given_mutex = state.configs.aud_module.clone();
+                            state.configs.daemon_running.store(true, Ordering::Relaxed);
+                            let running_status = state.configs.daemon_running.clone();
+                            let paths = state.configs.audio_paths.clone();
+                            tokio::spawn(async {
+                                audio::play_music(given_mutex, paths, running_status).await;
+                            });
                         }
                         return Command::none();
                     }
@@ -715,7 +738,7 @@ impl Application for Memories {
                         row![column![text("Not implemented").size(50)].spacing(20)].into()
                     }
                 };
-                if state.configs.show {
+                if state.configs.shown {
                     configs::settings_over(state.configs.clone(), content)
                 } else {
                     content

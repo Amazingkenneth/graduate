@@ -7,15 +7,19 @@ use iced::widget::{
 use iced::{alignment, subscription, Alignment, Length, Theme};
 use iced_audio::native::h_slider::HSlider;
 use std::mem::ManuallyDrop;
+use std::sync::atomic::AtomicBool;
 use std::sync::{Arc, Mutex};
 
 #[derive(Clone, Debug)]
 pub struct Configs {
-    pub show: bool,
+    pub shown: bool,
     pub scale_factor: f64,
     pub theme: Theme,
     pub from_date: toml::value::Datetime,
     pub aud_module: Arc<std::sync::Mutex<ManuallyDrop<AudioStream>>>,
+    //pub daemon_running: crate::audio::RunningStatus,
+    pub audio_paths: Vec<String>,
+    pub daemon_running: Arc<AtomicBool>,
 }
 
 pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::Element<Message> {

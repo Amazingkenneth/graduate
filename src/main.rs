@@ -495,14 +495,6 @@ impl Application for Memories {
                             button_from_svg(include_bytes!("./runtime/sliders.svg").to_vec())
                                 .width(Length::Units(80))
                                 .on_press(Message::OpenSettings),
-                            /*widget::Button::new(
-                                column![text("切换主题").size(30), text("Ctrl + T").size(20)]
-                                    .align_items(Alignment::Center)
-                                    .spacing(15)
-                            )
-                            .padding(10)
-                            .style(iced::theme::Button::Secondary)
-                            .on_press(Message::SwapTheme)*/
                             widget::Button::new(
                                 column![text("打开对应文件").size(30), text("Ctrl + O").size(20)]
                                     .align_items(Alignment::Center)
@@ -518,172 +510,158 @@ impl Application for Memories {
                     ]
                     .align_items(Alignment::Center)
                     .into(),
-                    Stage::ChoosingCharacter(choosing) => {
-                        match choosing.on_character {
-                            None => {
-                                // let apply_button = row![,
-                                //     horizontal_space(Length::Units(20))
-                                // ];
-                                let searchbox = row![
-                                    widget::Button::new(text("返回").size(28))
-                                        .style(iced::theme::Button::Secondary)
-                                        .on_press(Message::BackStage)
-                                        .padding(15),
-                                    text_input(
-                                        "输入以搜索",
-                                        &choosing.description,
-                                        Message::DescriptionEdited,
-                                    )
-                                    .size(28)
-                                    .padding(15)
-                                    .on_submit(Message::FinishedTyping),
-                                ];
-                                let mut heads = vec![vec![]];
-                                let mut containing: usize = choosing.element_count;
-                                for (i, avatar) in choosing.avatars.iter().enumerate() {
-                                    if !avatar.shown {
-                                        continue;
-                                    }
-                                    let photo = avatar.photo.to_owned();
-                                    let viewer =
-                                        widget::image(photo.clone()).height(Length::Units(200));
-                                    if containing == 0 {
-                                        containing = choosing.element_count;
-                                        heads.push(vec![]);
-                                    }
-                                    containing -= 1;
-                                    heads.last_mut().expect("Cannot get the last value.").push(
-                                        container(
-                                            widget::Button::new(
-                                                column![
-                                                    viewer,
-                                                    text(choosing.avatars[i].name.to_owned())
-                                                        .size(30)
-                                                ]
-                                                .align_items(Alignment::Center),
-                                            )
-                                            .style(iced::theme::Button::Text)
-                                            .padding(10)
-                                            .on_press(Message::ChoseCharacter(i)),
+                    Stage::ChoosingCharacter(choosing) => match choosing.on_character {
+                        None => {
+                            let searchbox = row![
+                                widget::Button::new(text("返回").size(28))
+                                    .style(iced::theme::Button::Secondary)
+                                    .on_press(Message::BackStage)
+                                    .padding(15),
+                                text_input(
+                                    "输入以搜索",
+                                    &choosing.description,
+                                    Message::DescriptionEdited,
+                                )
+                                .size(28)
+                                .padding(15)
+                                .on_submit(Message::FinishedTyping),
+                            ];
+                            let mut heads = vec![vec![]];
+                            let mut containing: usize = choosing.element_count;
+                            for (i, avatar) in choosing.avatars.iter().enumerate() {
+                                if !avatar.shown {
+                                    continue;
+                                }
+                                let photo = avatar.photo.to_owned();
+                                let viewer =
+                                    widget::image(photo.clone()).height(Length::Units(200));
+                                if containing == 0 {
+                                    containing = choosing.element_count;
+                                    heads.push(vec![]);
+                                }
+                                containing -= 1;
+                                heads.last_mut().expect("Cannot get the last value.").push(
+                                    container(
+                                        widget::Button::new(
+                                            column![
+                                                viewer,
+                                                text(choosing.avatars[i].name.to_owned()).size(30)
+                                            ]
+                                            .align_items(Alignment::Center),
                                         )
-                                        .width(Length::FillPortion(1))
-                                        .center_x()
-                                        .center_y(),
-                                    );
-                                }
-                                let mut scroll_head = column![].align_items(Alignment::Center);
-                                for it in heads {
-                                    let mut cur_row = row![].spacing(5);
-                                    for j in it {
-                                        cur_row = cur_row.push(j);
-                                    }
-                                    scroll_head = scroll_head.push(cur_row);
-                                }
-                                let content =
-                                    scrollable(column![searchbox, scroll_head,].spacing(10));
-                                container(content).width(Length::Fill).into()
+                                        .style(iced::theme::Button::Text)
+                                        .padding(10)
+                                        .on_press(Message::ChoseCharacter(i)),
+                                    )
+                                    .width(Length::FillPortion(1))
+                                    .center_x()
+                                    .center_y(),
+                                );
                             }
-                            Some(chosen) => {
-                                let profile = choosing.profiles[chosen].clone();
-                                let mut content =
-                                    column![text(if let Some(name_en) = profile.name_en {
-                                        format!("{} ({})", choosing.avatars[chosen].name, name_en)
-                                    } else {
-                                        choosing.avatars[chosen].name.clone()
-                                    })
-                                    .size(50)];
-                                content =
-                                    content.push(show_profiles(profile.nickname, "ta 的昵称"));
-                                if let Some(relations) = profile.relationship {
-                                    let mut lists = column![];
-                                    for relation in &relations {
-                                        let cur_relation =
-                                            relation.as_table().expect("Cannot read as a table");
-                                        let with = cur_relation
-                                            .get("with")
-                                            .expect("Cannot get `with`")
-                                            .as_integer()
-                                            .expect("`with` isn't a valid integer")
-                                            as usize;
-                                        lists = lists.push(row![
+                            let mut scroll_head = column![].align_items(Alignment::Center);
+                            for it in heads {
+                                let mut cur_row = row![].spacing(5);
+                                for j in it {
+                                    cur_row = cur_row.push(j);
+                                }
+                                scroll_head = scroll_head.push(cur_row);
+                            }
+                            let content = scrollable(column![searchbox, scroll_head,].spacing(10));
+                            container(content).width(Length::Fill).into()
+                        }
+                        Some(chosen) => {
+                            let profile = choosing.profiles[chosen].clone();
+                            let mut content =
+                                column![text(if let Some(name_en) = profile.name_en {
+                                    format!("{} ({})", choosing.avatars[chosen].name, name_en)
+                                } else {
+                                    choosing.avatars[chosen].name.clone()
+                                })
+                                .size(50)];
+                            content = content.push(show_profiles(profile.nickname, "ta 的昵称"));
+                            if let Some(relations) = profile.relationship {
+                                let mut lists = column![];
+                                for relation in &relations {
+                                    let cur_relation =
+                                        relation.as_table().expect("Cannot read as a table");
+                                    let with = cur_relation
+                                        .get("with")
+                                        .expect("Cannot get `with`")
+                                        .as_integer()
+                                        .expect("`with` isn't a valid integer")
+                                        as usize;
+                                    lists = lists.push(row![
+                                        widget::Button::new(
+                                            text(choosing.avatars[with].name.clone()).size(30)
+                                        )
+                                        .padding(0)
+                                        .on_press(Message::ChoseCharacter(with))
+                                        .style(iced::theme::Button::Text),
+                                        text(format!(
+                                            " 是 ta 的 {}；",
+                                            cur_relation.get("is").expect("Cannot get `is`")
+                                        ))
+                                        .size(30)
+                                    ]);
+                                }
+                                if !relations.is_empty() {
+                                    content = content.push(column![
+                                        text("ta 的人物关系").size(50),
+                                        row![horizontal_space(Length::Units(20)), lists,]
+                                    ]);
+                                }
+                            }
+                            let mut emojis = row![].align_items(Alignment::Center).spacing(5);
+                            for i in &choosing.avatars[chosen].emoji {
+                                emojis = emojis.push(
+                                    column![
+                                        widget::image::viewer(i.emoji.clone()),
+                                        text(i.emoji_name.clone()).size(30)
+                                    ]
+                                    .align_items(Alignment::Center),
+                                );
+                            }
+                            let mut content = column![row![
+                                content,
+                                scrollable(emojis)
+                                    .horizontal_scroll(iced::widget::scrollable::Properties::new())
+                                    .height(Length::Shrink)
+                            ]];
+                            content = content.push(show_profiles(profile.plots, "ta 的小日常"));
+                            if let Some(intro) = profile.introduction {
+                                content = content.push(column![
+                                    text("ta 的自传").size(50),
+                                    row![horizontal_space(Length::Units(20)), text(intro).size(30)],
+                                ])
+                            }
+                            if let Some(comments) = profile.comment {
+                                let mut lists = column![].spacing(15);
+                                for comment in &comments {
+                                    let cur_comment =
+                                        comment.as_table().expect("Cannot read as table");
+                                    let with = cur_comment
+                                        .get("from")
+                                        .expect("Cannot get `from`")
+                                        .as_integer()
+                                        .expect("`from` isn't a valid integer")
+                                        as usize;
+                                    lists = lists.push(column![
+                                        row![
+                                            text("来自 ").size(40),
                                             widget::Button::new(
-                                                text(choosing.avatars[with].name.clone()).size(30)
+                                                text(choosing.avatars[with].name.clone()).size(40)
                                             )
                                             .padding(0)
-                                            .on_press(Message::ChoseCharacter(with))
-                                            .style(iced::theme::Button::Text),
-                                            text(format!(
-                                                " 是 ta 的 {}；",
-                                                cur_relation.get("is").expect("Cannot get `is`")
-                                            ))
-                                            .size(30)
-                                        ]);
-                                    }
-                                    if !relations.is_empty() {
-                                        content = content.push(column![
-                                            text("ta 的人物关系").size(50),
-                                            row![horizontal_space(Length::Units(20)), lists,]
-                                        ]);
-                                    }
-                                }
-                                let mut emojis = row![].align_items(Alignment::Center).spacing(5);
-                                for i in &choosing.avatars[chosen].emoji {
-                                    emojis = emojis.push(
-                                        column![
-                                            widget::image::viewer(i.emoji.clone()),
-                                            text(i.emoji_name.clone()).size(30)
-                                        ]
-                                        .align_items(Alignment::Center),
-                                    );
-                                }
-                                let mut content = column![row![
-                                    content,
-                                    scrollable(emojis)
-                                        .horizontal_scroll(
-                                            iced::widget::scrollable::Properties::new()
-                                        )
-                                        .height(Length::Shrink)
-                                ]];
-                                content = content.push(show_profiles(profile.plots, "ta 的小日常"));
-                                if let Some(intro) = profile.introduction {
-                                    content = content.push(column![
-                                        text("ta 的自传").size(50),
-                                        row![
-                                            horizontal_space(Length::Units(20)),
-                                            text(intro).size(30)
+                                            .style(iced::theme::Button::Text)
+                                            .on_press(Message::ChoseCharacter(with)),
+                                            text("：").size(40)
                                         ],
-                                    ])
-                                }
-                                if let Some(comments) = profile.comment {
-                                    let mut lists = column![].spacing(15);
-                                    for comment in &comments {
-                                        let cur_comment =
-                                            comment.as_table().expect("Cannot read as table");
-                                        let with = cur_comment
-                                            .get("from")
-                                            .expect("Cannot get `from`")
-                                            .as_integer()
-                                            .expect("`from` isn't a valid integer")
-                                            as usize;
-                                        lists = lists.push(column![
-                                            row![
-                                                text("来自 ").size(40),
-                                                widget::Button::new(
-                                                    text(choosing.avatars[with].name.clone())
-                                                        .size(40)
-                                                )
-                                                .padding(0)
-                                                .style(iced::theme::Button::Text)
-                                                .on_press(Message::ChoseCharacter(with)),
-                                                text("：").size(40)
-                                            ],
-                                            row![
-                                                widget::Svg::new(widget::svg::Handle::from_memory(
-                                                    include_bytes!("./runtime/quote-left.svg")
-                                                        .to_vec()
-                                                ))
-                                                .width(Length::Units(30)),
-                                                column![text(
+                                        row![
+                                            widget::Svg::new(widget::svg::Handle::from_memory(
+                                                include_bytes!("./runtime/quote-left.svg").to_vec()
+                                            ))
+                                            .width(Length::Units(30)),
+                                            column![text(
                                                 cur_comment
                                                     .get("description")
                                                     .expect("Cannot get `description`")
@@ -698,41 +676,40 @@ impl Application for Memories {
                                                 cur_comment.get("date").expect("Cannot get `date`")
                                             ))
                                             .size(30)]
-                                                .align_items(Alignment::End)
-                                            ]
-                                        ]);
-                                    }
-                                    if !comments.is_empty() {
-                                        content = content.push(column![
-                                            text("大家对 ta 的评价").size(50),
-                                            row![horizontal_space(Length::Units(20)), lists,]
-                                        ]);
-                                    }
+                                            .align_items(Alignment::End)
+                                        ]
+                                    ]);
                                 }
-                                let apply_button = row![
-                                    widget::Button::new(text("返回").size(40))
-                                        .padding(15)
-                                        .style(iced::theme::Button::Secondary)
-                                        .on_press(Message::UnChoose),
-                                    widget::Button::new(text("选好啦").size(40))
-                                        .padding(15)
-                                        .style(iced::theme::Button::Primary)
-                                        .on_press(Message::NextStage),
-                                ]
-                                .spacing(20);
-                                container(
-                                    scrollable(
-                                        column![content.spacing(5), apply_button]
-                                            .align_items(Alignment::End),
-                                    )
-                                    .id(choosing::generate_id(chosen)),
-                                )
-                                .center_x()
-                                .center_y()
-                                .into()
+                                if !comments.is_empty() {
+                                    content = content.push(column![
+                                        text("大家对 ta 的评价").size(50),
+                                        row![horizontal_space(Length::Units(20)), lists,]
+                                    ]);
+                                }
                             }
+                            let apply_button = row![
+                                widget::Button::new(text("返回").size(40))
+                                    .padding(15)
+                                    .style(iced::theme::Button::Secondary)
+                                    .on_press(Message::UnChoose),
+                                widget::Button::new(text("选好啦").size(40))
+                                    .padding(15)
+                                    .style(iced::theme::Button::Primary)
+                                    .on_press(Message::NextStage),
+                            ]
+                            .spacing(20);
+                            container(
+                                scrollable(
+                                    column![content.spacing(5), apply_button]
+                                        .align_items(Alignment::End),
+                                )
+                                .id(choosing::generate_id(chosen)),
+                            )
+                            .center_x()
+                            .center_y()
+                            .into()
                         }
-                    }
+                    },
                     _ => {
                         println!("current state: {:?}", state);
                         row![column![text("Not implemented").size(50)].spacing(20)].into()

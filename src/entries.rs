@@ -204,6 +204,7 @@ impl State {
                     time: None,
                     offset: None,
                 },
+                aud_volume: 1.0,
                 aud_module: sink_mutex,
                 daemon_running: daemon_status,
                 audio_paths,

@@ -16,6 +16,7 @@ pub struct Configs {
     pub scale_factor: f64,
     pub theme: Theme,
     pub from_date: toml::value::Datetime,
+    pub aud_volume: f32,
     pub aud_module: Arc<std::sync::Mutex<ManuallyDrop<AudioStream>>>,
     //pub daemon_running: crate::audio::RunningStatus,
     pub audio_paths: Vec<String>,
@@ -35,12 +36,16 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                     ),
                     text("音量控制").size(25),
                     row![
-                        if config.aud_module.lock().unwrap().sink.is_paused() {
-                            crate::button_from_svg(include_bytes!("./runtime/play.svg").to_vec())
+                        if config
+                            .daemon_running
+                            .load(std::sync::atomic::Ordering::Relaxed)
+                            && !config.aud_module.lock().unwrap().sink.is_paused()
+                        {
+                            crate::button_from_svg(include_bytes!("./runtime/pause.svg").to_vec())
                                 .width(Length::Units(40))
                                 .on_press(Message::SwitchMusicStatus)
                         } else {
-                            crate::button_from_svg(include_bytes!("./runtime/pause.svg").to_vec())
+                            crate::button_from_svg(include_bytes!("./runtime/play.svg").to_vec())
                                 .width(Length::Units(40))
                                 .on_press(Message::SwitchMusicStatus)
                         },

@@ -12,7 +12,6 @@ use std::path::Path;
 use std::sync::atomic::AtomicBool;
 use std::sync::{Arc, Mutex};
 use tokio::time::Duration;
-use toml::value::{self, Datetime};
 
 //type JoinHandle = std::thread::JoinHandle<_>;
 impl State {
@@ -195,15 +194,7 @@ impl State {
             configs: Configs {
                 scale_factor: 1.0,
                 theme: Theme::Light,
-                from_date: Datetime {
-                    date: Some(toml::value::Date {
-                        year: 2020,
-                        month: 6,
-                        day: 1,
-                    }),
-                    time: None,
-                    offset: None,
-                },
+                from_date: time::macros::datetime!(2020-06-01 0:00),
                 aud_volume: 1.0,
                 aud_module: sink_mutex,
                 daemon_running: daemon_status,

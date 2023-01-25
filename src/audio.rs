@@ -47,6 +47,10 @@ pub async fn play_music(
                 sink.append(source);
             }
             sleep(cur_duration).await;
+            while stream.lock().unwrap().sink.len() > 1 && !stream.lock().unwrap().sink.is_paused()
+            {
+                sleep(cur_duration).await;
+            }
             if stream.lock().unwrap().sink.is_paused() {
                 drop(stream.lock().unwrap());
                 running_status.store(false, Ordering::Relaxed);

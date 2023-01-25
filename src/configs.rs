@@ -9,13 +9,14 @@ use iced_audio::native::h_slider::HSlider;
 use std::mem::ManuallyDrop;
 use std::sync::atomic::AtomicBool;
 use std::sync::{Arc, Mutex};
+use time;
 
 #[derive(Clone, Debug)]
 pub struct Configs {
     pub shown: bool,
     pub scale_factor: f64,
     pub theme: Theme,
-    pub from_date: toml::value::Datetime,
+    pub from_date: time::PrimitiveDateTime,
     pub aud_volume: f32,
     pub aud_module: Arc<std::sync::Mutex<ManuallyDrop<AudioStream>>>,
     //pub daemon_running: crate::audio::RunningStatus,

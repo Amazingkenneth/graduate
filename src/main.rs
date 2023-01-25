@@ -18,6 +18,7 @@ use rand::Rng;
 use reqwest::Client;
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
+use time::PrimitiveDateTime;
 use toml::value::Table;
 
 pub fn main() -> iced::Result {
@@ -307,13 +308,20 @@ impl Application for Memories {
                             }
                             Message::NextStage => {
                                 let cur_event = chosen.on_event;
-                                state.configs.from_date = state
-                                    .get_current_event(cur_event)
-                                    .get("date")
-                                    .expect("No date value in the item.")
-                                    .as_datetime()
-                                    .expect("cannot convert into datetime")
-                                    .to_owned();
+                                let format = time::macros::format_description!(
+                                    "[year]-[month]-[day]T[hour]:[minute]:[second]"
+                                );
+                                state.configs.from_date = PrimitiveDateTime::parse(
+                                    &state
+                                        .get_current_event(cur_event)
+                                        .get("date")
+                                        .expect("No date value in the item.")
+                                        .as_datetime()
+                                        .unwrap()
+                                        .to_string(),
+                                    &format,
+                                )
+                                .unwrap();
                                 let state = state.clone();
                                 *self = Memories::Loading;
                                 return Command::perform(
@@ -673,7 +681,7 @@ impl Application for Memories {
                                             .size(30),
                                             text(format!(
                                                 "于 {} ",
-                                                cur_comment.get("date").expect("Cannot get `date`")
+                                                cur_comment.get("date").expect("Cannot get `date`").as_datetime().unwrap()
                                             ))
                                             .size(30)]
                                             .align_items(Alignment::End)

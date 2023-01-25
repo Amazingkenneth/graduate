@@ -1,5 +1,5 @@
 use crate::audio::AudioStream;
-use crate::Message;
+use crate::{visiting, Message};
 use iced::widget::{
     self, column, container, horizontal_space, image, row, scrollable, text, text_input,
     vertical_space, Column, Row,
@@ -16,7 +16,7 @@ pub struct Configs {
     pub shown: bool,
     pub scale_factor: f64,
     pub theme: Theme,
-    pub from_date: time::PrimitiveDateTime,
+    pub from_date: visiting::ShootingTime,
     pub aud_volume: f32,
     pub aud_module: Arc<std::sync::Mutex<ManuallyDrop<AudioStream>>>,
     //pub daemon_running: crate::audio::RunningStatus,

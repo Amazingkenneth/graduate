@@ -40,9 +40,9 @@ impl State {
             .as_table()
             .expect("Cannot read as table.")
             .to_owned();
-        let fetch_files = idxtable
-            .get("event")
-            .expect("Cannot get the `event` array.")
+        let together_events = idxtable
+            .get("together_event")
+            .expect("Cannot get the `together_event` array.")
             .as_array()
             .expect("Cannot read as an array.")
             .to_owned();
@@ -52,11 +52,6 @@ impl State {
             .as_table()
             .expect("Cannot read as a table.")
             .to_owned();
-        let cnt = idxtable
-            .get("together_events")
-            .expect("Didn't find together_events in the indextable.")
-            .as_integer()
-            .expect("together_events is not an integer");
         let location = idxtable
             .get("url_prefix")
             .expect("Cannot get url prefix.")
@@ -64,7 +59,7 @@ impl State {
             .expect("Cannot convert into string.")
             .to_string();
         let mut images: Vec<Vec<image::Handle>> = Vec::new();
-        images.resize(cnt as usize, vec![]);
+        images.resize(together_events.len(), vec![]);
         let img_mutex: Arc<Mutex<Vec<_>>> = Arc::new(Mutex::new(images));
         let audios: Vec<String> = Vec::new();
         let aud_mutex: Arc<Mutex<Vec<_>>> = Arc::new(Mutex::new(audios));
@@ -113,11 +108,10 @@ impl State {
                 threads.push(t);
             }
         }
-        for i in 0..(cnt as usize) {
-            // m具有了clone方法
-            let fetching = fetch_files[i]
+        for (i, cur_image) in together_events.iter().enumerate() {
+            let fetching = cur_image
                 .get("image")
-                .expect("Cannot get the `image` array..")
+                .expect("Cannot get the `image` array.")
                 .as_array()
                 .expect("Cannot parse image as an array.")
                 .to_owned();
@@ -194,7 +188,9 @@ impl State {
             configs: Configs {
                 scale_factor: 1.0,
                 theme: Theme::Light,
-                from_date: time::macros::datetime!(2020-06-01 0:00),
+                from_date: crate::visiting::ShootingTime::Precise(
+                    time::macros::datetime!(2020-06-01 0:00),
+                ),
                 aud_volume: 1.0,
                 aud_module: sink_mutex,
                 daemon_running: daemon_status,
@@ -205,7 +201,7 @@ impl State {
     }
     pub fn get_current_event(&self, on_event: usize) -> toml::value::Value {
         self.idxtable
-            .get("event")
+            .get("together_event")
             .expect("Cannot get the `event` array.")
             .as_array()
             .expect("Cannot read as an array.")[on_event]

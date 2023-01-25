@@ -17,7 +17,7 @@ pub struct Profile {
     pub comment: Option<Array>,
     pub name_en: Option<String>,
     pub introduction: Option<String>,
-    pub experience: Option<Table>,
+    pub experience: Option<Array>,
 }
 
 #[derive(Clone, Debug)]

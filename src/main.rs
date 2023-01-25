@@ -308,20 +308,13 @@ impl Application for Memories {
                             }
                             Message::NextStage => {
                                 let cur_event = chosen.on_event;
-                                let format = time::macros::format_description!(
-                                    "[year]-[month]-[day]T[hour]:[minute]:[second]"
-                                );
-                                state.configs.from_date = PrimitiveDateTime::parse(
-                                    &state
-                                        .get_current_event(cur_event)
-                                        .get("date")
-                                        .expect("No date value in the item.")
-                                        .as_datetime()
-                                        .unwrap()
-                                        .to_string(),
-                                    &format,
-                                )
-                                .unwrap();
+                                state.configs.from_date = state
+                                    .get_current_event(cur_event)
+                                    .get("date")
+                                    .expect("No date value in the item.")
+                                    .as_datetime()
+                                    .unwrap()
+                                    .into();
                                 let state = state.clone();
                                 *self = Memories::Loading;
                                 return Command::perform(
@@ -696,11 +689,11 @@ impl Application for Memories {
                                 }
                             }
                             let apply_button = row![
-                                widget::Button::new(text("返回").size(40))
+                                widget::Button::new(text("返回").size(30))
                                     .padding(15)
                                     .style(iced::theme::Button::Secondary)
                                     .on_press(Message::UnChoose),
-                                widget::Button::new(text("选好啦").size(40))
+                                widget::Button::new(text("选好啦").size(30))
                                     .padding(15)
                                     .style(iced::theme::Button::Primary)
                                     .on_press(Message::NextStage),
@@ -709,7 +702,8 @@ impl Application for Memories {
                             container(
                                 scrollable(
                                     column![content.spacing(5), apply_button]
-                                        .align_items(Alignment::End),
+                                        .align_items(Alignment::Center)
+                                        .width(Length::Fill),
                                 )
                                 .id(choosing::generate_id(chosen)),
                             )

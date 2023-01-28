@@ -193,7 +193,6 @@ pub async fn get_queue(state: State) -> Result<State, crate::Error> {
         let mut images = Vec::<Experience>::with_capacity(experience.len());
         for img in experience {
             let img_shotdate = img.get("date").unwrap().as_datetime().unwrap().into();
-            let mut res_with = None;
             if let Some(with_people) = img.get("with") {
                 let with_people = with_people.as_array().unwrap();
                 let mut with = Vec::with_capacity(with_people.len());
@@ -202,20 +201,23 @@ pub async fn get_queue(state: State) -> Result<State, crate::Error> {
                 }
                 for it in &with {
                     if it == &chose_person {
-                        res_with = Some(with);
+                        images.push(Experience {
+                            path: img.get("path").unwrap().as_str().unwrap().to_string(),
+                            shot: img_shotdate,
+                            with: Some(with),
+                            handle: None,
+                        });
                         break;
                     }
                 }
-                if let None = res_with {
-                    continue;
-                }
+            } else {
+                images.push(Experience {
+                    path: img.get("path").unwrap().as_str().unwrap().to_string(),
+                    shot: img_shotdate,
+                    with: None,
+                    handle: None,
+                });
             }
-            images.push(Experience {
-                path: img.get("path").unwrap().as_str().unwrap().to_string(),
-                shot: img_shotdate,
-                with: res_with,
-                handle: None,
-            });
         }
         queue_event.push(Event {
             description: cur_table

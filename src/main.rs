@@ -3,6 +3,7 @@ mod audio;
 mod choosing;
 mod configs;
 mod entries;
+mod graduation;
 mod subscriptions;
 mod visiting;
 
@@ -16,6 +17,7 @@ use iced::{
 };
 use rand::Rng;
 use reqwest::Client;
+use std::collections::VecDeque;
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
 use time::PrimitiveDateTime;
@@ -74,7 +76,10 @@ pub struct ChoosingState {
 
 #[derive(Clone, Debug, Default)]
 pub struct VisitingState {
-    on_character: String,
+    character_name: String,
+    on_event: usize,
+    events: Arc<Mutex<Vec<visiting::Event>>>,
+    // images: VecDeque<visiting::ImgLoader>,
 }
 
 #[derive(Clone, Debug)]
@@ -93,7 +98,6 @@ pub enum Message {
     ChoseCharacter(usize),
     UnChoose,
     SwitchMusicStatus,
-    DoneProcessingMusic(()),
     ModifyVolume(iced_audio::Normal),
     PreviousPerson,
     NextPerson,
@@ -148,7 +152,7 @@ impl Application for Memories {
                     }
                 },
                 Stage::ShowingPlots(on_plot) => {
-                    return format!("瞧瞧 {} 的这段经历", on_plot.on_character)
+                    return format!("瞧瞧 {} 的这段经历", on_plot.character_name)
                 }
                 Stage::Graduated => "就这样，我们毕业啦",
             },
@@ -398,6 +402,46 @@ impl Application for Memories {
                         }
                         Command::none()
                     }
+                    Stage::ShowingPlots(ref mut displayer) => {
+                        match message {
+                            Message::PreviousEvent => {
+                                displayer.on_event -= 1;
+                            }
+                            Message::NextEvent => {
+                                displayer.on_event += 1;
+                                if displayer.on_event == displayer.events.lock().unwrap().len() {
+                                    let state = state.clone();
+                                    *self = Memories::Loading;
+                                    return Command::perform(
+                                        graduation::load_map(state),
+                                        Message::Loaded,
+                                    );
+                                }
+                            }
+                            Message::PreviousPhoto => {
+                                let mut events = displayer.events.lock().unwrap();
+                                let len = &events[displayer.on_event].experiences.len();
+                                let on_image = &mut events[displayer.on_event].on_experience;
+                                *on_image = (*on_image + len - 1) % len;
+                            }
+                            Message::NextPhoto => {
+                                let mut events = displayer.events.lock().unwrap();
+                                let len = &events[displayer.on_event].experiences.len();
+                                let on_image = &mut events[displayer.on_event].on_experience;
+                                *on_image = (*on_image + 1) % len;
+                            }
+                            Message::NextStage => {
+                                let state = state.clone();
+                                *self = Memories::Loading;
+                                return Command::perform(
+                                    graduation::load_map(state),
+                                    Message::Loaded,
+                                );
+                            }
+                            _ => {}
+                        }
+                        Command::none()
+                    }
                     _ => {
                         println!("On other stages.");
                         Command::none()
@@ -616,7 +660,8 @@ impl Application for Memories {
                             for i in &choosing.avatars[chosen].emoji {
                                 emojis = emojis.push(
                                     column![
-                                        widget::image::viewer(i.emoji.clone()),
+                                        widget::image::viewer(i.emoji.clone())
+                                            .height(Length::Units(400)),
                                         text(i.emoji_name.clone()).size(30)
                                     ]
                                     .align_items(Alignment::Center),
@@ -625,8 +670,7 @@ impl Application for Memories {
                             let mut content = column![row![
                                 content,
                                 scrollable(emojis)
-                                    .horizontal_scroll(iced::widget::scrollable::Properties::new())
-                                    .height(Length::Shrink)
+                                    .horizontal_scroll(iced::widget::scrollable::Properties::new()) // .height(Length::Shrink)
                             ]];
                             content = content.push(show_profiles(profile.plots, "ta 的小日常"));
                             if let Some(intro) = profile.introduction {
@@ -712,6 +756,73 @@ impl Application for Memories {
                             .into()
                         }
                     },
+                    Stage::ShowingPlots(displayer) => {
+                        let events = displayer.events.lock().unwrap();
+                        let experiences = &events[displayer.on_event].experiences;
+                        let cur_img = &experiences[events[displayer.on_event].on_experience];
+                        let main_image = image::viewer(cur_img.handle.clone().unwrap())
+                            .width(Length::Units(1400));
+                        row![
+                            main_image,
+                            column![
+                                text(events[displayer.on_event].description.clone()).size(50),
+                                text(format!("拍摄于 {}", cur_img.shot)).size(30),
+                                row![
+                                    if displayer.on_event > 0 {
+                                        Element::from(
+                                            button_from_svg(
+                                                include_bytes!("./runtime/arrow-left.svg").to_vec(),
+                                            )
+                                            .width(Length::Units(80))
+                                            .on_press(Message::PreviousEvent),
+                                        )
+                                    } else {
+                                        Element::from(horizontal_space(Length::Units(80)))
+                                    },
+                                    if experiences.len() > 1 {
+                                        Element::from(column![
+                                            button_from_svg(
+                                                include_bytes!("./runtime/up.svg").to_vec()
+                                            )
+                                            .width(Length::Units(40))
+                                            .on_press(Message::PreviousPhoto),
+                                            button_from_svg(
+                                                include_bytes!("./runtime/down.svg").to_vec()
+                                            )
+                                            .width(Length::Units(40))
+                                            .on_press(Message::NextPhoto)
+                                        ])
+                                    } else {
+                                        Element::from(horizontal_space(Length::Units(40)))
+                                    },
+                                    button_from_svg(
+                                        include_bytes!("./runtime/arrow-right.svg").to_vec()
+                                    )
+                                    .width(Length::Units(80))
+                                    .on_press(Message::NextEvent),
+                                ],
+                                button_from_svg(include_bytes!("./runtime/sliders.svg").to_vec())
+                                    .width(Length::Units(80))
+                                    .on_press(Message::OpenSettings),
+                                widget::Button::new(
+                                    column![
+                                        text("打开对应文件").size(30),
+                                        text("Ctrl + O").size(20)
+                                    ]
+                                    .align_items(Alignment::Center)
+                                    .spacing(15)
+                                )
+                                .padding(10)
+                                .style(iced::theme::Button::Secondary)
+                                .on_press(Message::OpenInExplorer),
+                            ]
+                            .spacing(20)
+                            .align_items(Alignment::Center)
+                            .width(Length::Fill),
+                        ]
+                        .align_items(Alignment::Center)
+                        .into()
+                    }
                     _ => {
                         println!("current state: {:?}", state);
                         row![column![text("Not implemented").size(50)].spacing(20)].into()

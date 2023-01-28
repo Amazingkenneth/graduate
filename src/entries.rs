@@ -18,7 +18,7 @@ impl State {
     pub async fn get_idx() -> Result<State, crate::Error> {
         let proj_dir = directories::ProjectDirs::from("", "Class1", "Graduate").unwrap();
         fs::create_dir_all(proj_dir.data_dir()).unwrap();
-        let idxurl: String = format!("https://amazingkenneth.github.io/graduate/index.toml");
+        let idxurl: String = format!("https://graduate-cdn.netlify.com/index.toml");
         let idxdir: String = format!("{}{}", proj_dir.data_dir().display(), "/index.toml");
         let storage = proj_dir.data_dir().to_str().unwrap().to_string().to_owned();
         let cli = Client::new().to_owned();
@@ -86,7 +86,7 @@ impl State {
                         fs::create_dir_all(audio_path.parent().expect("Cannot parse the path."))
                             .unwrap();
                         let url = format!("{}{}", location, relative_path);
-                        println!("url: {}", url);
+                        // println!("url: {}", url);
                         let bytes = cli
                             .get(&url)
                             .send()

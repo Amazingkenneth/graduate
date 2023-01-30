@@ -1,4 +1,4 @@
-use crate::{ChoosingState, Stage, State};
+use crate::{ChoosingState, Memories, Stage, State};
 use iced::event;
 use iced::widget::image;
 use serde::{Deserialize, Serialize};
@@ -31,7 +31,7 @@ impl Ord for Event {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         use time::macros::time;
         if self.experiences.len() == 0 {
-            println!("Error processing: {:?}", self);
+            println!("Error processing: {}", self.description);
         }
         let cmp_a = match self.experiences.first().unwrap().shot {
             ShootingTime::Approximate(approximate) => {
@@ -49,12 +49,22 @@ impl Ord for Event {
     }
 }
 
+impl Event {
+    pub fn get_image_handle(&self) -> Option<image::Handle> {
+        self.experiences[self.on_experience].handle.clone()
+    }
+    pub fn get_join_handle(&self) -> Arc<Mutex<Option<tokio::task::JoinHandle<()>>>> {
+        self.experiences[self.on_experience].join_handle.clone()
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Experience {
     pub shot: ShootingTime,
     pub path: String,
     pub with: Option<Vec<usize>>,
     pub handle: Option<image::Handle>,
+    pub join_handle: Arc<Mutex<Option<tokio::task::JoinHandle<()>>>>,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq, PartialOrd)]
@@ -83,7 +93,14 @@ impl std::fmt::Display for ShootingTime {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ShootingTime::Approximate(approximate) => std::fmt::Display::fmt(&approximate, f),
-            ShootingTime::Precise(precise) => std::fmt::Display::fmt(&precise, f),
+            ShootingTime::Precise(precise) => write!(
+                f,
+                "{} {}:{:02}:{:02}",
+                precise.date(),
+                precise.time().hour(),
+                precise.time().minute(),
+                precise.time().second(),
+            ),
         }
     }
 }
@@ -163,6 +180,7 @@ pub async fn get_queue(state: State) -> Result<State, crate::Error> {
                                         shot,
                                         with: Some(with),
                                         handle: None,
+                                        join_handle: Arc::new(Mutex::new(None)),
                                     });
                                     break;
                                 }
@@ -206,6 +224,7 @@ pub async fn get_queue(state: State) -> Result<State, crate::Error> {
                             shot: img_shotdate,
                             with: Some(with),
                             handle: None,
+                            join_handle: Arc::new(Mutex::new(None)),
                         });
                         break;
                     }
@@ -216,48 +235,93 @@ pub async fn get_queue(state: State) -> Result<State, crate::Error> {
                     shot: img_shotdate,
                     with: None,
                     handle: None,
+                    join_handle: Arc::new(Mutex::new(None)),
                 });
             }
         }
-        queue_event.push(Event {
-            description: cur_table
-                .get("description")
-                .unwrap()
-                .as_str()
-                .unwrap()
-                .to_string(),
-            experiences: images,
-            on_experience: 0,
-        });
+        if !images.is_empty() {
+            queue_event.push(Event {
+                description: cur_table
+                    .get("description")
+                    .unwrap()
+                    .as_str()
+                    .unwrap()
+                    .to_string(),
+                experiences: images,
+                on_experience: 0,
+            });
+        }
     }
     // println!("{:?}", queue_event);
     queue_event.sort_unstable();
-    let on_event = queue_event
-        .partition_point(|event| event.experiences.first().unwrap().shot < state.configs.from_date);
+    // println!("from_date = {}", state.configs.from_date);
+    // for i in &queue_event {
+    //     println!(
+    //         "it is {}, bool {}",
+    //         i.experiences.first().unwrap().shot,
+    //         i.experiences.first().unwrap().shot < state.configs.from_date
+    //     );
+    // }
+    let initial_event = Event {
+        description: String::from(""),
+        on_experience: 0,
+        experiences: vec![Experience {
+            shot: state.configs.from_date.clone(),
+            with: None,
+            path: String::from(""),
+            handle: None,
+            join_handle: Arc::new(Mutex::new(None)),
+        }],
+    };
+    let on_event = queue_event.partition_point(|event| event < &initial_event);
     fs::create_dir_all(format!("{}/image/experience", state.storage)).unwrap();
     fs::create_dir_all(format!("{}/image/camera", state.storage)).unwrap();
-
-    load_images(State {
+    let mut state = State {
         stage: Stage::ShowingPlots(crate::VisitingState {
             character_name,
             events: Arc::new(Mutex::new(queue_event)),
             on_event,
         }),
         ..state
-    })
-    .await
+    };
+    load_images(&mut state);
+    Ok(state)
 }
 
-pub async fn load_images(state: State) -> Result<State, crate::Error> {
-    let mut threads = vec![];
+pub async fn force_load(
+    join_handle: Arc<Mutex<Option<tokio::task::JoinHandle<()>>>>,
+    memo: Memories,
+) -> Result<Memories, crate::Error> {
+    let a: Option<tokio::task::JoinHandle<()>> = std::mem::take(&mut join_handle.lock().unwrap());
+    println!("On before: force_load()");
+    a.unwrap().await.unwrap();
+    println!("On after: force_load()");
+    Ok(memo)
+}
+
+pub fn load_images(state: &mut State) {
     match state.stage {
         Stage::ShowingPlots(ref displayer) => {
-            let mut events = displayer.events.lock().unwrap();
+            let len = {
+                let events = displayer.events.lock().unwrap();
+                events.len()
+            };
             let location = state.idxtable.get("url_prefix").unwrap().as_str().unwrap();
-            for cur_idx in displayer.on_event..std::cmp::min(displayer.on_event + 5, events.len()) {
+            let left = {
+                if displayer.on_event > 0 {
+                    displayer.on_event - 1
+                } else {
+                    0
+                }
+            };
+            for cur_idx in left..std::cmp::min(displayer.on_event + 5, len) {
+                let mut events = displayer.events.lock().unwrap();
                 for (cur_img, experience) in events[cur_idx].experiences.iter_mut().enumerate() {
-                    if let None = experience.handle {
-                        let given_mutex = displayer.events.clone();
+                    let need_to_load = match *experience.join_handle.lock().unwrap() {
+                        None => true,
+                        _ => false,
+                    };
+                    if need_to_load {
                         // let path = experience.path;
                         let img_dir = format!("{}{}", &state.storage, experience.path);
                         let img_path = std::path::Path::new(&img_dir);
@@ -266,7 +330,9 @@ pub async fn load_images(state: State) -> Result<State, crate::Error> {
                             continue;
                         }
                         let url = format!("{}{}", location, experience.path);
-                        threads.push(tokio::spawn(async move {
+                        println!("Before ...");
+                        let given_mutex = displayer.events.clone();
+                        let t = tokio::spawn(async move {
                             let bytes = reqwest::get(&url)
                                 .await
                                 .expect("Cannot send request")
@@ -276,21 +342,20 @@ pub async fn load_images(state: State) -> Result<State, crate::Error> {
                             println!("Done processing image!");
                             let mut file = std::fs::File::create(&img_dir)
                                 .expect("Failed to create image file.");
-                            file.write_all(&bytes).expect(
-                                "Failed to write the image into file in the project directory.",
-                            );
-                            let mut events = given_mutex.lock().unwrap();
-                            events[cur_idx].experiences[cur_img].handle =
+                            file.write_all(&bytes)
+                                .expect("Failed to write the image into file");
+                            println!("Here I write.");
+                            given_mutex.lock().unwrap()[cur_idx].experiences[cur_img].handle =
                                 Some(image::Handle::from_memory(bytes.as_ref().to_vec()));
-                        }));
+                            println!("Here I finish writing");
+                        });
+                        println!("Ready to push");
+                        *experience.join_handle.lock().unwrap() = Some(t);
+                        println!("Done pushing.");
                     }
                 }
             }
         }
-        _ => return Err(crate::Error::APIError),
+        _ => (),
     }
-    for i in threads {
-        i.await?;
-    }
-    Ok(state)
 }

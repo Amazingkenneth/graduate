@@ -34,8 +34,8 @@ pub fn main() -> iced::Result {
     })
 }
 
-#[derive(Debug)]
-enum Memories {
+#[derive(Clone, Debug)]
+pub enum Memories {
     Loading,       // 有加载任务尚未完成
     Loaded(State), // 已完成加载，等待下个事件
 }
@@ -85,7 +85,7 @@ pub struct VisitingState {
 #[derive(Clone, Debug)]
 pub enum Message {
     Loaded(Result<State, Error>),
-    FetchImage(Result<State, Error>),
+    FetchImage(Result<Memories, Error>),
     LoadedImage(Result<EntryState, Error>),
     PreviousEvent,
     NextEvent,
@@ -162,13 +162,18 @@ impl Application for Memories {
     fn update(&mut self, message: Message) -> Command<Message> {
         println!("On update()");
         match self {
-            Memories::Loading => match message {
-                Message::Loaded(Ok(state)) => {
-                    *self = Memories::Loaded(state);
-                    Command::none()
+            Memories::Loading => {
+                match message {
+                    Message::Loaded(Ok(state)) => {
+                        *self = Memories::Loaded(state);
+                    }
+                    Message::FetchImage(Ok(memo)) => {
+                        *self = memo;
+                    }
+                    _ => (),
                 }
-                _ => Command::none(),
-            },
+                Command::none()
+            }
             Memories::Loaded(state) => {
                 match message {
                     Message::ScaleDown => {
@@ -259,7 +264,16 @@ impl Application for Memories {
                                     format!("{}/image/known_people", state.storage)
                                 }
                             },
-                            _ => "".to_string(),
+                            Stage::ShowingPlots(displayer) => {
+                                let events = displayer.events.lock().unwrap();
+                                let on_image = &events[displayer.on_event].on_experience;
+                                format!(
+                                    "{}{}",
+                                    state.storage,
+                                    events[displayer.on_event].experiences[*on_image].path
+                                )
+                            }
+                            _ => String::from(""),
                         };
                         if cfg!(target_os = "windows") {
                             if is_file {
@@ -406,17 +420,37 @@ impl Application for Memories {
                         match message {
                             Message::PreviousEvent => {
                                 displayer.on_event -= 1;
+                                visiting::load_images(state);
                             }
                             Message::NextEvent => {
                                 displayer.on_event += 1;
                                 if displayer.on_event == displayer.events.lock().unwrap().len() {
-                                    let state = state.clone();
+                                    let state = state.to_owned();
                                     *self = Memories::Loading;
                                     return Command::perform(
                                         graduation::load_map(state),
                                         Message::Loaded,
                                     );
+                                } else {
+                                    // let events = displayer.events.lock().unwrap();
+                                    let need_force_run = {
+                                        displayer.events.lock().unwrap()[displayer.on_event]
+                                            .get_image_handle()
+                                    };
+                                    if let None = need_force_run {
+                                        let handle = {
+                                            let events = displayer.events.lock().unwrap();
+                                            events[displayer.on_event].get_join_handle()
+                                        };
+                                        let memo = std::mem::replace(self, Memories::Loading);
+                                        println!("I am here!");
+                                        return Command::perform(
+                                            visiting::force_load(handle, memo),
+                                            Message::FetchImage,
+                                        );
+                                    }
                                 }
+                                visiting::load_images(state);
                             }
                             Message::PreviousPhoto => {
                                 let mut events = displayer.events.lock().unwrap();
@@ -771,7 +805,8 @@ impl Application for Memories {
                                     if displayer.on_event > 0 {
                                         Element::from(
                                             button_from_svg(
-                                                include_bytes!("./runtime/arrow-left.svg").to_vec(),
+                                                include_bytes!("./runtime/chevron-left.svg")
+                                                    .to_vec(),
                                             )
                                             .width(Length::Units(80))
                                             .on_press(Message::PreviousEvent),
@@ -782,25 +817,27 @@ impl Application for Memories {
                                     if experiences.len() > 1 {
                                         Element::from(column![
                                             button_from_svg(
-                                                include_bytes!("./runtime/up.svg").to_vec()
+                                                include_bytes!("./runtime/chevron-up.svg").to_vec()
                                             )
-                                            .width(Length::Units(40))
+                                            .width(Length::Units(60))
                                             .on_press(Message::PreviousPhoto),
                                             button_from_svg(
-                                                include_bytes!("./runtime/down.svg").to_vec()
+                                                include_bytes!("./runtime/chevron-down.svg")
+                                                    .to_vec()
                                             )
-                                            .width(Length::Units(40))
+                                            .width(Length::Units(60))
                                             .on_press(Message::NextPhoto)
                                         ])
                                     } else {
-                                        Element::from(horizontal_space(Length::Units(40)))
+                                        Element::from(horizontal_space(Length::Units(60)))
                                     },
                                     button_from_svg(
-                                        include_bytes!("./runtime/arrow-right.svg").to_vec()
+                                        include_bytes!("./runtime/chevron-right.svg").to_vec()
                                     )
                                     .width(Length::Units(80))
                                     .on_press(Message::NextEvent),
-                                ],
+                                ]
+                                .align_items(Alignment::Center),
                                 button_from_svg(include_bytes!("./runtime/sliders.svg").to_vec())
                                     .width(Length::Units(80))
                                     .on_press(Message::OpenSettings),

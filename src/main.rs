@@ -420,6 +420,21 @@ impl Application for Memories {
                         match message {
                             Message::PreviousEvent => {
                                 displayer.on_event -= 1;
+                                let need_force_run = {
+                                    displayer.events.lock().unwrap()[displayer.on_event]
+                                        .get_image_handle()
+                                };
+                                if let None = need_force_run {
+                                    let handle = {
+                                        let events = displayer.events.lock().unwrap();
+                                        events[displayer.on_event].get_join_handle()
+                                    };
+                                    let memo = std::mem::replace(self, Memories::Loading);
+                                    return Command::perform(
+                                        visiting::force_load(handle, memo),
+                                        Message::FetchImage,
+                                    );
+                                }
                                 visiting::load_images(state);
                             }
                             Message::NextEvent => {
@@ -431,24 +446,21 @@ impl Application for Memories {
                                         graduation::load_map(state),
                                         Message::Loaded,
                                     );
-                                } else {
-                                    // let events = displayer.events.lock().unwrap();
-                                    let need_force_run = {
-                                        displayer.events.lock().unwrap()[displayer.on_event]
-                                            .get_image_handle()
+                                }
+                                let need_force_run = {
+                                    displayer.events.lock().unwrap()[displayer.on_event]
+                                        .get_image_handle()
+                                };
+                                if let None = need_force_run {
+                                    let handle = {
+                                        let events = displayer.events.lock().unwrap();
+                                        events[displayer.on_event].get_join_handle()
                                     };
-                                    if let None = need_force_run {
-                                        let handle = {
-                                            let events = displayer.events.lock().unwrap();
-                                            events[displayer.on_event].get_join_handle()
-                                        };
-                                        let memo = std::mem::replace(self, Memories::Loading);
-                                        println!("I am here!");
-                                        return Command::perform(
-                                            visiting::force_load(handle, memo),
-                                            Message::FetchImage,
-                                        );
-                                    }
+                                    let memo = std::mem::replace(self, Memories::Loading);
+                                    return Command::perform(
+                                        visiting::force_load(handle, memo),
+                                        Message::FetchImage,
+                                    );
                                 }
                                 visiting::load_images(state);
                             }
@@ -471,6 +483,9 @@ impl Application for Memories {
                                     graduation::load_map(state),
                                     Message::Loaded,
                                 );
+                            }
+                            Message::BackStage => {
+                                return Command::perform(State::get_idx(), Message::Loaded);
                             }
                             _ => {}
                         }
@@ -575,7 +590,7 @@ impl Application for Memories {
                                 .width(Length::Units(80))
                                 .on_press(Message::OpenSettings),
                             widget::Button::new(
-                                column![text("打开对应文件").size(30), text("Ctrl + O").size(20)]
+                                column![text("打开对应文件").size(30), text("按 O").size(20)]
                                     .align_items(Alignment::Center)
                                     .spacing(15)
                             )
@@ -842,16 +857,24 @@ impl Application for Memories {
                                     .width(Length::Units(80))
                                     .on_press(Message::OpenSettings),
                                 widget::Button::new(
-                                    column![
-                                        text("打开对应文件").size(30),
-                                        text("Ctrl + O").size(20)
-                                    ]
-                                    .align_items(Alignment::Center)
-                                    .spacing(15)
+                                    column![text("打开对应文件").size(30), text("按 O").size(20)]
+                                        .align_items(Alignment::Center)
+                                        .spacing(10)
                                 )
                                 .padding(10)
                                 .style(iced::theme::Button::Secondary)
                                 .on_press(Message::OpenInExplorer),
+                                widget::Button::new(
+                                    column![text("回到最初").size(28), text("那样……").size(28)]
+                                        .spacing(10)
+                                )
+                                .style(iced::theme::Button::Positive)
+                                .on_press(Message::BackStage)
+                                .padding(10),
+                                widget::Button::new(text("跳过这段时光").size(28))
+                                    .style(iced::theme::Button::Primary)
+                                    .on_press(Message::NextStage)
+                                    .padding(10)
                             ]
                             .spacing(20)
                             .align_items(Alignment::Center)
@@ -883,6 +906,9 @@ impl Application for Memories {
                 }
                 Stage::ChoosingCharacter(_) => {
                     iced::subscription::events_with(subscriptions::on_choosing_character)
+                }
+                Stage::ShowingPlots(_) => {
+                    iced::subscription::events_with(subscriptions::on_graduation)
                 }
                 _ => iced::Subscription::none(),
             },

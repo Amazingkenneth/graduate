@@ -293,9 +293,7 @@ pub async fn force_load(
     memo: Memories,
 ) -> Result<Memories, crate::Error> {
     let a: Option<tokio::task::JoinHandle<()>> = std::mem::take(&mut join_handle.lock().unwrap());
-    println!("On before: force_load()");
     a.unwrap().await.unwrap();
-    println!("On after: force_load()");
     Ok(memo)
 }
 
@@ -330,7 +328,6 @@ pub fn load_images(state: &mut State) {
                             continue;
                         }
                         let url = format!("{}{}", location, experience.path);
-                        println!("Before ...");
                         let given_mutex = displayer.events.clone();
                         let t = tokio::spawn(async move {
                             let bytes = reqwest::get(&url)
@@ -339,19 +336,14 @@ pub fn load_images(state: &mut State) {
                                 .bytes()
                                 .await
                                 .expect("Cannot read the image into bytes.");
-                            println!("Done processing image!");
                             let mut file = std::fs::File::create(&img_dir)
                                 .expect("Failed to create image file.");
                             file.write_all(&bytes)
                                 .expect("Failed to write the image into file");
-                            println!("Here I write.");
                             given_mutex.lock().unwrap()[cur_idx].experiences[cur_img].handle =
                                 Some(image::Handle::from_memory(bytes.as_ref().to_vec()));
-                            println!("Here I finish writing");
                         });
-                        println!("Ready to push");
                         *experience.join_handle.lock().unwrap() = Some(t);
-                        println!("Done pushing.");
                     }
                 }
             }

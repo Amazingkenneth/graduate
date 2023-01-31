@@ -9,10 +9,19 @@
 
 ## 我想看看你们的成果！
 ### 下载可执行文件进行测试
-在 [GitHub Artifacts](https://github.com/Amazingkenneth/graduate/actions/workflows/ci.yml?query=is%3Asuccess) 上找到最新的一次 CI Action，点进去并划到页面最底端，会看到如下图所示的不同系统的可执行文件供下载。
+有两种方式，你可以选择在 GitHub Artifacts 中选取任意版本的构建文件下载，或者直接在 nightly.link 上下载最新构建的可执行文件。
+
+#### 在 nightly.link 下载最新版本【推荐】
+打开 https://nightly.link/Amazingkenneth/graduate/workflows/ci/main ，如下图找到你自己的系统对应的版本，点下载链接下载可执行文件（可能要稍等一下下）
+
+<img width="979" alt="屏幕截图" src="https://user-images.githubusercontent.com/81886982/215748234-97d14836-8ed9-4d68-b623-d42bceb98606.png">
+
+
+#### 在 GitHub Actions 的 Artifacts 上下载【需要登录】
+在 [GitHub Artifacts](https://github.com/Amazingkenneth/graduate/actions/workflows/ci.yml?query=is%3Asuccess) 上找到最新的一次 CI Action，点进去并划到页面最底端，会看到这些可执行文件供下载。
 <img width="918" alt="image" src="https://user-images.githubusercontent.com/81886982/211135228-014a6c72-7047-49e3-b927-f29d70f7a714.png">
 
-在如上图的界面中找到你自己的系统对应的可执行文件压缩包（建议选择压缩过的，也就是没有 `-uncompressed` 后缀的），下载后解压 zip 后就可以运行啦。
+在界面中找到你自己的系统对应的可执行文件压缩包（建议选择压缩过的，也就是没有 `-uncompressed` 后缀的），下载后解压 zip 后就可以运行啦。
 
 > 注：Linux 系统上需要安装 `libasound2-dev`（Debian / Ubuntu）或 `alsa-lib-devel`（Fedora）作为声音模块 [RustAudio/cpal](https://github.com/RustAudio/cpal) 的依赖项
 >

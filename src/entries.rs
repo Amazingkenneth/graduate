@@ -16,11 +16,15 @@ use tokio::time::Duration;
 //type JoinHandle = std::thread::JoinHandle<_>;
 impl State {
     pub async fn get_idx() -> Result<State, crate::Error> {
-        let proj_dir = directories::ProjectDirs::from("", "Class1", "Graduate").unwrap();
-        fs::create_dir_all(proj_dir.data_dir()).unwrap();
+        let proj_dir = directories::ProjectDirs::from("", "Class1", "Graduate")
+            .unwrap()
+            .data_dir()
+            .to_owned();
+        let idxdir: String = format!("{}{}", proj_dir.to_str().unwrap(), "/index.toml");
+        let storage = proj_dir.to_str().unwrap().to_string().to_owned();
+        println!("dir: {}", storage);
+        fs::create_dir_all(proj_dir).unwrap();
         let idxurl: String = format!("https://graduate-cdn.netlify.com/index.toml");
-        let idxdir: String = format!("{}{}", proj_dir.data_dir().display(), "/index.toml");
-        let storage = proj_dir.data_dir().to_str().unwrap().to_string().to_owned();
         let cli = Client::new().to_owned();
         let content = cli
             .get(&idxurl)

@@ -18,12 +18,14 @@ use iced::{
 use rand::Rng;
 use reqwest::Client;
 use std::collections::VecDeque;
-use std::sync::atomic::Ordering;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use time::PrimitiveDateTime;
 use toml::value::Table;
 
-pub fn main() -> iced::Result {
+pub static DELETE_FILES_ON_EXIT: AtomicBool = AtomicBool::new(false);
+
+fn main() {
     Memories::run(Settings {
         window: window::Settings {
             size: (1400, 800),
@@ -32,6 +34,14 @@ pub fn main() -> iced::Result {
         default_font: Some(include_bytes!("./YEFONTFuJiYaTi-3.ttf")),
         ..Settings::default()
     })
+    .unwrap();
+    if DELETE_FILES_ON_EXIT.load(Ordering::SeqCst) {
+        let proj_dir = directories::ProjectDirs::from("", "Class1", "Graduate")
+            .unwrap()
+            .data_dir()
+            .to_owned();
+        std::fs::remove_dir_all(proj_dir).unwrap();
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -97,6 +107,7 @@ pub enum Message {
     FinishedTyping,
     ChoseCharacter(usize),
     UnChoose,
+    SwitchDeleteFilesStatus,
     SwitchMusicStatus,
     ModifyVolume(iced_audio::Normal),
     PreviousPerson,
@@ -204,6 +215,10 @@ impl Application for Memories {
                         state.configs.shown = false;
                         return Command::none();
                     }
+                    Message::SwitchDeleteFilesStatus => {
+                        DELETE_FILES_ON_EXIT.fetch_xor(true, Ordering::Relaxed);
+                        return Command::none();
+                    }
                     Message::SwitchMusicStatus => {
                         if state
                             .configs
@@ -234,11 +249,11 @@ impl Application for Memories {
                         }
                         return Command::none();
                     }
-                    Message::ModifyVolume(new_volume) => {
-                        let sink = &state.configs.aud_module.lock().unwrap().sink;
-                        sink.set_volume(new_volume.into());
-                        return Command::none();
-                    }
+                    // Message::ModifyVolume(new_volume) => {
+                    //     let sink = &state.configs.aud_module.lock().unwrap().sink;
+                    //     sink.set_volume(new_volume.into());
+                    //     return Command::none();
+                    // }
                     Message::OpenInExplorer => {
                         let mut is_file = true;
                         let filename = match &state.stage {

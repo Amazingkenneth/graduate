@@ -5,9 +5,11 @@ use iced::widget::{
     vertical_space, Column, Row,
 };
 use iced::{alignment, subscription, Alignment, Length, Theme};
+use iced_audio::core::normal_param::NormalParam;
 use iced_audio::native::h_slider::HSlider;
 use std::mem::ManuallyDrop;
 use std::sync::atomic::AtomicBool;
+use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
 use time;
 
@@ -19,7 +21,6 @@ pub struct Configs {
     pub from_date: visiting::ShootingTime,
     pub aud_volume: f32,
     pub aud_module: Arc<std::sync::Mutex<ManuallyDrop<AudioStream>>>,
-    //pub daemon_running: crate::audio::RunningStatus,
     pub audio_paths: Vec<String>,
     pub daemon_running: Arc<AtomicBool>,
 }
@@ -34,7 +35,14 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                         String::from("暗色主题"),
                         config.theme == Theme::Dark,
                         |b| Message::IsDarkTheme(b)
-                    ),
+                    )
+                    .text_size(28),
+                    widget::toggler(
+                        String::from("程序退出时删除缓存"),
+                        crate::DELETE_FILES_ON_EXIT.load(Ordering::Relaxed),
+                        |_| Message::SwitchDeleteFilesStatus
+                    )
+                    .text_size(25),
                     text("音量控制").size(25),
                     row![
                         if config
@@ -50,7 +58,7 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                                 .width(Length::Units(40))
                                 .on_press(Message::SwitchMusicStatus)
                         },
-                        text("Not implemented - HSlider"),
+                        text("HSliderRect: Due to version conflict, cannot pass compilation"),
                     ],
                 ]
                 .spacing(10),

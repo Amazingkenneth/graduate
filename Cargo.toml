@@ -1,48 +1,48 @@
 [package]
-name = "graduate"
-version = "0.1.0"
-edition = "2021"
 authors = ["Amazingkenneth <amazingkenneth@outlook.com>"]
 description = "这是一个纪实性项目；打开它，一起回忆过往美好初中生活。"
+edition = "2021"
+name = "graduate"
 readme = "README.md"
+version = "0.1.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 license = "GPL-3.0"
 repository = "https://github.com/Amazingkenneth/graduate"
 
 [dependencies]
-serde = { version = "1", features = ["derive"] }
-toml = "0"
-time = { version = "0", features = ["serde", "macros", "parsing"] }
+directories = "4"
+iced = { version = "0", features = ["image", "svg", "tokio"] }
+iced_audio = "0"
+iced_native = "0"
+lofty = "0"
+rand = "0"
+reqwest = "0"
 rodio = { version = "0", default-features = false, features = [
     "symphonia-all",
 ] }
-iced = { version = "0", features = ["image", "svg", "tokio"] }
-iced_native = "0"
-iced_audio = "0"
-lofty = "0"
-reqwest = "0"
+serde = { version = "1", features = ["derive"] }
+time = { version = "0", features = ["macros", "parsing", "serde"] }
 tokio = { version = "1", features = ["full"] }
-directories = "4"
-rand = "0"
+toml = "0"
 
 [profile.release]
-lto = "fat"
 codegen-units = 1
+lto = "fat"
 panic = "abort"
 strip = true      # Automatically strip symbols from the binary.
 
 [package.metadata.deb]
 assets = [
     [
-        "target/release/graduate",
-        "usr/bin/graduate",
-        "755",
-    ],
-    [
+        "644",
         "graduate.desktop",
         "usr/share/applications/",
-        "644",
+    ],
+    [
+        "755",
+        "target/release/graduate",
+        "usr/bin/graduate",
     ],
 ]
 depends = "libasound2-dev"

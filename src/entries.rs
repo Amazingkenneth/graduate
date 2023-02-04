@@ -179,7 +179,7 @@ impl State {
         let daemon_status = Arc::new(AtomicBool::new(true));
         let given_status = daemon_status.clone();
         tokio::spawn(async move {
-            audio::play_music(given_mutex, given_paths, given_status).await;
+            audio::play_music(given_mutex, given_paths, given_status, 1.0).await;
         });
         let fetched = img_mutex.lock().unwrap();
         Ok(State {
@@ -195,7 +195,7 @@ impl State {
                 from_date: crate::visiting::ShootingTime::Precise(
                     time::macros::datetime!(2020-06-01 0:00),
                 ),
-                aud_volume: 1.0,
+                aud_volume: iced_audio::FloatRange::new(0.0, 1.0).normal_param(1.0, 1.0),
                 aud_module: sink_mutex,
                 daemon_running: daemon_status,
                 audio_paths,

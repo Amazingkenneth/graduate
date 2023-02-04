@@ -19,7 +19,7 @@ pub struct Configs {
     pub scale_factor: f64,
     pub theme: Theme,
     pub from_date: visiting::ShootingTime,
-    pub aud_volume: f32,
+    pub aud_volume: iced_audio::NormalParam,
     pub aud_module: Arc<std::sync::Mutex<ManuallyDrop<AudioStream>>>,
     pub audio_paths: Vec<String>,
     pub daemon_running: Arc<AtomicBool>,
@@ -28,7 +28,7 @@ pub struct Configs {
 pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::Element<Message> {
     let modal = container(
         column![
-            text("设置").size(35),
+            text("设置").size(38),
             column![
                 column![
                     widget::toggler(
@@ -42,8 +42,8 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                         crate::DELETE_FILES_ON_EXIT.load(Ordering::Relaxed),
                         |_| Message::SwitchDeleteFilesStatus
                     )
-                    .text_size(25),
-                    text("音量控制").size(25),
+                    .text_size(28),
+                    text("音量控制").size(32),
                     row![
                         if config
                             .daemon_running
@@ -58,17 +58,21 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                                 .width(Length::Units(40))
                                 .on_press(Message::SwitchMusicStatus)
                         },
-                        text("HSliderRect: Due to version conflict, cannot pass compilation"),
-                    ],
+                        HSlider::new(config.aud_volume, crate::Message::ModifyVolume)
+                            .height(Length::Units(30))
+                            .style(crate::style::h_slider::RectStyle)
+                    ]
+                    .align_items(Alignment::Center),
                 ]
                 .spacing(10),
-                widget::button(text("设置好啦！").size(30)).on_press(Message::HideSettings)
+                widget::button(text("设置好啦！").size(32)).on_press(Message::HideSettings)
             ]
             .align_items(Alignment::End)
+            .spacing(10)
         ]
         .spacing(20),
     )
-    .width(Length::Units(300))
+    .width(Length::Units(350))
     .padding(10)
     .style(iced::theme::Container::Box);
     use modal::Modal;

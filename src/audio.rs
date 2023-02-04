@@ -24,7 +24,9 @@ pub async fn play_music(
     stream: Arc<std::sync::Mutex<ManuallyDrop<AudioStream>>>,
     mut paths: Vec<String>,
     running_status: Arc<AtomicBool>,
+    initial_volume: f32,
 ) {
+    stream.lock().unwrap().sink.set_volume(initial_volume);
     let mut is_first_audio = true;
     loop {
         for audio_dir in &paths {

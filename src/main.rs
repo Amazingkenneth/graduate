@@ -4,6 +4,7 @@ mod choosing;
 mod configs;
 mod entries;
 mod graduation;
+mod style;
 mod subscriptions;
 mod visiting;
 
@@ -244,16 +245,23 @@ impl Application for Memories {
                             let running_status = state.configs.daemon_running.clone();
                             let paths = state.configs.audio_paths.clone();
                             tokio::spawn(async {
-                                audio::play_music(given_mutex, paths, running_status).await;
+                                audio::play_music(given_mutex, paths, running_status, 1.0).await;
                             });
                         }
                         return Command::none();
                     }
-                    // Message::ModifyVolume(new_volume) => {
-                    //     let sink = &state.configs.aud_module.lock().unwrap().sink;
-                    //     sink.set_volume(new_volume.into());
-                    //     return Command::none();
-                    // }
+                    Message::ModifyVolume(new_volume) => {
+                        state.configs.aud_volume.update(new_volume);
+                        if state
+                            .configs
+                            .daemon_running
+                            .load(std::sync::atomic::Ordering::Relaxed)
+                        {
+                            let sink = &state.configs.aud_module.lock().unwrap().sink;
+                            sink.set_volume(new_volume.into());
+                        }
+                        return Command::none();
+                    }
                     Message::OpenInExplorer => {
                         let mut is_file = true;
                         let filename = match &state.stage {

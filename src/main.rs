@@ -539,6 +539,9 @@ impl Application for Memories {
                         )
                         .width(Length::Units(1400)),
                         column![
+                            button_from_svg(include_bytes!("./runtime/gears.svg").to_vec())
+                                .width(Length::Units(80))
+                                .on_press(Message::OpenSettings),
                             text(
                                 state
                                     .get_current_event(chosen.on_event)
@@ -601,9 +604,6 @@ impl Application for Memories {
                                 .width(Length::Units(80))
                                 .on_press(Message::NextEvent),
                             ],
-                            button_from_svg(include_bytes!("./runtime/sliders.svg").to_vec())
-                                .width(Length::Units(80))
-                                .on_press(Message::OpenSettings),
                             widget::Button::new(
                                 column![text("打开对应文件").size(30), text("按 O").size(20)]
                                     .align_items(Alignment::Center)
@@ -829,6 +829,9 @@ impl Application for Memories {
                         row![
                             main_image,
                             column![
+                                button_from_svg(include_bytes!("./runtime/gears.svg").to_vec())
+                                    .width(Length::Units(80))
+                                    .on_press(Message::OpenSettings),
                                 text(events[displayer.on_event].description.clone()).size(50),
                                 text(format!("拍摄于 {}", cur_img.shot)).size(30),
                                 row![
@@ -868,9 +871,6 @@ impl Application for Memories {
                                     .on_press(Message::NextEvent),
                                 ]
                                 .align_items(Alignment::Center),
-                                button_from_svg(include_bytes!("./runtime/sliders.svg").to_vec())
-                                    .width(Length::Units(80))
-                                    .on_press(Message::OpenSettings),
                                 widget::Button::new(
                                     column![text("打开对应文件").size(30), text("按 O").size(20)]
                                         .align_items(Alignment::Center)

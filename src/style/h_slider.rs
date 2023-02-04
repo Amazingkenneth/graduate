@@ -1,6 +1,6 @@
 use iced::widget::image;
 use iced::{Color, Rectangle};
-use iced_audio::{h_slider};
+use iced_audio::h_slider;
 
 use super::colors;
 
@@ -8,17 +8,16 @@ use super::colors;
 
 pub struct RectStyle;
 impl RectStyle {
-    const ACTIVE_RECT_STYLE: h_slider::RectAppearance =
-        h_slider::RectAppearance {
-            back_color: colors::EMPTY,
-            back_border_width: 1.0,
-            back_border_radius: 2.0,
-            back_border_color: colors::BORDER,
-            filled_color: colors::FILLED,
-            handle_width: 4,
-            handle_color: colors::HANDLE,
-            handle_filled_gap: 1.0,
-        };
+    const ACTIVE_RECT_STYLE: h_slider::RectAppearance = h_slider::RectAppearance {
+        back_color: colors::EMPTY,
+        back_border_width: 1.0,
+        back_border_radius: 2.0,
+        back_border_color: colors::BORDER,
+        filled_color: colors::FILLED,
+        handle_width: 4,
+        handle_color: colors::HANDLE,
+        handle_filled_gap: 1.0,
+    };
 }
 impl h_slider::StyleSheet for RectStyle {
     type Style = iced::Theme;
@@ -39,10 +38,7 @@ impl h_slider::StyleSheet for RectStyle {
         self.hovered(style)
     }
 
-    fn mod_range_appearance(
-        &self,
-        _style: &Self::Style,
-    ) -> Option<h_slider::ModRangeAppearance> {
+    fn mod_range_appearance(&self, _style: &Self::Style) -> Option<h_slider::ModRangeAppearance> {
         Some(h_slider::ModRangeAppearance {
             placement: h_slider::ModRangePlacement::Bottom {
                 height: 3.0,

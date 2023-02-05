@@ -67,7 +67,7 @@ pub struct Experience {
     pub join_handle: Arc<Mutex<Option<tokio::task::JoinHandle<()>>>>,
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Eq, PartialOrd)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd)]
 pub enum ShootingTime {
     Precise(time::PrimitiveDateTime),
     Approximate(time::Date),
@@ -86,6 +86,35 @@ impl From<&toml::value::Datetime> for ShootingTime {
             return ShootingTime::Precise(
                 PrimitiveDateTime::parse(&item.to_string(), &PRECISE_FORMAT).unwrap(),
             );
+        }
+    }
+}
+impl Into<toml::value::Datetime> for ShootingTime {
+    fn into(self) -> toml::value::Datetime {
+        match self {
+            ShootingTime::Approximate(approximate) => toml::value::Datetime {
+                date: Some(toml::value::Date {
+                    day: approximate.day(),
+                    month: approximate.month() as u8,
+                    year: approximate.year() as u16,
+                }),
+                time: None,
+                offset: None,
+            },
+            ShootingTime::Precise(precise) => toml::value::Datetime {
+                date: Some(toml::value::Date {
+                    day: precise.day(),
+                    month: precise.month() as u8,
+                    year: precise.year() as u16,
+                }),
+                time: Some(toml::value::Time {
+                    hour: precise.hour(),
+                    minute: precise.minute(),
+                    second: precise.second(),
+                    nanosecond: 0,
+                }),
+                offset: None,
+            },
         }
     }
 }
@@ -252,16 +281,7 @@ pub async fn get_queue(state: State) -> Result<State, crate::Error> {
             });
         }
     }
-    // println!("{:?}", queue_event);
     queue_event.sort_unstable();
-    // println!("from_date = {}", state.configs.from_date);
-    // for i in &queue_event {
-    //     println!(
-    //         "it is {}, bool {}",
-    //         i.experiences.first().unwrap().shot,
-    //         i.experiences.first().unwrap().shot < state.configs.from_date
-    //     );
-    // }
     let initial_event = Event {
         description: String::from(""),
         on_experience: 0,

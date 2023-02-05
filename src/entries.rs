@@ -1,6 +1,7 @@
 use crate::audio::{self, AudioStream};
-use crate::configs::Configs;
-use crate::{EntryState, Error, Memories, Stage, State};
+use crate::configs::{self, Configs};
+use crate::visiting::ShootingTime;
+use crate::{choosing, EntryState, Error, Memories, Stage, State};
 use iced::widget::image;
 use iced::Theme;
 use reqwest::Client;
@@ -16,14 +17,13 @@ use tokio::time::Duration;
 //type JoinHandle = std::thread::JoinHandle<_>;
 impl State {
     pub async fn get_idx() -> Result<State, crate::Error> {
-        let proj_dir = directories::ProjectDirs::from("", "Class1", "Graduate")
-            .unwrap()
-            .data_dir()
-            .to_owned();
-        let idxdir: String = format!("{}{}", proj_dir.to_str().unwrap(), "/index.toml");
-        let storage = proj_dir.to_str().unwrap().to_string().to_owned();
-        println!("dir: {}", storage);
-        fs::create_dir_all(proj_dir).unwrap();
+        let proj_dir = directories::ProjectDirs::from("", "Class1", "Graduate").unwrap();
+        let idxdir: String = format!("{}{}", proj_dir.data_dir().display(), "/index.toml");
+        let config_path = format!("{}{}", proj_dir.config_dir().display(), "/configs.toml");
+        let storage: String = proj_dir.data_dir().display().to_string();
+        println!("storage: {}", storage);
+        fs::create_dir_all(&storage).unwrap();
+        fs::create_dir_all(proj_dir.config_dir().display().to_string()).unwrap();
         let idxurl: String = format!("https://graduate-cdn.netlify.com/index.toml");
         let cli = Client::new().to_owned();
         let content = cli
@@ -169,39 +169,148 @@ impl State {
 
         let audio_paths: Vec<String> = std::mem::take(&mut aud_mutex.lock().unwrap());
         let given_paths = audio_paths.clone();
-        let (stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
-        let sink = ManuallyDrop::new(audio::AudioStream {
-            sink: Sink::try_new(&stream_handle).unwrap(),
-            stream,
-        });
+        let sink = {
+            let (stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
+            ManuallyDrop::new(audio::AudioStream {
+                sink: Sink::try_new(&stream_handle).unwrap(),
+                stream,
+            })
+        };
         let sink_mutex = Arc::new(Mutex::new(sink));
         let given_mutex = sink_mutex.clone();
         let daemon_status = Arc::new(AtomicBool::new(true));
         let given_status = daemon_status.clone();
-        tokio::spawn(async move {
-            audio::play_music(given_mutex, given_paths, given_status, 1.0).await;
-        });
-        let fetched = img_mutex.lock().unwrap();
-        Ok(State {
-            stage: Stage::EntryEvents(EntryState {
-                preload: fetched.to_vec(),
-                ..Default::default()
-            }),
-            idxtable,
-            storage: storage.to_string(),
-            configs: Configs {
-                scale_factor: 1.0,
-                theme: Theme::Light,
-                from_date: crate::visiting::ShootingTime::Precise(
-                    time::macros::datetime!(2020-06-01 0:00),
-                ),
-                aud_volume: iced_audio::FloatRange::new(0.0, 1.0).normal_param(1.0, 1.0),
-                aud_module: sink_mutex,
-                daemon_running: daemon_status,
-                audio_paths,
-                shown: false,
-            },
-        })
+
+        let fetched = Arc::new(Mutex::new(img_mutex.lock().unwrap().to_vec()));
+        if let Ok(init_configs) = std::fs::read_to_string(&config_path) {
+            let config_table = init_configs
+                .parse::<toml::value::Value>()
+                .unwrap()
+                .as_table()
+                .expect("Cannot read as table.")
+                .to_owned();
+            let initial_volume = config_table
+                .get("audio-volume")
+                .unwrap()
+                .as_float()
+                .unwrap() as f32;
+            if config_table
+                .get("audio-playing")
+                .unwrap()
+                .as_bool()
+                .unwrap()
+            {
+                tokio::spawn(async move {
+                    audio::play_music(given_mutex, given_paths, given_status, initial_volume).await;
+                });
+            }
+            let theme = if config_table.get("light-theme").unwrap().as_bool().unwrap() {
+                Theme::Light
+            } else {
+                Theme::Dark
+            };
+            let scale_factor = config_table
+                .get("scale-factor")
+                .unwrap()
+                .as_float()
+                .unwrap();
+            let from_date: ShootingTime = config_table
+                .get("from-date")
+                .unwrap()
+                .as_datetime()
+                .unwrap()
+                .into();
+            let stage = match config_table.get("stage").unwrap().as_str().unwrap() {
+                "ChoosingCharacter" => {
+                    let on_character = {
+                        let on = config_table
+                            .get("on_character")
+                            .unwrap()
+                            .as_integer()
+                            .unwrap();
+                        if on == -1 {
+                            None
+                        } else {
+                            Some(on as usize)
+                        }
+                    };
+                    let res = choosing::get_configs(
+                        on_character,
+                        State {
+                            stage: Stage::EntryEvents(EntryState {
+                                preload: fetched,
+                                ..Default::default()
+                            }),
+                            idxtable,
+                            storage,
+                            configs: Configs {
+                                scale_factor,
+                                theme,
+                                from_date,
+                                aud_volume: iced_audio::FloatRange::new(0.0, 1.0)
+                                    .normal_param(initial_volume, 1.0),
+                                aud_module: sink_mutex,
+                                daemon_running: daemon_status,
+                                audio_paths,
+                                config_path,
+                                shown: false,
+                            },
+                        },
+                    )
+                    .await
+                    .unwrap();
+                    return Ok(res);
+                }
+                _ => Stage::EntryEvents(EntryState {
+                    // or "EntryEvents"
+                    preload: fetched,
+                    ..Default::default()
+                }),
+            };
+
+            Ok(State {
+                stage,
+                idxtable,
+                storage,
+                configs: Configs {
+                    scale_factor,
+                    theme,
+                    from_date,
+                    aud_volume: iced_audio::FloatRange::new(0.0, 1.0)
+                        .normal_param(initial_volume, 1.0),
+                    aud_module: sink_mutex,
+                    daemon_running: daemon_status,
+                    audio_paths,
+                    config_path,
+                    shown: false,
+                },
+            })
+        } else {
+            tokio::spawn(async move {
+                audio::play_music(given_mutex, given_paths, given_status, 1.0).await;
+            });
+            Ok(State {
+                stage: Stage::EntryEvents(EntryState {
+                    preload: fetched,
+                    ..Default::default()
+                }),
+                idxtable,
+                storage,
+                configs: Configs {
+                    scale_factor: 1.0,
+                    theme: Theme::Light,
+                    from_date: crate::visiting::ShootingTime::Precise(
+                        time::macros::datetime!(2020-06-01 0:00),
+                    ),
+                    aud_volume: iced_audio::FloatRange::new(0.0, 1.0).normal_param(1.0, 1.0),
+                    aud_module: sink_mutex,
+                    daemon_running: daemon_status,
+                    audio_paths,
+                    config_path,
+                    shown: false,
+                },
+            })
+        }
     }
     pub fn get_current_event(&self, on_event: usize) -> toml::value::Value {
         self.idxtable

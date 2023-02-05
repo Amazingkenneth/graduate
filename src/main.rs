@@ -19,6 +19,8 @@ use iced::{
 use rand::Rng;
 use reqwest::Client;
 use std::collections::VecDeque;
+use std::fs::File;
+use std::io::Write;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use time::PrimitiveDateTime;
@@ -37,11 +39,9 @@ fn main() {
     })
     .unwrap();
     if DELETE_FILES_ON_EXIT.load(Ordering::SeqCst) {
-        let proj_dir = directories::ProjectDirs::from("", "Class1", "Graduate")
-            .unwrap()
-            .data_dir()
-            .to_owned();
-        std::fs::remove_dir_all(proj_dir).unwrap();
+        let proj_dir = directories::ProjectDirs::from("", "Class1", "Graduate").unwrap();
+        std::fs::remove_dir_all(proj_dir.data_dir()).unwrap();
+        std::fs::remove_dir_all(proj_dir.config_dir()).unwrap();
     }
 }
 
@@ -64,14 +64,14 @@ enum Stage {
     EntryEvents(EntryState),
     ChoosingCharacter(ChoosingState),
     ShowingPlots(VisitingState),
-    Graduated,
+    Graduated(GraduationState),
 }
 
 #[derive(Clone, Debug, Default)]
 pub struct EntryState {
     on_event: usize,
     on_image: usize,
-    preload: Vec<Vec<image::Handle>>,
+    preload: Arc<Mutex<Vec<Vec<image::Handle>>>>,
     // 当前图片为 preload[on_event][on_image]
 }
 
@@ -91,6 +91,11 @@ pub struct VisitingState {
     on_event: usize,
     events: Arc<Mutex<Vec<visiting::Event>>>,
     // images: VecDeque<visiting::ImgLoader>,
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct GraduationState {
+    on: i32,
 }
 
 #[derive(Clone, Debug)]
@@ -166,7 +171,7 @@ impl Application for Memories {
                 Stage::ShowingPlots(on_plot) => {
                     return format!("瞧瞧 {} 的这段经历", on_plot.character_name)
                 }
-                Stage::Graduated => "就这样，我们毕业啦",
+                Stage::Graduated(_) => "就这样，我们毕业啦",
             },
         };
         format!("{} - 有你，才是一班。", subtitle)
@@ -190,14 +195,17 @@ impl Application for Memories {
                 match message {
                     Message::ScaleDown => {
                         state.configs.scale_factor /= 1.05;
+                        configs::save_configs(state);
                         return Command::none();
                     }
                     Message::ScaleEnlarge => {
                         state.configs.scale_factor *= 1.05;
+                        configs::save_configs(state);
                         return Command::none();
                     }
                     Message::ScaleRestore => {
                         state.configs.scale_factor = 1.0;
+                        configs::save_configs(state);
                         return Command::none();
                     }
                     Message::IsDarkTheme(is_dark) => {
@@ -214,6 +222,7 @@ impl Application for Memories {
                     }
                     Message::HideSettings => {
                         state.configs.shown = false;
+                        configs::save_configs(state);
                         return Command::none();
                     }
                     Message::SwitchDeleteFilesStatus => {
@@ -324,28 +333,34 @@ impl Application for Memories {
                         }
                         return Command::none();
                     }
+                    Message::BackStage | Message::NextStage => {
+                        configs::save_configs(state);
+                    }
                     _ => (),
                 }
                 match state.stage {
                     Stage::EntryEvents(ref mut chosen) => {
                         match message {
                             Message::PreviousEvent => {
-                                chosen.on_event = (chosen.on_event + chosen.preload.len() - 1)
-                                    % chosen.preload.len();
+                                let len = chosen.preload.lock().unwrap().len();
+                                chosen.on_event = (chosen.on_event + len - 1) % len;
                                 chosen.on_image = 0;
                             }
                             Message::NextEvent => {
-                                chosen.on_event = (chosen.on_event + 1) % chosen.preload.len();
+                                chosen.on_event =
+                                    (chosen.on_event + 1) % chosen.preload.lock().unwrap().len();
                                 chosen.on_image = 0;
                             }
                             Message::PreviousPhoto => {
+                                let preload = chosen.preload.lock().unwrap();
                                 chosen.on_image =
-                                    (chosen.on_image + chosen.preload[chosen.on_event].len() - 1)
-                                        % chosen.preload[chosen.on_event].len();
+                                    (chosen.on_image + preload[chosen.on_event].len() - 1)
+                                        % preload[chosen.on_event].len();
                             }
                             Message::NextPhoto => {
+                                let preload = chosen.preload.lock().unwrap();
                                 chosen.on_image =
-                                    (chosen.on_image + 1) % chosen.preload[chosen.on_event].len();
+                                    (chosen.on_image + 1) % preload[chosen.on_event].len();
                             }
                             Message::NextStage => {
                                 let cur_event = chosen.on_event;
@@ -359,7 +374,7 @@ impl Application for Memories {
                                 let state = state.clone();
                                 *self = Memories::Loading;
                                 return Command::perform(
-                                    choosing::get_configs(state),
+                                    choosing::get_configs(None, state),
                                     Message::Loaded,
                                 );
                             }
@@ -543,7 +558,9 @@ impl Application for Memories {
                 let content = match &state.stage {
                     Stage::EntryEvents(chosen) => row![
                         image::viewer(
-                            chosen.preload[chosen.on_event as usize][chosen.on_image].clone()
+                            chosen.preload.lock().unwrap()[chosen.on_event as usize]
+                                [chosen.on_image]
+                                .clone()
                         )
                         .width(Length::Units(1400)),
                         column![

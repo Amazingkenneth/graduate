@@ -1,5 +1,5 @@
 use crate::audio::AudioStream;
-use crate::{visiting, Message};
+use crate::{visiting, Message, Stage, State};
 use iced::widget::{
     self, column, container, horizontal_space, image, row, scrollable, text, text_input,
     vertical_space, Column, Row,
@@ -7,6 +7,7 @@ use iced::widget::{
 use iced::{alignment, subscription, Alignment, Length, Theme};
 use iced_audio::core::normal_param::NormalParam;
 use iced_audio::native::h_slider::HSlider;
+use std::io::Write;
 use std::mem::ManuallyDrop;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
@@ -16,6 +17,7 @@ use time;
 #[derive(Clone, Debug)]
 pub struct Configs {
     pub shown: bool,
+    pub config_path: String,
     pub scale_factor: f64,
     pub theme: Theme,
     pub from_date: visiting::ShootingTime,
@@ -79,6 +81,57 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
     Modal::new(content, modal)
         .on_blur(Message::HideSettings)
         .into()
+}
+
+pub fn save_configs(state: &mut State) {
+    if crate::DELETE_FILES_ON_EXIT.load(Ordering::Relaxed) {
+        return;
+    }
+    let configs = &state.configs;
+    let mut map = toml::map::Map::new();
+    let stage = match &state.stage {
+        Stage::EntryEvents(_) => "EntryEvents",
+        Stage::ChoosingCharacter(chosen) => {
+            if let Some(on_character) = chosen.on_character {
+                map.insert(
+                    String::from("on_character"),
+                    toml::Value::Integer(on_character as i64),
+                );
+            } else {
+                map.insert(String::from("on_character"), toml::Value::Integer(-1));
+            }
+            "ChoosingCharacter"
+        }
+        Stage::ShowingPlots(_) => "ShowingPlots",
+        Stage::Graduated(_) => "Graduated",
+    }
+    .to_string();
+    map.insert(String::from("stage"), toml::Value::String(stage));
+    map.insert(
+        String::from("audio-volume"),
+        toml::Value::Float(configs.aud_volume.value.as_f32() as f64),
+    );
+    map.insert(
+        String::from("scale-factor"),
+        toml::Value::Float(configs.scale_factor),
+    );
+    map.insert(
+        String::from("light-theme"),
+        toml::Value::Boolean(configs.theme == Theme::Light),
+    );
+    map.insert(
+        String::from("from-date"),
+        toml::Value::Datetime(configs.from_date.clone().into()),
+    );
+    map.insert(
+        String::from("audio-playing"),
+        toml::Value::Boolean(configs.daemon_running.load(Ordering::Relaxed)),
+    );
+    println!("path: {}", state.configs.config_path);
+    let mut buffer = std::fs::File::create(state.configs.config_path.clone()).unwrap();
+    buffer
+        .write_all(toml::to_string_pretty(&map).unwrap().as_bytes())
+        .unwrap();
 }
 
 mod modal {

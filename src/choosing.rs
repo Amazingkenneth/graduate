@@ -34,7 +34,7 @@ pub struct Emoji {
     pub emoji_name: String,
 }
 
-pub async fn get_configs(state: State) -> Result<State, crate::Error> {
+pub async fn get_configs(on_character: Option<usize>, state: State) -> Result<State, crate::Error> {
     let has = state
         .idxtable
         .get("profile")
@@ -222,15 +222,15 @@ pub async fn get_configs(state: State) -> Result<State, crate::Error> {
             stage: crate::Stage::ChoosingCharacter(ChoosingState {
                 avatars,
                 element_count,
+                on_character,
                 profiles: profile_fetched.to_vec(),
-                on_character: None,
                 description: String::from(""),
                 previous_stage: previous,
             }),
             ..state
         })
     } else {
-        panic!("State is not EntryState!")
+        panic!("Not on EntryStage!")
     }
 }
 

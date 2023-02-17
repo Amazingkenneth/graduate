@@ -1,0 +1,20 @@
+name: Generate debug execuable
+
+jobs:
+  build_windows:
+    runs-on: windows-latest
+    steps:
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: actions/checkout@master
+    - name: Enable static CRT linkage
+      run: |
+        mkdir .cargo
+        echo '[target.x64-pc-windows-msvc]' >> .cargo/config
+        echo 'rustflags = ["-Ctarget-feature=+crt-static"]' >> .cargo/config
+    - name: Build binary
+      run: cargo build --verbose --release
+    - name: Archive binary (Uncompressed)
+      uses: actions/upload-artifact@v1
+      with:
+        name: graduate-x64-Windows-debug
+        path: target/release/graduate.exe

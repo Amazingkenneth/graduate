@@ -9,7 +9,7 @@ mod subscriptions;
 mod visiting;
 
 use iced::widget::{
-    self, column, container, horizontal_space, image, row, scrollable, text, text_input,
+    self, column, container, horizontal_space, image, row, scrollable, text, text_input, vertical_rule,
     vertical_space, Column, Row,
 };
 use iced::{

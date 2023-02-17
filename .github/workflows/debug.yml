@@ -1,4 +1,6 @@
 name: Generate debug execuable
+on:
+  workflow_dispatch:
 
 jobs:
   build_windows:

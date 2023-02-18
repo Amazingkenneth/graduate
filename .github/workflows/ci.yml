@@ -83,7 +83,7 @@ jobs:
       run: |
         cargo build --release
         cp target/release/graduate.exe graduate-DirectX11.exe
-    - name: Build binary for DirectX 11 system
+    - name: Build binary for DirectX 12 system
       env:
         WGPU_BACKEND: dx12
       run: |

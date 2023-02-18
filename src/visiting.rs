@@ -240,25 +240,7 @@ pub async fn get_queue(state: State) -> Result<State, crate::Error> {
         let mut images = Vec::<Experience>::with_capacity(experience.len());
         for img in experience {
             let img_shotdate = img.get("date").unwrap().as_datetime().unwrap().into();
-            if let Some(with_people) = img.get("with") {
-                let with_people = with_people.as_array().unwrap();
-                let mut with = Vec::with_capacity(with_people.len());
-                for i in with_people {
-                    with.push(i.as_integer().unwrap() as usize);
-                }
-                for it in &with {
-                    if it == &chose_person {
-                        images.push(Experience {
-                            path: img.get("path").unwrap().as_str().unwrap().to_string(),
-                            shot: img_shotdate,
-                            with: Some(with),
-                            handle: None,
-                            join_handle: Arc::new(Mutex::new(None)),
-                        });
-                        break;
-                    }
-                }
-            } else {
+            let Some(with_people) = img.get("with") else {
                 images.push(Experience {
                     path: img.get("path").unwrap().as_str().unwrap().to_string(),
                     shot: img_shotdate,
@@ -266,6 +248,24 @@ pub async fn get_queue(state: State) -> Result<State, crate::Error> {
                     handle: None,
                     join_handle: Arc::new(Mutex::new(None)),
                 });
+                continue;
+            };
+            let with_people = with_people.as_array().unwrap();
+            let mut with = Vec::with_capacity(with_people.len());
+            for i in with_people {
+                with.push(i.as_integer().unwrap() as usize);
+            }
+            for it in &with {
+                if it == &chose_person {
+                    images.push(Experience {
+                        path: img.get("path").unwrap().as_str().unwrap().to_string(),
+                        shot: img_shotdate,
+                        with: Some(with),
+                        handle: None,
+                        join_handle: Arc::new(Mutex::new(None)),
+                    });
+                    break;
+                }
             }
         }
         if !images.is_empty() {

@@ -723,29 +723,34 @@ impl Application for Memories {
                                 for relation in &relations {
                                     let cur_relation =
                                         relation.as_table().expect("Cannot read as a table");
-                                    let with = cur_relation
-                                        .get("with")
+                                    let author = cur_relation
+                                        .get("by")
                                         .expect("Cannot get `with`")
                                         .as_integer()
                                         .expect("`with` isn't a valid integer")
                                         as usize;
                                     lists = lists.push(row![
+                                        text(format!("是 ",)).size(30),
                                         widget::Button::new(
-                                            text(choosing.avatars[with].name.clone()).size(30)
+                                            text(choosing.avatars[author].name.clone()).size(30)
                                         )
                                         .padding(0)
-                                        .on_press(Message::ChoseCharacter(with))
+                                        .on_press(Message::ChoseCharacter(author))
                                         .style(iced::theme::Button::Text),
                                         text(format!(
-                                            " 是 ta 的 {}；",
-                                            cur_relation.get("is").expect("Cannot get `is`")
+                                            " 的 {}；",
+                                            cur_relation
+                                                .get("is")
+                                                .expect("Cannot get `is`")
+                                                .as_str()
+                                                .unwrap()
                                         ))
                                         .size(30)
                                     ]);
                                 }
                                 if !relations.is_empty() {
                                     content = content.push(column![
-                                        text("ta 的人物关系").size(50),
+                                        text("ta 的身份").size(50),
                                         row![horizontal_space(Length::Units(20)), lists,]
                                     ]);
                                 }

@@ -38,9 +38,9 @@ jobs:
         sudo apt-get -qq update
         sudo apt-get install -y libxkbcommon-dev libasound2-dev
     - name: Build binary
-      run: cargo build --verbose --release
+      run: cargo build --release
     - name: Archive binary (Uncompressed)
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v3
       with:
         name: graduate-x64-Linux-gnu-uncompressed
         path: target/release/graduate
@@ -50,17 +50,17 @@ jobs:
         wget https://github.com/upx/upx/releases/download/v4.0.2/upx-4.0.2-amd64_linux.tar.xz -O upx.tar.xz
         tar xvJf upx.tar.xz
         upx target/release/graduate --best --lzma
-    - name: Archive binary
-      uses: actions/upload-artifact@v1
+    - name: Archive binary (Compressed)
+      uses: actions/upload-artifact@v3
       with:
         name: graduate-x64-Linux-gnu
         path: target/release/graduate
-    - name: Pack graduate .deb package
+    - name: Pack .deb package
       run: cargo deb --no-build --no-strip
-    - name: Rename graduate .deb package
+    - name: Rename .deb package
       run: mv target/debian/*.deb target/debian/graduate-x64-debian-linux-gnu.deb
-    - name: Archive graduate .deb package
-      uses: actions/upload-artifact@v1
+    - name: Archive .deb package
+      uses: actions/upload-artifact@v3
       with:
         name: graduate-x64-Debian(dpkg)
         path: target/debian/graduate-x64-debian-linux-gnu.deb
@@ -76,26 +76,36 @@ jobs:
         echo '[target.x64-pc-windows-msvc]' >> .cargo/config
         echo 'rustflags = ["-Ctarget-feature=+crt-static"]' >> .cargo/config
     - name: Run the application without starting the shell
+      run: sed -i '1 i\#![windows_subsystem = \"windows\"]' src/main.rs
+    - name: Build binary for DirectX 11 system
+      env:
+        WGPU_BACKEND: dx11
       run: |
-        sed -i '1 i\#![windows_subsystem = \"windows\"]' src/main.rs
-    - name: Build binary
-      run: cargo build --verbose --release
+        cargo build --release
+        cp target/release/graduate.exe graduate-DirectX11.exe
+    - name: Build binary for DirectX 11 system
+      env:
+        WGPU_BACKEND: dx12
+      run: |
+        cargo build --release
+        cp target/release/graduate.exe graduate-DirectX12.exe
     - name: Archive binary (Uncompressed)
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v3
       with:
         name: graduate-x64-Windows-uncompressed
-        path: target/release/graduate.exe
+        path: graduate-DirectX1?.exe
     - name: Compress binaries
       shell: pwsh
       run: |
         Invoke-WebRequest -Uri "https://github.com/upx/upx/releases/download/v4.0.2/upx-4.0.2-win64.zip" -OutFile "upx.zip"
         Expand-Archive -Path upx.zip -DestinationPath .\
-        .\upx-4.0.2-win64\upx.exe target\release\graduate.exe --best --lzma
-    - name: Archive binary
-      uses: actions/upload-artifact@v1
+        .\upx-4.0.2-win64\upx.exe graduate-DirectX11.exe --best --lzma
+        .\upx-4.0.2-win64\upx.exe graduate-DirectX12.exe --best --lzma
+    - name: Archive binary (Compressed)
+      uses: actions/upload-artifact@v3
       with:
         name: graduate-x64-Windows
-        path: target/release/graduate.exe
+        path: graduate-DirectX1?.exe
 
   build_macos:
     runs-on: macos-latest
@@ -103,11 +113,11 @@ jobs:
     - uses: dtolnay/rust-toolchain@stable
     - uses: actions/checkout@master
     - name: Build binary
-      run: cargo build --verbose --release
+      run: cargo build --release
     - name: Open binary via double-click
       run: chmod +x target/release/graduate
     - name: Archive binary (Uncompressed)
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v3
       with:
         name: graduate-x64-MacOS-uncompressed
         path: target/release/graduate
@@ -117,8 +127,8 @@ jobs:
         brew update
         brew install upx
         upx target/release/graduate --best --lzma
-    - name: Archive binary
-      uses: actions/upload-artifact@v1
+    - name: Archive binary (Compressed)
+      uses: actions/upload-artifact@v3
       with:
         name: graduate-x64-MacOS
         path: target/release/graduate

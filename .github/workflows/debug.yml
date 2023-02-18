@@ -16,7 +16,7 @@ jobs:
     - name: Build binary
       run: cargo build --verbose --release
     - name: Archive binary (Uncompressed)
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v3
       with:
         name: graduate-x64-Windows-debug
         path: target/release/graduate.exe

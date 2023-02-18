@@ -29,6 +29,11 @@ use toml::value::Table;
 pub static DELETE_FILES_ON_EXIT: AtomicBool = AtomicBool::new(false);
 
 fn main() {
+    if cfg!(target_os = "windows") {
+        std::env::set_var("WGPU_ADAPTER_NAME", "dx11");
+    } else {
+        std::env::set_var("WGPU_ADAPTER_NAME", "gl");
+    }
     Memories::run(Settings {
         window: window::Settings {
             size: (1400, 800),

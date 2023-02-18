@@ -76,36 +76,26 @@ jobs:
         echo '[target.x64-pc-windows-msvc]' >> .cargo/config
         echo 'rustflags = ["-Ctarget-feature=+crt-static"]' >> .cargo/config
     - name: Run the application without starting the shell
-      run: sed -i '1 i\#![windows_subsystem = \"windows\"]' src/main.rs
-    - name: Build binary for DirectX 11 system
-      env:
-        WGPU_BACKEND: dx11
       run: |
-        cargo build --release
-        cp target/release/graduate.exe graduate-DirectX11.exe
-    - name: Build binary for DirectX 12 system
-      env:
-        WGPU_BACKEND: dx12
-      run: |
-        cargo build --release
-        cp target/release/graduate.exe graduate-DirectX12.exe
+        sed -i '1 i\#![windows_subsystem = \"windows\"]' src/main.rs
+    - name: Build binary
+      run: cargo build --verbose --release
     - name: Archive binary (Uncompressed)
       uses: actions/upload-artifact@v3
       with:
         name: graduate-x64-Windows-uncompressed
-        path: graduate-DirectX1?.exe
+        path: target/release/graduate.exe
     - name: Compress binaries
       shell: pwsh
       run: |
         Invoke-WebRequest -Uri "https://github.com/upx/upx/releases/download/v4.0.2/upx-4.0.2-win64.zip" -OutFile "upx.zip"
         Expand-Archive -Path upx.zip -DestinationPath .\
-        .\upx-4.0.2-win64\upx.exe graduate-DirectX11.exe --best --lzma
-        .\upx-4.0.2-win64\upx.exe graduate-DirectX12.exe --best --lzma
-    - name: Archive binary (Compressed)
+        .\upx-4.0.2-win64\upx.exe target\release\graduate.exe --best --lzma
+    - name: Archive binary
       uses: actions/upload-artifact@v3
       with:
         name: graduate-x64-Windows
-        path: graduate-DirectX1?.exe
+        path: target/release/graduate.exe
 
   build_macos:
     runs-on: macos-latest

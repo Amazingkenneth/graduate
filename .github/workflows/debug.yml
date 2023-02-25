@@ -12,7 +12,7 @@ jobs:
       run: |
         mkdir .cargo
         echo '[target.x64-pc-windows-msvc]' >> .cargo/config
-        echo 'rustflags = ["-Ctarget-feature=+crt-static"]' >> .cargo/config
+        echo 'rustflags = ["-C", "target-feature=+crt-static"]' >> .cargo/config
     - name: Build binary
       run: cargo build --verbose --release
     - name: Archive binary (Uncompressed)

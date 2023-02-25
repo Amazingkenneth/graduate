@@ -8,11 +8,6 @@ jobs:
     steps:
     - uses: dtolnay/rust-toolchain@stable
     - uses: actions/checkout@master
-    - name: Enable static CRT linkage
-      run: |
-        mkdir .cargo
-        echo '[target.x64-pc-windows-msvc]' >> .cargo/config
-        echo 'rustflags = ["-C", "target-feature=+crt-static"]' >> .cargo/config
     - name: Build binary
       run: cargo build --verbose --release
     - name: Archive binary (Uncompressed)

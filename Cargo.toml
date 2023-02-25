@@ -10,11 +10,13 @@ version = "0.1.0"
 license = "GPL-3.0"
 repository = "https://github.com/Amazingkenneth/graduate"
 
+# Out of dated: iced -> 0.8, iced_native -> 0.9
+
 [dependencies]
 directories = "4"
-iced = { version = "0", features = ["image", "svg", "tokio"] }
+iced = { version = "0.7", features = ["image", "svg", "tokio"] }
 iced_audio = "0"
-iced_native = "0"
+iced_native = "0.8"
 lofty = "0"
 rand = "0"
 reqwest = "0"
@@ -22,8 +24,8 @@ rodio = { version = "0", default-features = false, features = [
     "symphonia-all",
 ] }
 serde = { version = "1", features = ["derive"] }
-time = { version = "0.3", features = ["macros", "parsing", "serde"] }
-tokio = { version = "1.25", features = ["full"] }
+time = { version = "0", features = ["macros", "parsing", "serde"] }
+tokio = { version = "1", features = ["full"] }
 toml = "0"
 
 [profile.release]

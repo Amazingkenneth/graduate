@@ -8,6 +8,7 @@ mod style;
 mod subscriptions;
 mod visiting;
 
+use ::image::ImageFormat;
 use iced::widget::{
     self, column, container, horizontal_space, image, row, scrollable, text, text_input,
     vertical_rule, vertical_space, Column, Row,
@@ -29,17 +30,19 @@ use toml::value::Table;
 pub static DELETE_FILES_ON_EXIT: AtomicBool = AtomicBool::new(false);
 
 fn main() {
-    if cfg!(target_os = "windows") {
-        std::env::set_var("WGPU_ADAPTER_NAME", "dx11");
-    } else {
-        std::env::set_var("WGPU_ADAPTER_NAME", "gl");
-    }
     Memories::run(Settings {
         window: window::Settings {
             size: (1400, 800),
+            icon: Some(
+                iced::window::icon::Icon::from_file_data(
+                    include_bytes!("./runtime/icon.png"),
+                    Some(ImageFormat::Png),
+                )
+                .unwrap(),
+            ),
             ..window::Settings::default()
         },
-        // default_font: Some(include_bytes!("./YEFONTFuJiYaTi-3.ttf")),
+        default_font: Some(include_bytes!("./YEFONTFuJiYaTi-3.ttf")),
         ..Settings::default()
     })
     .unwrap();

@@ -1204,6 +1204,7 @@ dependencies = [
  "iced",
  "iced_audio",
  "iced_native",
+ "image",
  "lofty",
  "rand",
  "reqwest",

@@ -153,7 +153,7 @@ impl State {
                         std::fs::File::create(&img_dir).expect("Failed to create image file.");
                     file.write_all(&bytes)
                         .expect("Failed to write the image into file in the project directory.");
-                    fillin.push(image::Handle::from_memory(bytes.as_ref().to_vec()));
+                    fillin.push(image::Handle::from_memory(bytes));
                 }
                 let mut images = img_mutex.lock().unwrap();
 

@@ -110,7 +110,7 @@ pub async fn get_configs(on_character: Option<usize>, state: State) -> Result<St
                     .write_all(&img_bytes)
                     .expect("Failed to write the image into file in the project directory.");
                 let mut img_array = img_mutex.lock().unwrap();
-                img_array[num] = Some(image::Handle::from_memory(img_bytes.to_vec()));
+                img_array[num] = Some(image::Handle::from_memory(img_bytes));
             }
             if profile_path.is_file() {
                 let profile_text =
@@ -184,7 +184,7 @@ pub async fn get_configs(on_character: Option<usize>, state: State) -> Result<St
                 let mut emoji_array = emoji_mutex.lock().unwrap();
                 emoji_array[num].push(Emoji {
                     emoji_name,
-                    emoji: image::Handle::from_memory(emoji_bytes.to_vec()),
+                    emoji: image::Handle::from_memory(emoji_bytes),
                 });
             }
         });

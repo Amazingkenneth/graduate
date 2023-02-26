@@ -361,7 +361,7 @@ pub fn load_images(state: &mut State) {
                             file.write_all(&bytes)
                                 .expect("Failed to write the image into file");
                             given_mutex.lock().unwrap()[cur_idx].experiences[cur_img].handle =
-                                Some(image::Handle::from_memory(bytes.as_ref().to_vec()));
+                                Some(image::Handle::from_memory(bytes));
                         });
                         *experience.join_handle.lock().unwrap() = Some(t);
                     }

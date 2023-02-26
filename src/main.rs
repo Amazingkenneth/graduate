@@ -39,7 +39,7 @@ fn main() {
             size: (1400, 800),
             ..window::Settings::default()
         },
-        default_font: Some(include_bytes!("./YEFONTFuJiYaTi-3.ttf")),
+        // default_font: Some(include_bytes!("./YEFONTFuJiYaTi-3.ttf")),
         ..Settings::default()
     })
     .unwrap();
@@ -567,10 +567,10 @@ impl Application for Memories {
                                 [chosen.on_image]
                                 .clone()
                         )
-                        .width(Length::Units(1400)),
+                        .width(Length::Fixed(1400.0)),
                         column![
                             button_from_svg(include_bytes!("./runtime/gears.svg").to_vec())
-                                .width(Length::Units(80))
+                                .width(Length::Fixed(80.0))
                                 .on_press(Message::OpenSettings),
                             text(
                                 state
@@ -602,7 +602,7 @@ impl Application for Memories {
                                 button_from_svg(
                                     include_bytes!("./runtime/arrow-left.svg").to_vec()
                                 )
-                                .width(Length::Units(80))
+                                .width(Length::Fixed(80.0))
                                 .on_press(Message::PreviousEvent),
                                 if state
                                     .get_current_event(chosen.on_event)
@@ -617,21 +617,21 @@ impl Application for Memories {
                                         button_from_svg(
                                             include_bytes!("./runtime/up.svg").to_vec()
                                         )
-                                        .width(Length::Units(40))
+                                        .width(Length::Fixed(40.0))
                                         .on_press(Message::PreviousPhoto),
                                         button_from_svg(
                                             include_bytes!("./runtime/down.svg").to_vec()
                                         )
-                                        .width(Length::Units(40))
+                                        .width(Length::Fixed(40.0))
                                         .on_press(Message::NextPhoto)
                                     ])
                                 } else {
-                                    Element::from(horizontal_space(Length::Units(40)))
+                                    Element::from(horizontal_space(Length::Fixed(40.0)))
                                 },
                                 button_from_svg(
                                     include_bytes!("./runtime/arrow-right.svg").to_vec()
                                 )
-                                .width(Length::Units(80))
+                                .width(Length::Fixed(80.0))
                                 .on_press(Message::NextEvent),
                             ],
                             widget::Button::new(
@@ -673,7 +673,7 @@ impl Application for Memories {
                                 }
                                 let photo = avatar.photo.to_owned();
                                 let viewer =
-                                    widget::image(photo.clone()).height(Length::Units(200));
+                                    widget::image(photo.clone()).height(Length::Fixed(200.0));
                                 if containing == 0 {
                                     containing = choosing.element_count;
                                     heads.push(vec![]);
@@ -751,7 +751,7 @@ impl Application for Memories {
                                 if !relations.is_empty() {
                                     content = content.push(column![
                                         text("ta 的身份").size(50),
-                                        row![horizontal_space(Length::Units(20)), lists,]
+                                        row![horizontal_space(Length::Fixed(20.0)), lists,]
                                     ]);
                                 }
                             }
@@ -760,7 +760,7 @@ impl Application for Memories {
                                 emojis = emojis.push(
                                     column![
                                         widget::image::viewer(i.emoji.clone())
-                                            .height(Length::Units(400)),
+                                            .height(Length::Fixed(400.0)),
                                         text(i.emoji_name.clone()).size(30)
                                     ]
                                     .align_items(Alignment::Center),
@@ -775,7 +775,10 @@ impl Application for Memories {
                             if let Some(intro) = profile.introduction {
                                 content = content.push(column![
                                     text("ta 的自传").size(50),
-                                    row![horizontal_space(Length::Units(20)), text(intro).size(30)],
+                                    row![
+                                        horizontal_space(Length::Fixed(20.0)),
+                                        text(intro).size(30)
+                                    ],
                                 ])
                             }
                             if let Some(comments) = profile.comment {
@@ -804,7 +807,7 @@ impl Application for Memories {
                                             widget::Svg::new(widget::svg::Handle::from_memory(
                                                 include_bytes!("./runtime/quote-left.svg").to_vec()
                                             ))
-                                            .width(Length::Units(30)),
+                                            .width(Length::Fixed(30.0)),
                                             column![text(
                                                 cur_comment
                                                     .get("description")
@@ -827,7 +830,7 @@ impl Application for Memories {
                                 if !comments.is_empty() {
                                     content = content.push(column![
                                         text("大家对 ta 的评价").size(50),
-                                        row![horizontal_space(Length::Units(20)), lists,]
+                                        row![horizontal_space(Length::Fixed(20.0)), lists,]
                                     ]);
                                 }
                             }
@@ -860,12 +863,12 @@ impl Application for Memories {
                         let experiences = &events[displayer.on_event].experiences;
                         let cur_img = &experiences[events[displayer.on_event].on_experience];
                         let main_image = image::viewer(cur_img.handle.clone().unwrap())
-                            .width(Length::Units(1400));
+                            .width(Length::Fixed(1400.0));
                         row![
                             main_image,
                             column![
                                 button_from_svg(include_bytes!("./runtime/gears.svg").to_vec())
-                                    .width(Length::Units(80))
+                                    .width(Length::Fixed(80.0))
                                     .on_press(Message::OpenSettings),
                                 text(events[displayer.on_event].description.clone()).size(50),
                                 text(format!("拍摄于 {}", cur_img.shot)).size(30),
@@ -876,33 +879,33 @@ impl Application for Memories {
                                                 include_bytes!("./runtime/chevron-left.svg")
                                                     .to_vec(),
                                             )
-                                            .width(Length::Units(80))
+                                            .width(Length::Fixed(80.0))
                                             .on_press(Message::PreviousEvent),
                                         )
                                     } else {
-                                        Element::from(horizontal_space(Length::Units(80)))
+                                        Element::from(horizontal_space(Length::Fixed(80.0)))
                                     },
                                     if experiences.len() > 1 {
                                         Element::from(column![
                                             button_from_svg(
                                                 include_bytes!("./runtime/chevron-up.svg").to_vec()
                                             )
-                                            .width(Length::Units(60))
+                                            .width(Length::Fixed(60.0))
                                             .on_press(Message::PreviousPhoto),
                                             button_from_svg(
                                                 include_bytes!("./runtime/chevron-down.svg")
                                                     .to_vec()
                                             )
-                                            .width(Length::Units(60))
+                                            .width(Length::Fixed(60.0))
                                             .on_press(Message::NextPhoto)
                                         ])
                                     } else {
-                                        Element::from(horizontal_space(Length::Units(60)))
+                                        Element::from(horizontal_space(Length::Fixed(60.0)))
                                     },
                                     button_from_svg(
                                         include_bytes!("./runtime/chevron-right.svg").to_vec()
                                     )
-                                    .width(Length::Units(80))
+                                    .width(Length::Fixed(80.0))
                                     .on_press(Message::NextEvent),
                                 ]
                                 .align_items(Alignment::Center),
@@ -993,7 +996,7 @@ fn show_profiles(item: Option<toml::value::Array>, with_name: &str) -> Element<M
         if !item.is_empty() {
             return Element::from(column![
                 text(with_name).size(50),
-                row![horizontal_space(Length::Units(20)), lists,]
+                row![horizontal_space(Length::Fixed(20.0)), lists,]
             ]);
         }
     }

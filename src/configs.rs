@@ -53,15 +53,15 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                             && !config.aud_module.lock().unwrap().sink.is_paused()
                         {
                             crate::button_from_svg(include_bytes!("./runtime/pause.svg").to_vec())
-                                .width(Length::Units(40))
+                                .width(Length::Fixed(40.0))
                                 .on_press(Message::SwitchMusicStatus)
                         } else {
                             crate::button_from_svg(include_bytes!("./runtime/play.svg").to_vec())
-                                .width(Length::Units(40))
+                                .width(Length::Fixed(40.0))
                                 .on_press(Message::SwitchMusicStatus)
                         },
                         HSlider::new(config.aud_volume, crate::Message::ModifyVolume)
-                            .height(Length::Units(30))
+                            .height(Length::Fixed(30.0))
                             .style(crate::style::h_slider::RectStyle)
                     ]
                     .align_items(Alignment::Center),
@@ -74,7 +74,7 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
         ]
         .spacing(20),
     )
-    .width(Length::Units(350))
+    .width(Length::Fixed(350.0))
     .padding(10)
     .style(iced::theme::Container::Box);
     use modal::Modal;

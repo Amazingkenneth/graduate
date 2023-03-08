@@ -15,7 +15,7 @@ directories = "4"
 iced = { version = "0", features = ["image", "svg", "tokio"] }
 iced_audio = "0"
 iced_native = "0"
-image = "0"
+image = "0.24"
 lofty = "0"
 rand = "0"
 reqwest = "0"

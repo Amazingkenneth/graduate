@@ -11,7 +11,7 @@ license = "GPL-3.0"
 repository = "https://github.com/Amazingkenneth/graduate"
 
 [dependencies]
-directories = "4"
+directories = "5"
 iced = { version = "0", features = ["image", "svg", "tokio"] }
 iced_audio = "0"
 iced_native = "0"

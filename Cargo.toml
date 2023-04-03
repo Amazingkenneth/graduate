@@ -24,7 +24,7 @@ rodio = { version = "0", default-features = false, features = [
 ] }
 serde = { version = "1", features = ["derive"] }
 time = { version = "0.3", features = ["macros", "parsing", "serde"] }
-tokio = { version = "1.26", features = ["full"] }
+tokio = { version = "1.27", features = ["full"] }
 toml = "0"
 
 [profile.release]

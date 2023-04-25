@@ -4,7 +4,6 @@ mod choosing;
 mod configs;
 mod entries;
 mod graduation;
-mod style;
 mod subscriptions;
 mod visiting;
 
@@ -34,7 +33,7 @@ fn main() {
         window: window::Settings {
             size: (1400, 800),
             icon: Some(
-                iced::window::icon::Icon::from_file_data(
+                iced::window::icon::from_file_data(
                     include_bytes!("./runtime/icon.png"),
                     Some(ImageFormat::Png),
                 )
@@ -123,7 +122,7 @@ pub enum Message {
     UnChoose,
     SwitchDeleteFilesStatus,
     SwitchMusicStatus,
-    ModifyVolume(iced_audio::Normal),
+    ModifyVolume(f32),
     PreviousPerson,
     NextPerson,
     ScaleDown,
@@ -268,7 +267,7 @@ impl Application for Memories {
                         return Command::none();
                     }
                     Message::ModifyVolume(new_volume) => {
-                        state.configs.aud_volume.update(new_volume);
+                        state.configs.aud_volume = new_volume.into();
                         if state
                             .configs
                             .daemon_running
@@ -662,8 +661,7 @@ impl Application for Memories {
                                 text_input(
                                     "输入以搜索",
                                     &choosing.description,
-                                    Message::DescriptionEdited,
-                                )
+                                ).on_input(Message::DescriptionEdited)
                                 .size(28)
                                 .padding(15)
                                 .on_submit(Message::FinishedTyping),

@@ -247,8 +247,7 @@ impl State {
                                 scale_factor,
                                 theme,
                                 from_date,
-                                aud_volume: iced_audio::FloatRange::new(0.0, 1.0)
-                                    .normal_param(initial_volume, 1.0),
+                                aud_volume: 1.0,
                                 aud_module: sink_mutex,
                                 daemon_running: daemon_status,
                                 audio_paths,
@@ -276,8 +275,7 @@ impl State {
                     scale_factor,
                     theme,
                     from_date,
-                    aud_volume: iced_audio::FloatRange::new(0.0, 1.0)
-                        .normal_param(initial_volume, 1.0),
+                    aud_volume: 1.0,
                     aud_module: sink_mutex,
                     daemon_running: daemon_status,
                     audio_paths,
@@ -302,7 +300,7 @@ impl State {
                     from_date: crate::visiting::ShootingTime::Precise(
                         time::macros::datetime!(2020-06-01 0:00),
                     ),
-                    aud_volume: iced_audio::FloatRange::new(0.0, 1.0).normal_param(1.0, 1.0),
+                    aud_volume: 1.0,
                     aud_module: sink_mutex,
                     daemon_running: daemon_status,
                     audio_paths,

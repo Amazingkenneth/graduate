@@ -5,8 +5,8 @@ use iced::widget::{
     vertical_space, Column, Row,
 };
 use iced::{alignment, subscription, Alignment, Length, Theme};
-use iced_audio::core::normal_param::NormalParam;
-use iced_audio::native::h_slider::HSlider;
+// use iced_audio::core::normal_param::NormalParam;
+// use iced_audio::native::h_slider::HSlider;
 use std::io::Write;
 use std::mem::ManuallyDrop;
 use std::sync::atomic::AtomicBool;
@@ -21,7 +21,7 @@ pub struct Configs {
     pub scale_factor: f64,
     pub theme: Theme,
     pub from_date: visiting::ShootingTime,
-    pub aud_volume: iced_audio::NormalParam,
+    pub aud_volume: f64,
     pub aud_module: Arc<std::sync::Mutex<ManuallyDrop<AudioStream>>>,
     pub audio_paths: Vec<String>,
     pub daemon_running: Arc<AtomicBool>,
@@ -60,9 +60,9 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                                 .width(Length::Fixed(40.0))
                                 .on_press(Message::SwitchMusicStatus)
                         },
-                        HSlider::new(config.aud_volume, crate::Message::ModifyVolume)
-                            .height(Length::Fixed(30.0))
-                            .style(crate::style::h_slider::RectStyle)
+                        // HSlider::new(config.aud_volume, crate::Message::ModifyVolume)
+                        //     .height(Length::Fixed(30.0))
+                        //     .style(crate::style::h_slider::RectStyle)
                     ]
                     .align_items(Alignment::Center),
                 ]
@@ -109,7 +109,7 @@ pub fn save_configs(state: &mut State) {
     map.insert(String::from("stage"), toml::Value::String(stage));
     map.insert(
         String::from("audio-volume"),
-        toml::Value::Float(configs.aud_volume.value.as_f32() as f64),
+        toml::Value::Float(configs.aud_volume),
     );
     map.insert(
         String::from("scale-factor"),

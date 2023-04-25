@@ -658,13 +658,11 @@ impl Application for Memories {
                                     .style(iced::theme::Button::Secondary)
                                     .on_press(Message::BackStage)
                                     .padding(15),
-                                text_input(
-                                    "输入以搜索",
-                                    &choosing.description,
-                                ).on_input(Message::DescriptionEdited)
-                                .size(28)
-                                .padding(15)
-                                .on_submit(Message::FinishedTyping),
+                                text_input("输入以搜索", &choosing.description,)
+                                    .on_input(Message::DescriptionEdited)
+                                    .size(28)
+                                    .padding(15)
+                                    .on_submit(Message::FinishedTyping),
                             ];
                             let mut heads = vec![vec![]];
                             let mut containing: usize = choosing.element_count;

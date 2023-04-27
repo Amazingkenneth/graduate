@@ -190,7 +190,7 @@ impl State {
                 .expect("Cannot read as table.")
                 .to_owned();
             let initial_volume = config_table
-                .get("audio-volume")
+                .get("volume-percentage")
                 .unwrap()
                 .as_float()
                 .unwrap() as f32;
@@ -247,12 +247,13 @@ impl State {
                                 scale_factor,
                                 theme,
                                 from_date,
-                                aud_volume: 1.0,
+                                volume_percentage: initial_volume,
                                 aud_module: sink_mutex,
                                 daemon_running: daemon_status,
                                 audio_paths,
                                 config_path,
                                 shown: false,
+                                full_screened: false,
                             },
                         },
                     )
@@ -275,12 +276,13 @@ impl State {
                     scale_factor,
                     theme,
                     from_date,
-                    aud_volume: 1.0,
+                    volume_percentage: initial_volume,
                     aud_module: sink_mutex,
                     daemon_running: daemon_status,
                     audio_paths,
                     config_path,
                     shown: false,
+                    full_screened: false,
                 },
             })
         } else {
@@ -300,12 +302,13 @@ impl State {
                     from_date: crate::visiting::ShootingTime::Precise(
                         time::macros::datetime!(2020-06-01 0:00),
                     ),
-                    aud_volume: 1.0,
+                    volume_percentage: 100.0,
                     aud_module: sink_mutex,
                     daemon_running: daemon_status,
                     audio_paths,
                     config_path,
                     shown: false,
+                    full_screened: false,
                 },
             })
         }

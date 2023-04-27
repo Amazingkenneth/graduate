@@ -15,7 +15,7 @@ macro_rules! with_key {
 fn global_response(event: keyboard::Event) -> Option<Message> {
     match event {
         keyboard::Event::KeyPressed {
-            modifiers: _,
+            modifiers: m,
             key_code,
         } => match key_code {
             keyboard::KeyCode::Plus | keyboard::KeyCode::NumpadAdd => Some(Message::ScaleEnlarge),
@@ -29,8 +29,29 @@ fn global_response(event: keyboard::Event) -> Option<Message> {
             keyboard::KeyCode::PlayPause => Some(Message::SwitchMusicStatus),
             keyboard::KeyCode::R => Some(Message::Refresh),
             keyboard::KeyCode::S => Some(Message::OpenSettings),
+            keyboard::KeyCode::Escape => Some(Message::EscapeFullScreen),
+            keyboard::KeyCode::Enter => {
+                if m.alt() {
+                    Some(Message::ToggleMode)
+                } else {
+                    None
+                }
+            }
             _ => None,
         },
+        _ => None,
+    }
+}
+
+pub fn on_loading(event: Event, _: iced::event::Status) -> Option<Message> {
+    match event {
+        Event::Keyboard(keyboard_event) => {
+            if let Some(ret) = global_response(keyboard_event) {
+                Some(ret)
+            } else {
+                None
+            }
+        }
         _ => None,
     }
 }

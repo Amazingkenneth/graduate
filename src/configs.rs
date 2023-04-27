@@ -17,11 +17,12 @@ use time;
 #[derive(Clone, Debug)]
 pub struct Configs {
     pub shown: bool,
+    pub full_screened: bool,
     pub config_path: String,
     pub scale_factor: f64,
     pub theme: Theme,
     pub from_date: visiting::ShootingTime,
-    pub aud_volume: f64,
+    pub volume_percentage: f32,
     pub aud_module: Arc<std::sync::Mutex<ManuallyDrop<AudioStream>>>,
     pub audio_paths: Vec<String>,
     pub daemon_running: Arc<AtomicBool>,
@@ -47,6 +48,17 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                     .text_size(28),
                     text("音量控制").size(32),
                     row![
+                        iced::widget::Slider::new(
+                            0.0..=120.0,
+                            config.volume_percentage,
+                            crate::Message::ModifyVolume
+                        )
+                        .height(30.0)
+                        .width(Length::Fill),
+                        text(format!("{:>4}%", config.volume_percentage)).size(25)
+                    ]
+                    .align_items(Alignment::Center),
+                    row![
                         if config
                             .daemon_running
                             .load(std::sync::atomic::Ordering::Relaxed)
@@ -60,11 +72,23 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                                 .width(Length::Fixed(40.0))
                                 .on_press(Message::SwitchMusicStatus)
                         },
-                        // HSlider::new(config.aud_volume, crate::Message::ModifyVolume)
-                        //     .height(Length::Fixed(30.0))
-                        //     .style(crate::style::h_slider::RectStyle)
+                        crate::button_from_svg(
+                            include_bytes!("./runtime/square-right.svg").to_vec()
+                        )
+                        .width(Length::Fixed(40.0))
+                        .on_press(Message::NextSong),
+                        if config.full_screened {
+                            crate::button_from_svg(
+                                include_bytes!("./runtime/compress.svg").to_vec(),
+                            )
+                            .width(Length::Fixed(40.0))
+                            .on_press(Message::ToggleMode)
+                        } else {
+                            crate::button_from_svg(include_bytes!("./runtime/expand.svg").to_vec())
+                                .width(Length::Fixed(40.0))
+                                .on_press(Message::ToggleMode)
+                        }
                     ]
-                    .align_items(Alignment::Center),
                 ]
                 .spacing(10),
                 widget::button(text("设置好啦！").size(32)).on_press(Message::HideSettings)
@@ -108,8 +132,8 @@ pub fn save_configs(state: &mut State) {
     .to_string();
     map.insert(String::from("stage"), toml::Value::String(stage));
     map.insert(
-        String::from("audio-volume"),
-        toml::Value::Float(configs.aud_volume),
+        String::from("volume-percentage"),
+        toml::Value::Float(configs.volume_percentage.into()),
     );
     map.insert(
         String::from("scale-factor"),

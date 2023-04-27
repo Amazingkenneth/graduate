@@ -8,10 +8,12 @@ mod subscriptions;
 mod visiting;
 
 use ::image::ImageFormat;
+use configs::Configs;
 use iced::widget::{
     self, column, container, horizontal_space, image, row, scrollable, text, text_input,
     vertical_rule, vertical_space, Column, Row,
 };
+use iced::window::Mode;
 use iced::{
     alignment, subscription, window, Alignment, Application, Color, Command, Element, Event,
     Length, Settings, Theme,
@@ -29,8 +31,18 @@ use toml::value::Table;
 pub static DELETE_FILES_ON_EXIT: AtomicBool = AtomicBool::new(false);
 
 fn main() {
+    #[cfg(target_os = "macos")]
+    let specific = iced::window::PlatformSpecific {
+        title_hidden: true,
+        titlebar_transparent: true,
+        fullsize_content_view: true,
+    };
+    #[cfg(not(target_os = "macos"))]
+    let specific = Default::default();
+
     Memories::run(Settings {
         window: window::Settings {
+            platform_specific: specific,
             size: (1400, 800),
             icon: Some(
                 iced::window::icon::from_file_data(
@@ -54,8 +66,9 @@ fn main() {
 
 #[derive(Clone, Debug)]
 pub enum Memories {
-    Loading,       // 有加载任务尚未完成
-    Loaded(State), // 已完成加载，等待下个事件
+    Initialization,
+    Loading(Configs), // 有加载任务尚未完成
+    Loaded(State),    // 已完成加载，等待下个事件
 }
 
 #[derive(Clone, Debug)]
@@ -107,32 +120,35 @@ pub struct GraduationState {
 
 #[derive(Clone, Debug)]
 pub enum Message {
-    Loaded(Result<State, Error>),
-    FetchImage(Result<Memories, Error>),
-    LoadedImage(Result<EntryState, Error>),
-    PreviousEvent,
-    NextEvent,
-    PreviousPhoto,
-    NextPhoto,
     BackStage,
-    NextStage,
-    DescriptionEdited(String),
-    FinishedTyping,
     ChoseCharacter(usize),
-    UnChoose,
-    SwitchDeleteFilesStatus,
-    SwitchMusicStatus,
+    DescriptionEdited(String),
+    EscapeFullScreen,
+    FetchImage(Result<Memories, Error>),
+    FinishedTyping,
+    HideSettings,
+    IsDarkTheme(bool),
+    Loaded(Result<State, Error>),
+    LoadedImage(Result<EntryState, Error>),
     ModifyVolume(f32),
-    PreviousPerson,
+    NextEvent,
     NextPerson,
+    NextPhoto,
+    NextSong,
+    NextStage,
+    OpenInExplorer,
+    OpenSettings,
+    PreviousEvent,
+    PreviousPerson,
+    PreviousPhoto,
+    Refresh,
     ScaleDown,
     ScaleEnlarge,
     ScaleRestore,
-    IsDarkTheme(bool),
-    OpenInExplorer,
-    Refresh,
-    OpenSettings,
-    HideSettings,
+    SwitchDeleteFilesStatus,
+    SwitchMusicStatus,
+    ToggleMode,
+    UnChoose,
 }
 
 #[derive(Clone, Debug)]
@@ -156,14 +172,13 @@ impl Application for Memories {
 
     fn new(_flags: ()) -> (Memories, Command<Message>) {
         (
-            Memories::Loading,
+            Memories::Initialization,
             Command::perform(State::get_idx(), Message::Loaded),
         )
     }
 
     fn title(&self) -> String {
         let subtitle = match self {
-            Memories::Loading => "加载中",
             Memories::Loaded(state) => match &state.stage {
                 Stage::EntryEvents(_) => "让我们从这里开始吧",
                 Stage::ChoosingCharacter(choosing) => match choosing.on_character {
@@ -180,15 +195,17 @@ impl Application for Memories {
                 }
                 Stage::Graduated(_) => "就这样，我们毕业啦",
             },
+            _ => "加载中",
         };
         format!("{} - 有你，才是一班。", subtitle)
     }
     fn update(&mut self, message: Message) -> Command<Message> {
         println!("On update()");
         match self {
-            Memories::Loading => {
+            Memories::Initialization => {
                 match message {
-                    Message::Loaded(Ok(state)) => {
+                    Message::Loaded(Ok(mut state)) => {
+                        configs::save_configs(&mut state);
                         *self = Memories::Loaded(state);
                     }
                     Message::FetchImage(Ok(memo)) => {
@@ -198,8 +215,114 @@ impl Application for Memories {
                 }
                 Command::none()
             }
+            Memories::Loading(config) => {
+                match message {
+                    // 记得要把这里的代码复制到 `Memories::Loaded(_)` 里面噢
+                    Message::ToggleMode => {
+                        let mode = if config.full_screened {
+                            Mode::Windowed
+                        } else {
+                            Mode::Fullscreen
+                        };
+                        config.full_screened ^= true;
+                        return iced::window::change_mode(mode);
+                    }
+                    Message::EscapeFullScreen => {
+                        config.full_screened = false;
+                        return iced::window::change_mode(Mode::Windowed);
+                    }
+                    Message::Loaded(Ok(mut state)) => {
+                        configs::save_configs(&mut state);
+                        *self = Memories::Loaded(state);
+                    }
+                    Message::FetchImage(Ok(memo)) => {
+                        *self = memo;
+                    }
+                    Message::ScaleDown => {
+                        config.scale_factor /= 1.05;
+                    }
+                    Message::ScaleEnlarge => {
+                        config.scale_factor *= 1.05;
+                    }
+                    Message::ScaleRestore => {
+                        config.scale_factor = 1.0;
+                    }
+                    Message::IsDarkTheme(is_dark) => {
+                        if is_dark {
+                            config.theme = Theme::Dark;
+                        } else {
+                            config.theme = Theme::Light;
+                        }
+                    }
+                    Message::OpenSettings => {
+                        config.shown = true;
+                    }
+                    Message::HideSettings => {
+                        config.shown = false;
+                    }
+                    Message::SwitchDeleteFilesStatus => {
+                        DELETE_FILES_ON_EXIT.fetch_xor(true, Ordering::Relaxed);
+                    }
+                    Message::SwitchMusicStatus => {
+                        if config
+                            .daemon_running
+                            .load(std::sync::atomic::Ordering::Relaxed)
+                        {
+                            let sink = &config.aud_module.lock().unwrap().sink;
+                            if sink.is_paused() {
+                                sink.play();
+                            } else {
+                                sink.pause();
+                            }
+                        } else {
+                            let (stream, stream_handle) =
+                                rodio::OutputStream::try_default().unwrap();
+                            let audio_stream = std::mem::ManuallyDrop::new(audio::AudioStream {
+                                sink: rodio::Sink::try_new(&stream_handle).unwrap(),
+                                stream,
+                            });
+                            config.aud_module = Arc::new(Mutex::new(audio_stream));
+                            let given_mutex = config.aud_module.clone();
+                            config.daemon_running.store(true, Ordering::Relaxed);
+                            let running_status = config.daemon_running.clone();
+                            let paths = config.audio_paths.clone();
+                            tokio::spawn(async {
+                                audio::play_music(given_mutex, paths, running_status, 1.0).await;
+                            });
+                        }
+                        return Command::none();
+                    }
+                    Message::ModifyVolume(new_volume) => {
+                        config.volume_percentage = new_volume;
+                        if config
+                            .daemon_running
+                            .load(std::sync::atomic::Ordering::Relaxed)
+                        {
+                            let sink = &config.aud_module.lock().unwrap().sink;
+                            sink.set_volume(new_volume / 100.0);
+                        }
+                        return Command::none();
+                    }
+                    _ => (),
+                }
+                Command::none()
+            }
             Memories::Loaded(state) => {
                 match message {
+                    // 记得要把这里的代码复制到 `Memories::Loading(_)` 里面噢
+                    Message::ToggleMode => {
+                        let mode = if state.configs.full_screened {
+                            Mode::Windowed
+                        } else {
+                            Mode::Fullscreen
+                        };
+                        state.configs.full_screened ^= true;
+                        return iced::window::change_mode(mode);
+                    }
+                    Message::EscapeFullScreen => {
+                        state.configs.full_screened = false;
+                        return iced::window::change_mode(Mode::Windowed);
+                    }
                     Message::ScaleDown => {
                         state.configs.scale_factor /= 1.05;
                         configs::save_configs(state);
@@ -267,14 +390,14 @@ impl Application for Memories {
                         return Command::none();
                     }
                     Message::ModifyVolume(new_volume) => {
-                        state.configs.aud_volume = new_volume.into();
+                        state.configs.volume_percentage = new_volume;
                         if state
                             .configs
                             .daemon_running
                             .load(std::sync::atomic::Ordering::Relaxed)
                         {
                             let sink = &state.configs.aud_module.lock().unwrap().sink;
-                            sink.set_volume(new_volume.into());
+                            sink.set_volume(new_volume / 100.0);
                         }
                         return Command::none();
                     }
@@ -379,7 +502,7 @@ impl Application for Memories {
                                     .unwrap()
                                     .into();
                                 let state = state.clone();
-                                *self = Memories::Loading;
+                                *self = Memories::Loading(state.configs.clone());
                                 return Command::perform(
                                     choosing::get_configs(None, state),
                                     Message::Loaded,
@@ -434,7 +557,7 @@ impl Application for Memories {
                                 }
                                 Message::NextStage => {
                                     let state = state.clone();
-                                    *self = Memories::Loading;
+                                    *self = Memories::Loading(state.configs.clone());
                                     return Command::perform(
                                         visiting::get_queue(state),
                                         Message::Loaded,
@@ -474,7 +597,7 @@ impl Application for Memories {
                                         let events = displayer.events.lock().unwrap();
                                         events[displayer.on_event].get_join_handle()
                                     };
-                                    let memo = std::mem::replace(self, Memories::Loading);
+                                    let memo = std::mem::replace(self, Memories::Initialization);
                                     return Command::perform(
                                         visiting::force_load(handle, memo),
                                         Message::FetchImage,
@@ -486,7 +609,7 @@ impl Application for Memories {
                                 displayer.on_event += 1;
                                 if displayer.on_event == displayer.events.lock().unwrap().len() {
                                     let state = state.to_owned();
-                                    *self = Memories::Loading;
+                                    *self = Memories::Loading(state.configs.clone());
                                     return Command::perform(
                                         graduation::load_map(state),
                                         Message::Loaded,
@@ -501,7 +624,8 @@ impl Application for Memories {
                                         let events = displayer.events.lock().unwrap();
                                         events[displayer.on_event].get_join_handle()
                                     };
-                                    let memo = std::mem::replace(self, Memories::Loading);
+                                    let config = state.configs.clone();
+                                    let memo = std::mem::replace(self, Memories::Loading(config));
                                     return Command::perform(
                                         visiting::force_load(handle, memo),
                                         Message::FetchImage,
@@ -523,7 +647,7 @@ impl Application for Memories {
                             }
                             Message::NextStage => {
                                 let state = state.clone();
-                                *self = Memories::Loading;
+                                *self = Memories::Loading(state.configs.clone());
                                 return Command::perform(
                                     graduation::load_map(state),
                                     Message::Loaded,
@@ -546,7 +670,7 @@ impl Application for Memories {
     }
     fn view(&self) -> Element<Message> {
         match self {
-            Memories::Loading => {
+            Memories::Loading(_) | Memories::Initialization => {
                 println!("On Memories::Loading");
                 container(
                     column![
@@ -951,7 +1075,8 @@ impl Application for Memories {
     fn subscription(&self) -> iced::Subscription<Message> {
         // from iced_native::events_with
         match self {
-            Memories::Loading => iced::Subscription::none(),
+            Memories::Initialization => iced::Subscription::none(),
+            Memories::Loading(_) => iced::subscription::events_with(subscriptions::on_loading),
             Memories::Loaded(state) => match state.stage {
                 Stage::EntryEvents(_) => {
                     iced::subscription::events_with(subscriptions::on_entry_state)
@@ -968,14 +1093,16 @@ impl Application for Memories {
     }
     fn scale_factor(&self) -> f64 {
         match self {
-            Memories::Loading => 1.0,
+            Memories::Initialization => 1.0,
+            Memories::Loading(config) => config.scale_factor,
             Memories::Loaded(state) => state.configs.scale_factor,
         }
     }
 
     fn theme(&self) -> Theme {
         match self {
-            Memories::Loading => Theme::Light,
+            Memories::Initialization => Theme::Light,
+            Memories::Loading(config) => config.theme.clone(),
             Memories::Loaded(state) => state.configs.theme.clone(),
         }
     }

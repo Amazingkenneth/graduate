@@ -26,7 +26,12 @@ pub async fn play_music(
     running_status: Arc<AtomicBool>,
     initial_volume: f32,
 ) {
-    stream.lock().unwrap().sink.set_volume(initial_volume);
+    println!("initial_volume: {initial_volume}");
+    stream
+        .lock()
+        .unwrap()
+        .sink
+        .set_volume(initial_volume / 100.0);
     let mut is_first_audio = true;
     loop {
         for audio_dir in &paths {

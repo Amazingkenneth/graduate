@@ -760,14 +760,15 @@ impl Application for Memories {
                                 .width(Length::Fixed(80.0))
                                 .on_press(Message::NextEvent),
                             ],
-                            widget::Button::new(
-                                column![text("打开对应文件").size(30), text("按 O").size(20)]
-                                    .align_items(Alignment::Center)
-                                    .spacing(15)
+                            widget::tooltip(
+                                widget::Button::new(text("打开对应文件").size(30))
+                                    .padding(10)
+                                    .style(iced::theme::Button::Secondary)
+                                    .on_press(Message::OpenInExplorer),
+                                "按 O",
+                                widget::tooltip::Position::FollowCursor
                             )
-                            .padding(10)
-                            .style(iced::theme::Button::Secondary)
-                            .on_press(Message::OpenInExplorer),
+                            .style(iced::theme::Container::Box),
                         ]
                         .spacing(20)
                         .align_items(Alignment::Center)
@@ -1032,14 +1033,15 @@ impl Application for Memories {
                                     .on_press(Message::NextEvent),
                                 ]
                                 .align_items(Alignment::Center),
-                                widget::Button::new(
-                                    column![text("打开对应文件").size(30), text("按 O").size(20)]
-                                        .align_items(Alignment::Center)
-                                        .spacing(10)
+                                widget::tooltip(
+                                    widget::Button::new(text("打开对应文件").size(30))
+                                        .padding(10)
+                                        .style(iced::theme::Button::Secondary)
+                                        .on_press(Message::OpenInExplorer),
+                                    "按 O",
+                                    widget::tooltip::Position::FollowCursor
                                 )
-                                .padding(10)
-                                .style(iced::theme::Button::Secondary)
-                                .on_press(Message::OpenInExplorer),
+                                .style(iced::theme::Container::Box),
                                 widget::Button::new(
                                     column![text("回到最初").size(28), text("那样……").size(28)]
                                         .spacing(10)

@@ -1,8 +1,7 @@
 use crate::audio::AudioStream;
 use crate::{visiting, Message, Stage, State};
 use iced::widget::{
-    self, column, container, horizontal_space, image, row, scrollable, text, text_input,
-    vertical_space, Column, Row,
+    self, column, container, horizontal_space, image, row, text, vertical_space, Column, Row,
 };
 use iced::{alignment, subscription, Alignment, Length, Theme};
 // use iced_audio::core::normal_param::NormalParam;
@@ -59,35 +58,65 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                     ]
                     .align_items(Alignment::Center),
                     row![
-                        if config
-                            .daemon_running
-                            .load(std::sync::atomic::Ordering::Relaxed)
-                            && !config.aud_module.lock().unwrap().sink.is_paused()
-                        {
-                            crate::button_from_svg(include_bytes!("./runtime/pause.svg").to_vec())
+                        widget::tooltip(
+                            if config
+                                .daemon_running
+                                .load(std::sync::atomic::Ordering::Relaxed)
+                                && !config.aud_module.lock().unwrap().sink.is_paused()
+                            {
+                                crate::button_from_svg(
+                                    include_bytes!("./runtime/pause.svg").to_vec(),
+                                )
                                 .width(Length::Fixed(40.0))
                                 .on_press(Message::SwitchMusicStatus)
-                        } else {
-                            crate::button_from_svg(include_bytes!("./runtime/play.svg").to_vec())
+                            } else {
+                                crate::button_from_svg(
+                                    include_bytes!("./runtime/play.svg").to_vec(),
+                                )
                                 .width(Length::Fixed(40.0))
                                 .on_press(Message::SwitchMusicStatus)
-                        },
-                        crate::button_from_svg(
-                            include_bytes!("./runtime/square-right.svg").to_vec()
+                            },
+                            "播放 / 暂停",
+                            widget::tooltip::Position::Bottom
                         )
-                        .width(Length::Fixed(40.0))
-                        .on_press(Message::NextSong),
-                        if config.full_screened {
+                        .style(iced::theme::Container::Box)
+                        .gap(10),
+                        widget::tooltip(
                             crate::button_from_svg(
-                                include_bytes!("./runtime/compress.svg").to_vec(),
+                                include_bytes!("./runtime/square-right.svg").to_vec()
                             )
                             .width(Length::Fixed(40.0))
-                            .on_press(Message::ToggleMode)
-                        } else {
-                            crate::button_from_svg(include_bytes!("./runtime/expand.svg").to_vec())
+                            .on_press(Message::NextSong),
+                            "跳到下一首",
+                            widget::tooltip::Position::Bottom
+                        )
+                        .style(iced::theme::Container::Box)
+                        .gap(10),
+                        if config.full_screened {
+                            widget::tooltip(
+                                crate::button_from_svg(
+                                    include_bytes!("./runtime/compress.svg").to_vec(),
+                                )
                                 .width(Length::Fixed(40.0))
-                                .on_press(Message::ToggleMode)
-                        }
+                                .on_press(Message::ToggleMode),
+                                "窗口显示",
+                                widget::tooltip::Position::Bottom,
+                            )
+                            .style(iced::theme::Container::Box)
+                            .gap(10)
+                        } else {
+                            widget::tooltip(
+                                crate::button_from_svg(
+                                    include_bytes!("./runtime/expand.svg").to_vec(),
+                                )
+                                .width(Length::Fixed(40.0))
+                                .on_press(Message::ToggleMode),
+                                "全屏显示",
+                                widget::tooltip::Position::Bottom,
+                            )
+                            .style(iced::theme::Container::Box)
+                            .gap(10)
+                        },
                     ]
                 ]
                 .spacing(10),

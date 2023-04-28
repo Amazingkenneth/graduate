@@ -323,6 +323,24 @@ impl Application for Memories {
                         state.configs.full_screened = false;
                         return iced::window::change_mode(Mode::Windowed);
                     }
+                    Message::NextSong => {
+                        if state
+                            .configs
+                            .daemon_running
+                            .load(std::sync::atomic::Ordering::Relaxed)
+                        {
+                            let require_restart = {
+                                let sink = &state.configs.aud_module.lock().unwrap().sink;
+                                sink.skip_one();
+                                sink.len() <= 1
+                            };
+                            if require_restart {
+                                state.configs.aud_module.lock().unwrap().sink.pause();
+                                audio::restart(&mut state.configs);
+                            }
+                        }
+                        return Command::none();
+                    }
                     Message::ScaleDown => {
                         state.configs.scale_factor /= 1.05;
                         configs::save_configs(state);
@@ -366,26 +384,13 @@ impl Application for Memories {
                             .load(std::sync::atomic::Ordering::Relaxed)
                         {
                             let sink = &state.configs.aud_module.lock().unwrap().sink;
-                            if sink.is_paused() {
+                            if sink.is_paused() || sink.empty() {
                                 sink.play();
                             } else {
                                 sink.pause();
                             }
                         } else {
-                            let (stream, stream_handle) =
-                                rodio::OutputStream::try_default().unwrap();
-                            let audio_stream = std::mem::ManuallyDrop::new(audio::AudioStream {
-                                sink: rodio::Sink::try_new(&stream_handle).unwrap(),
-                                stream,
-                            });
-                            state.configs.aud_module = Arc::new(Mutex::new(audio_stream));
-                            let given_mutex = state.configs.aud_module.clone();
-                            state.configs.daemon_running.store(true, Ordering::Relaxed);
-                            let running_status = state.configs.daemon_running.clone();
-                            let paths = state.configs.audio_paths.clone();
-                            tokio::spawn(async {
-                                audio::play_music(given_mutex, paths, running_status, 1.0).await;
-                            });
+                            audio::restart(&mut state.configs);
                         }
                         return Command::none();
                     }
@@ -695,9 +700,14 @@ impl Application for Memories {
                         )
                         .width(Length::Fixed(1400.0)),
                         column![
-                            button_from_svg(include_bytes!("./runtime/gears.svg").to_vec())
-                                .width(Length::Fixed(80.0))
-                                .on_press(Message::OpenSettings),
+                            widget::tooltip(
+                                button_from_svg(include_bytes!("./runtime/gears.svg").to_vec())
+                                    .width(Length::Fixed(80.0))
+                                    .on_press(Message::OpenSettings),
+                                "设置 [按 S]",
+                                iced::widget::tooltip::Position::Top
+                            )
+                            .style(iced::theme::Container::Box),
                             text(
                                 state
                                     .get_current_event(chosen.on_event)
@@ -893,9 +903,38 @@ impl Application for Memories {
                             let mut content = column![row![
                                 content,
                                 scrollable(emojis)
-                                    .horizontal_scroll(iced::widget::scrollable::Properties::new()) // .height(Length::Shrink)
+                                    .horizontal_scroll(iced::widget::scrollable::Properties::new())
                             ]];
                             content = content.push(show_profiles(profile.plots, "ta 的小日常"));
+                            if let Some(summary) = profile.anecdote {
+                                content = content.push(column![
+                                    text("关于 ta 的").size(50),
+                                    row![
+                                        horizontal_space(Length::Fixed(20.0)),
+                                        column![
+                                            text(format!(
+                                                "兴趣爱好：{}",
+                                                summary.get("interests").unwrap().as_str().unwrap()
+                                            ))
+                                            .size(32),
+                                            text(format!(
+                                                "最想做的事：{}",
+                                                summary.get("want").unwrap().as_str().unwrap()
+                                            ))
+                                            .size(32),
+                                            text(format!(
+                                                "最尴尬的事：{}",
+                                                summary
+                                                    .get("embarrassment")
+                                                    .unwrap()
+                                                    .as_str()
+                                                    .unwrap()
+                                            ))
+                                            .size(32)
+                                        ]
+                                    ],
+                                ])
+                            }
                             if let Some(intro) = profile.introduction {
                                 content = content.push(column![
                                     text("ta 的自传").size(50),

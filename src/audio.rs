@@ -1,3 +1,4 @@
+use crate::configs;
 use lofty::AudioFile;
 use rand::seq::SliceRandom;
 use rodio::source::{SineWave, Source};
@@ -68,4 +69,22 @@ pub async fn play_music(
         let mut rng = rand::thread_rng();
         paths.shuffle(&mut rng);
     }
+}
+
+pub fn restart(config: &mut crate::Configs) {
+    let (stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
+    let audio_stream = std::mem::ManuallyDrop::new(AudioStream {
+        sink: rodio::Sink::try_new(&stream_handle).unwrap(),
+        stream,
+    });
+    config.aud_module = Arc::new(Mutex::new(audio_stream));
+    let given_mutex = config.aud_module.clone();
+    config.daemon_running.store(true, Ordering::Relaxed);
+    let running_status = config.daemon_running.clone();
+    let mut paths = config.audio_paths.clone();
+    let mut rng = rand::thread_rng();
+    paths.shuffle(&mut rng);
+    tokio::spawn(async {
+        play_music(given_mutex, paths, running_status, 1.0).await;
+    });
 }

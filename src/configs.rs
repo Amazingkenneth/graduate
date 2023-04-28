@@ -58,40 +58,47 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                     ]
                     .align_items(Alignment::Center),
                     row![
-                        widget::tooltip(
-                            if config
-                                .daemon_running
-                                .load(std::sync::atomic::Ordering::Relaxed)
-                                && !config.aud_module.lock().unwrap().sink.is_paused()
-                            {
-                                crate::button_from_svg(
-                                    include_bytes!("./runtime/pause.svg").to_vec(),
+                        if config
+                            .daemon_running
+                            .load(std::sync::atomic::Ordering::Relaxed)
+                            && !config.aud_module.lock().unwrap().sink.is_paused()
+                        {
+                            row![
+                                widget::tooltip(
+                                    crate::button_from_svg(
+                                        include_bytes!("./runtime/pause.svg").to_vec(),
+                                    )
+                                    .width(Length::Fixed(40.0))
+                                    .on_press(Message::SwitchMusicStatus),
+                                    "播放 / 暂停",
+                                    widget::tooltip::Position::Bottom
                                 )
-                                .width(Length::Fixed(40.0))
-                                .on_press(Message::SwitchMusicStatus)
-                            } else {
+                                .style(iced::theme::Container::Box)
+                                .gap(5),
+                                widget::tooltip(
+                                    crate::button_from_svg(
+                                        include_bytes!("./runtime/square-right.svg").to_vec()
+                                    )
+                                    .width(Length::Fixed(40.0))
+                                    .on_press(Message::NextSong),
+                                    "跳到下一首",
+                                    widget::tooltip::Position::Bottom
+                                )
+                                .style(iced::theme::Container::Box)
+                            ]
+                        } else {
+                            row![widget::tooltip(
                                 crate::button_from_svg(
                                     include_bytes!("./runtime/play.svg").to_vec(),
                                 )
                                 .width(Length::Fixed(40.0))
-                                .on_press(Message::SwitchMusicStatus)
-                            },
-                            "播放 / 暂停",
-                            widget::tooltip::Position::Bottom
-                        )
-                        .style(iced::theme::Container::Box)
-                        .gap(10),
-                        widget::tooltip(
-                            crate::button_from_svg(
-                                include_bytes!("./runtime/square-right.svg").to_vec()
+                                .on_press(Message::SwitchMusicStatus),
+                                "播放 / 暂停",
+                                widget::tooltip::Position::Bottom
                             )
-                            .width(Length::Fixed(40.0))
-                            .on_press(Message::NextSong),
-                            "跳到下一首",
-                            widget::tooltip::Position::Bottom
-                        )
-                        .style(iced::theme::Container::Box)
-                        .gap(10),
+                            .style(iced::theme::Container::Box)
+                            .gap(5)]
+                        },
                         if config.full_screened {
                             widget::tooltip(
                                 crate::button_from_svg(
@@ -103,7 +110,6 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                                 widget::tooltip::Position::Bottom,
                             )
                             .style(iced::theme::Container::Box)
-                            .gap(10)
                         } else {
                             widget::tooltip(
                                 crate::button_from_svg(
@@ -115,7 +121,6 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                                 widget::tooltip::Position::Bottom,
                             )
                             .style(iced::theme::Container::Box)
-                            .gap(10)
                         },
                     ]
                 ]

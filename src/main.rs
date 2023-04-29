@@ -704,7 +704,7 @@ impl Application for Memories {
                                 button_from_svg(include_bytes!("./runtime/gears.svg").to_vec())
                                     .width(Length::Fixed(80.0))
                                     .on_press(Message::OpenSettings),
-                                "设置 [按 S]",
+                                "设置 「按 S」",
                                 iced::widget::tooltip::Position::Top
                             )
                             .style(iced::theme::Container::Box),
@@ -866,7 +866,9 @@ impl Application for Memories {
                                     lists = lists.push(row![
                                         text(format!("是 ",)).size(30),
                                         widget::Button::new(
-                                            text(choosing.avatars[author].name.clone()).size(30)
+                                            text(choosing.avatars[author].name.clone())
+                                                .size(30)
+                                                .style(Color::from_rgb8(0, 25, 175))
                                         )
                                         .padding(0)
                                         .on_press(Message::ChoseCharacter(author))
@@ -959,7 +961,7 @@ impl Application for Memories {
                                         row![
                                             text("来自 ").size(40),
                                             widget::Button::new(
-                                                text(choosing.avatars[with].name.clone()).size(40)
+                                                text(choosing.avatars[with].name.clone()).size(40).style(Color::from_rgb8(0, 25, 175))
                                             )
                                             .padding(0)
                                             .style(iced::theme::Button::Text)

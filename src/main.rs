@@ -407,7 +407,6 @@ impl Application for Memories {
                         return Command::none();
                     }
                     Message::OpenInExplorer => {
-                        let mut is_file = true;
                         let filename = match &state.stage {
                             Stage::EntryEvents(ref chosen) => format!(
                                 "{}{}",
@@ -427,7 +426,6 @@ impl Application for Memories {
                                     format!("{}/profile/{}.toml", state.storage, chosen)
                                 }
                                 None => {
-                                    is_file = false;
                                     format!("{}/image/known_people", state.storage)
                                 }
                             },
@@ -443,18 +441,10 @@ impl Application for Memories {
                             _ => String::from(""),
                         };
                         if cfg!(target_os = "windows") {
-                            if is_file {
-                                std::process::Command::new("cmd")
-                                    .args(["/C", &filename])
-                                    .output()
-                                    .expect("failed to execute process");
-                            } else {
-                                println!("filename: {}", &filename);
-                                std::process::Command::new("explorer")
-                                    .arg(&filename.replace("/", "\\"))
-                                    .output()
-                                    .expect("failed to execute process");
-                            }
+                            std::process::Command::new("cmd")
+                                .args(["/C", "start", &filename])
+                                .output()
+                                .expect("failed to execute process");
                         } else if cfg!(target_os = "macos") {
                             std::process::Command::new("open")
                                 .arg(&filename)
@@ -776,8 +766,9 @@ impl Application for Memories {
                                     .style(iced::theme::Button::Secondary)
                                     .on_press(Message::OpenInExplorer),
                                 "按 O",
-                                widget::tooltip::Position::FollowCursor
+                                widget::tooltip::Position::Bottom
                             )
+                            .gap(15)
                             .style(iced::theme::Container::Box),
                         ]
                         .spacing(20)
@@ -1080,8 +1071,9 @@ impl Application for Memories {
                                         .style(iced::theme::Button::Secondary)
                                         .on_press(Message::OpenInExplorer),
                                     "按 O",
-                                    widget::tooltip::Position::FollowCursor
+                                    widget::tooltip::Position::Bottom
                                 )
+                                .gap(15)
                                 .style(iced::theme::Container::Box),
                                 widget::Button::new(
                                     column![text("回到最初").size(28), text("那样……").size(28)]

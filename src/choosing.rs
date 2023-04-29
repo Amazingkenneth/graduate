@@ -11,14 +11,15 @@ use toml::value::{Array, Table};
 
 #[derive(Clone, Default, Deserialize, Debug)]
 pub struct Profile {
-    pub nickname: Option<Array>,
     pub anecdote: Option<Table>,
+    pub article: Option<Array>,
+    pub comment: Option<Array>,
+    pub experience: Option<Array>,
+    pub introduction: Option<String>,
+    pub name_en: Option<String>,
+    pub nickname: Option<Array>,
     pub plots: Option<Array>,
     pub relationship: Option<Array>,
-    pub comment: Option<Array>,
-    pub name_en: Option<String>,
-    pub introduction: Option<String>,
-    pub experience: Option<Array>,
 }
 
 #[derive(Clone, Debug)]

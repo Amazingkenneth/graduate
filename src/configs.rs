@@ -201,7 +201,6 @@ pub fn save_configs(state: &mut State) {
         String::from("audio-playing"),
         toml::Value::Boolean(configs.daemon_running.load(Ordering::Relaxed)),
     );
-    println!("path: {}", state.configs.config_path);
     let mut buffer = std::fs::File::create(state.configs.config_path.clone()).unwrap();
     buffer
         .write_all(toml::to_string_pretty(&map).unwrap().as_bytes())

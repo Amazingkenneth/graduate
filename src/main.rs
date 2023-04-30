@@ -201,7 +201,7 @@ impl Application for Memories {
         format!("{} - 有你，才是一班。", subtitle)
     }
     fn update(&mut self, message: Message) -> Command<Message> {
-        println!("On update()");
+        eprintln!("On update()");
         match self {
             Memories::Initialization => {
                 match message {
@@ -450,7 +450,7 @@ impl Application for Memories {
                     }
                     Message::BackStage | Message::NextStage => {
                         configs::save_configs(state);
-                        return Command::none();
+                        // 这里不可以直接返回！
                     }
                     _ => (),
                 }
@@ -1137,24 +1137,34 @@ impl Application for Memories {
                                 widget::tooltip(
                                     widget::Button::new(text("打开对应文件").size(30))
                                         .padding(10)
-                                        .style(iced::theme::Button::Secondary)
+                                        .style(iced::theme::Button::Primary)
                                         .on_press(Message::OpenUrl(None)),
                                     "按 O",
                                     widget::tooltip::Position::Bottom
                                 )
-                                .gap(15)
                                 .style(iced::theme::Container::Box),
-                                widget::Button::new(
-                                    column![text("回到最初").size(28), text("那样……").size(28)]
-                                        .spacing(10)
-                                )
-                                .style(iced::theme::Button::Positive)
-                                .on_press(Message::BackStage)
-                                .padding(10),
-                                widget::Button::new(text("跳过这段时光").size(28))
-                                    .style(iced::theme::Button::Primary)
-                                    .on_press(Message::NextStage)
-                                    .padding(10)
+                                row![
+                                    widget::tooltip(
+                                        button_from_svg(
+                                            include_bytes!("./runtime/left-to-line.svg").to_vec(),
+                                        )
+                                        .width(Length::Fixed(80.0))
+                                        .on_press(Message::BackStage),
+                                        "回到最初那样……",
+                                        widget::tooltip::Position::Bottom
+                                    )
+                                    .style(iced::theme::Container::Box),
+                                    widget::tooltip(
+                                        button_from_svg(
+                                            include_bytes!("./runtime/right-to-line.svg").to_vec(),
+                                        )
+                                        .width(Length::Fixed(80.0))
+                                        .on_press(Message::NextStage),
+                                        "跳过这段时光",
+                                        widget::tooltip::Position::Bottom
+                                    )
+                                    .style(iced::theme::Container::Box)
+                                ]
                             ]
                             .spacing(20)
                             .align_items(Alignment::Center)

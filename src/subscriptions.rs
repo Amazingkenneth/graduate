@@ -25,7 +25,7 @@ fn global_response(event: keyboard::Event) -> Option<Message> {
             keyboard::KeyCode::Equals | keyboard::KeyCode::NumpadEquals => {
                 Some(Message::ScaleRestore)
             }
-            keyboard::KeyCode::O => Some(Message::OpenInExplorer),
+            keyboard::KeyCode::O => Some(Message::OpenUrl(None)),
             keyboard::KeyCode::PlayPause => Some(Message::SwitchMusicStatus),
             keyboard::KeyCode::R => Some(Message::Refresh),
             keyboard::KeyCode::S => Some(Message::OpenSettings),
@@ -134,5 +134,25 @@ pub fn on_graduation(event: Event, _: iced::event::Status) -> Option<Message> {
             }
         }
         _ => None,
+    }
+}
+
+pub fn open_url(mut filename: String) {
+    filename = format!("\x22{filename}\x22"); // \x22 为英文双引号
+    if cfg!(target_os = "windows") {
+        std::process::Command::new("powershell")
+            .args(["/C", "start", filename.as_str()])
+            .output()
+            .expect("failed to execute process");
+    } else if cfg!(target_os = "macos") {
+        std::process::Command::new("open")
+            .arg(filename)
+            .output()
+            .expect("failed to execute process.");
+    } else {
+        std::process::Command::new("xdg-open")
+            .arg(filename)
+            .output()
+            .expect("failed to execute process");
     }
 }

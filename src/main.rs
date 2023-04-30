@@ -122,6 +122,7 @@ pub struct GraduationState {
 pub enum Message {
     BackStage,
     ChoseCharacter(usize),
+    CopyText(String),
     DescriptionEdited(String),
     EscapeFullScreen,
     FetchImage(Result<Memories, Error>),
@@ -136,7 +137,7 @@ pub enum Message {
     NextPhoto,
     NextSong,
     NextStage,
-    OpenInExplorer,
+    OpenUrl(Option<String>),
     OpenSettings,
     PreviousEvent,
     PreviousPerson,
@@ -406,60 +407,50 @@ impl Application for Memories {
                         }
                         return Command::none();
                     }
-                    Message::OpenInExplorer => {
-                        let filename = match &state.stage {
-                            Stage::EntryEvents(ref chosen) => format!(
-                                "{}{}",
-                                state.storage,
-                                state
-                                    .get_current_event(chosen.on_event)
-                                    .get("image")
-                                    .expect("cannot parse `image` into an array.")
-                                    .as_array()
-                                    .expect("Cannot read the paths")[chosen.on_image]
-                                    .as_str()
-                                    .expect("Cannot convert it into String")
-                                    .to_string()
-                            ),
-                            Stage::ChoosingCharacter(choosing) => match choosing.on_character {
-                                Some(chosen) => {
-                                    format!("{}/profile/{}.toml", state.storage, chosen)
-                                }
-                                None => {
-                                    format!("{}/image/known_people", state.storage)
-                                }
-                            },
-                            Stage::ShowingPlots(displayer) => {
-                                let events = displayer.events.lock().unwrap();
-                                let on_image = &events[displayer.on_event].on_experience;
-                                format!(
+                    Message::OpenUrl(filename) => {
+                        if let Some(name) = filename {
+                            subscriptions::open_url(name);
+                        } else {
+                            let name = match &state.stage {
+                                Stage::EntryEvents(ref chosen) => format!(
                                     "{}{}",
                                     state.storage,
-                                    events[displayer.on_event].experiences[*on_image].path
-                                )
-                            }
-                            _ => String::from(""),
-                        };
-                        if cfg!(target_os = "windows") {
-                            std::process::Command::new("cmd")
-                                .args(["/C", "start", &filename])
-                                .output()
-                                .expect("failed to execute process");
-                        } else if cfg!(target_os = "macos") {
-                            std::process::Command::new("open")
-                                .arg(&filename)
-                                .output()
-                                .expect("failed to execute process.");
-                        } else {
-                            std::process::Command::new("eog")
-                                .arg(&filename)
-                                .output()
-                                .expect("failed to execute process");
+                                    state
+                                        .get_current_event(chosen.on_event)
+                                        .get("image")
+                                        .expect("cannot parse `image` into an array.")
+                                        .as_array()
+                                        .expect("Cannot read the paths")[chosen.on_image]
+                                        .as_str()
+                                        .expect("Cannot convert it into String")
+                                        .to_string()
+                                ),
+                                Stage::ChoosingCharacter(choosing) => match choosing.on_character {
+                                    Some(chosen) => {
+                                        format!("{}/profile/{}.toml", state.storage, chosen)
+                                    }
+                                    None => {
+                                        format!("{}/image/known_people", state.storage)
+                                    }
+                                },
+                                Stage::ShowingPlots(displayer) => {
+                                    let events = displayer.events.lock().unwrap();
+                                    let on_image = &events[displayer.on_event].on_experience;
+                                    format!(
+                                        "{}{}",
+                                        state.storage,
+                                        events[displayer.on_event].experiences[*on_image].path
+                                    )
+                                }
+                                _ => String::from(""),
+                            };
+                            subscriptions::open_url(name);
                         }
                         return Command::none();
                     }
                     Message::BackStage | Message::NextStage => {
                         configs::save_configs(state);
+                        return Command::none();
                     }
                     _ => (),
                 }
@@ -573,6 +564,9 @@ impl Application for Memories {
                                         choosing::generate_id(chosen),
                                         scrollable::RelativeOffset::START,
                                     );
+                                }
+                                Message::CopyText(text) => {
+                                    return iced::clipboard::write(text);
                                 }
                                 _ => {}
                             },
@@ -764,7 +758,7 @@ impl Application for Memories {
                                 widget::Button::new(text("打开对应文件").size(30))
                                     .padding(10)
                                     .style(iced::theme::Button::Secondary)
-                                    .on_press(Message::OpenInExplorer),
+                                    .on_press(Message::OpenUrl(None)),
                                 "按 O",
                                 widget::tooltip::Position::Bottom
                             )
@@ -835,6 +829,11 @@ impl Application for Memories {
                         }
                         Some(chosen) => {
                             let profile = choosing.profiles[chosen].clone();
+                            let link_color = if state.configs.theme == Theme::Light {
+                                Color::from_rgb8(0, 25, 175)
+                            } else {
+                                Color::from_rgb8(255, 215, 121)
+                            };
                             let mut content =
                                 column![text(if let Some(name_en) = profile.name_en {
                                     format!("{} ({})", choosing.avatars[chosen].name, name_en)
@@ -855,11 +854,11 @@ impl Application for Memories {
                                         .expect("`with` isn't a valid integer")
                                         as usize;
                                     lists = lists.push(row![
-                                        text(format!("是 ",)).size(30),
+                                        text("是 ").size(30),
                                         widget::Button::new(
                                             text(choosing.avatars[author].name.clone())
                                                 .size(30)
-                                                .style(Color::from_rgb8(0, 25, 175))
+                                                .style(link_color)
                                         )
                                         .padding(0)
                                         .on_press(Message::ChoseCharacter(author))
@@ -882,6 +881,7 @@ impl Application for Memories {
                                     ]);
                                 }
                             }
+
                             let mut emojis = row![].align_items(Alignment::Center).spacing(5);
                             for i in &choosing.avatars[chosen].emoji {
                                 emojis = emojis.push(
@@ -909,12 +909,14 @@ impl Application for Memories {
                                                 "兴趣爱好：{}",
                                                 summary.get("interests").unwrap().as_str().unwrap()
                                             ))
-                                            .size(32),
+                                            .size(32)
+                                            .style(Color::from_rgb8(240, 134, 80)),
                                             text(format!(
                                                 "最想做的事：{}",
                                                 summary.get("want").unwrap().as_str().unwrap()
                                             ))
-                                            .size(32),
+                                            .size(32)
+                                            .style(Color::from_rgb8(240, 135, 132)),
                                             text(format!(
                                                 "最尴尬的事：{}",
                                                 summary
@@ -924,6 +926,7 @@ impl Application for Memories {
                                                     .unwrap()
                                             ))
                                             .size(32)
+                                            .style(Color::from_rgb8(127, 130, 187))
                                         ]
                                     ],
                                 ])
@@ -936,6 +939,72 @@ impl Application for Memories {
                                         text(intro).size(30)
                                     ],
                                 ])
+                            }
+                            if let Some(articles) = profile.article {
+                                let mut lists = column![];
+                                let mut article_vec = vec![];
+
+                                for article in &articles {
+                                    let cur_article =
+                                        article.as_table().expect("Cannot read as a table");
+                                    let content = cur_article
+                                        .get("content")
+                                        .expect("Cannot get `content`")
+                                        .as_str()
+                                        .unwrap();
+                                    let date = cur_article
+                                        .get("date")
+                                        .expect("Cannot get `date`")
+                                        .as_datetime()
+                                        .unwrap();
+                                    let link = cur_article
+                                        .get("link")
+                                        .expect("Cannot get `date`")
+                                        .as_str()
+                                        .unwrap();
+                                    article_vec.push((date, content, link));
+                                }
+                                article_vec.sort_unstable();
+                                for i in article_vec {
+                                    lists = lists.push(
+                                        row![
+                                            text(i.0)
+                                                .size(20)
+                                                .style(Color::from_rgb8(85, 143, 128)),
+                                            widget::Button::new(
+                                                text(i.1).size(30).style(link_color)
+                                            )
+                                            .padding(0)
+                                            .on_press(Message::OpenUrl(Some(i.2.to_string())))
+                                            .style(iced::theme::Button::Text),
+                                            widget::tooltip(
+                                                widget::button(widget::Svg::new(
+                                                    widget::svg::Handle::from_memory(
+                                                        include_bytes!("./runtime/clipboard.svg")
+                                                            .to_vec()
+                                                    )
+                                                ))
+                                                .height(Length::Fixed(32.0))
+                                                .width(Length::Fixed(50.0))
+                                                .style(iced::theme::Button::Text)
+                                                .on_press(Message::CopyText(i.2.to_string())),
+                                                "复制链接",
+                                                widget::tooltip::Position::Right
+                                            )
+                                        ]
+                                        .align_items(Alignment::Start),
+                                    );
+                                }
+                                if !articles.is_empty() {
+                                    content = content.push(row![
+                                        widget::Svg::new(widget::svg::Handle::from_memory(
+                                            include_bytes!("./runtime/link.svg").to_vec()
+                                        ))
+                                        .width(Length::Fixed(40.0)),
+                                        horizontal_space(15.0),
+                                        lists
+                                    ]);
+                                }
                             }
                             if let Some(comments) = profile.comment {
                                 let mut lists = column![].spacing(15);
@@ -952,7 +1021,7 @@ impl Application for Memories {
                                         row![
                                             text("来自 ").size(40),
                                             widget::Button::new(
-                                                text(choosing.avatars[with].name.clone()).size(40).style(Color::from_rgb8(0, 25, 175))
+                                                text(choosing.avatars[with].name.clone()).size(40).style(link_color)
                                             )
                                             .padding(0)
                                             .style(iced::theme::Button::Text)
@@ -1069,7 +1138,7 @@ impl Application for Memories {
                                     widget::Button::new(text("打开对应文件").size(30))
                                         .padding(10)
                                         .style(iced::theme::Button::Secondary)
-                                        .on_press(Message::OpenInExplorer),
+                                        .on_press(Message::OpenUrl(None)),
                                     "按 O",
                                     widget::tooltip::Position::Bottom
                                 )

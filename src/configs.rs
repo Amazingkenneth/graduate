@@ -58,6 +58,45 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                     ]
                     .align_items(Alignment::Center),
                     row![
+                        widget::tooltip(
+                            crate::button_from_svg(include_bytes!("./runtime/plus.svg").to_vec(),)
+                                .width(Length::Fixed(40.0))
+                                .on_press(Message::ScaleEnlarge),
+                            "放大",
+                            widget::tooltip::Position::Bottom,
+                        )
+                        .style(iced::theme::Container::Box),
+                        widget::tooltip(
+                            crate::button_from_svg(include_bytes!("./runtime/minus.svg").to_vec(),)
+                                .width(Length::Fixed(40.0))
+                                .on_press(Message::ScaleDown),
+                            "缩小",
+                            widget::tooltip::Position::Bottom,
+                        )
+                        .style(iced::theme::Container::Box),
+                        if config.full_screened {
+                            widget::tooltip(
+                                crate::button_from_svg(
+                                    include_bytes!("./runtime/compress.svg").to_vec(),
+                                )
+                                .width(Length::Fixed(40.0))
+                                .on_press(Message::ToggleMode),
+                                "窗口显示",
+                                widget::tooltip::Position::Bottom,
+                            )
+                            .style(iced::theme::Container::Box)
+                        } else {
+                            widget::tooltip(
+                                crate::button_from_svg(
+                                    include_bytes!("./runtime/expand.svg").to_vec(),
+                                )
+                                .width(Length::Fixed(40.0))
+                                .on_press(Message::ToggleMode),
+                                "全屏显示",
+                                widget::tooltip::Position::Bottom,
+                            )
+                            .style(iced::theme::Container::Box)
+                        },
                         if config
                             .daemon_running
                             .load(std::sync::atomic::Ordering::Relaxed)
@@ -98,29 +137,6 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                             )
                             .style(iced::theme::Container::Box)
                             .gap(5)]
-                        },
-                        if config.full_screened {
-                            widget::tooltip(
-                                crate::button_from_svg(
-                                    include_bytes!("./runtime/compress.svg").to_vec(),
-                                )
-                                .width(Length::Fixed(40.0))
-                                .on_press(Message::ToggleMode),
-                                "窗口显示",
-                                widget::tooltip::Position::Bottom,
-                            )
-                            .style(iced::theme::Container::Box)
-                        } else {
-                            widget::tooltip(
-                                crate::button_from_svg(
-                                    include_bytes!("./runtime/expand.svg").to_vec(),
-                                )
-                                .width(Length::Fixed(40.0))
-                                .on_press(Message::ToggleMode),
-                                "全屏显示",
-                                widget::tooltip::Position::Bottom,
-                            )
-                            .style(iced::theme::Container::Box)
                         },
                     ]
                 ]

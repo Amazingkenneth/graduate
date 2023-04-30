@@ -141,7 +141,7 @@ pub fn open_url(mut filename: String) {
     filename = format!("\x22{filename}\x22"); // \x22 为英文双引号
     if cfg!(target_os = "windows") {
         std::process::Command::new("powershell")
-            .args(["/C", "start", filename.as_str()])
+            .args(["start", filename.as_str()])
             .output()
             .expect("failed to execute process");
     } else if cfg!(target_os = "macos") {

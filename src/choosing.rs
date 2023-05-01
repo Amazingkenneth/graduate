@@ -2,9 +2,9 @@ use crate::{ChoosingState, State};
 use iced::widget::image;
 use rand::Rng;
 use reqwest::Client;
-use serde::{Deserialize, Serialize};
-use std::fs::{self, File};
-use std::io::{Read, Write};
+use serde::Deserialize;
+use std::fs::{self};
+use std::io::Write;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 use toml::value::{Array, Table};
@@ -236,6 +236,6 @@ pub async fn get_configs(on_character: Option<usize>, state: State) -> Result<St
     }
 }
 
-pub fn generate_id(i: usize) -> iced::widget::scrollable::Id {
+pub fn generate_scrollable_id(i: usize) -> iced::widget::scrollable::Id {
     iced::widget::scrollable::Id::new(format!("ChoosingCharacter-{}", i))
 }

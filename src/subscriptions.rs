@@ -1,5 +1,4 @@
 use crate::Message;
-use crate::State;
 use iced::keyboard::{self, KeyCode};
 use iced::Event;
 
@@ -18,19 +17,16 @@ fn global_response(event: keyboard::Event) -> Option<Message> {
             modifiers: m,
             key_code,
         } => match key_code {
-            keyboard::KeyCode::Plus | keyboard::KeyCode::NumpadAdd => Some(Message::ScaleEnlarge),
-            keyboard::KeyCode::Minus | keyboard::KeyCode::NumpadSubtract => {
-                Some(Message::ScaleDown)
-            }
-            keyboard::KeyCode::Equals | keyboard::KeyCode::NumpadEquals => {
-                Some(Message::ScaleRestore)
-            }
-            keyboard::KeyCode::O => Some(Message::OpenUrl(None)),
-            keyboard::KeyCode::PlayPause => Some(Message::SwitchMusicStatus),
-            keyboard::KeyCode::R => Some(Message::Refresh),
-            keyboard::KeyCode::S => Some(Message::OpenSettings),
-            keyboard::KeyCode::Escape => Some(Message::EscapeFullScreen),
-            keyboard::KeyCode::Enter => {
+            KeyCode::Plus | KeyCode::NumpadAdd => Some(Message::ScaleEnlarge),
+            KeyCode::Minus | KeyCode::NumpadSubtract => Some(Message::ScaleDown),
+            KeyCode::Equals | KeyCode::NumpadEquals => Some(Message::ScaleRestore),
+            KeyCode::O => Some(Message::OpenUrl(None)),
+            KeyCode::PlayPause | KeyCode::M => Some(Message::SwitchMusicStatus),
+            KeyCode::N => Some(Message::NextSong),
+            KeyCode::R => Some(Message::Refresh),
+            KeyCode::E => Some(Message::OpenSettings),
+            KeyCode::Escape => Some(Message::EscapeFullScreen),
+            KeyCode::Enter => {
                 if m.alt() {
                     Some(Message::ToggleMode)
                 } else {
@@ -63,14 +59,14 @@ pub fn on_entry_state(event: Event, _: iced::event::Status) -> Option<Message> {
                 return Some(ret);
             }
             match keyboard_event {
-                with_key!(keyboard::KeyCode::Enter) => Some(Message::NextStage),
-                with_key!(KeyCode::Left) => Some(Message::PreviousEvent),
-                with_key!(KeyCode::Right) => Some(Message::NextEvent),
-                with_key!(keyboard::KeyCode::Up) => Some(Message::PreviousPhoto),
-                with_key!(keyboard::KeyCode::Down) => Some(Message::NextPhoto),
-                with_key!(keyboard::KeyCode::Space) => Some(Message::NextEvent),
+                with_key!(KeyCode::Enter) => Some(Message::NextStage),
+                with_key!(KeyCode::Left) | with_key!(KeyCode::A) => Some(Message::PreviousEvent),
+                with_key!(KeyCode::Right) | with_key!(KeyCode::D) => Some(Message::NextEvent),
+                with_key!(KeyCode::Up) | with_key!(KeyCode::W) => Some(Message::PreviousPhoto),
+                with_key!(KeyCode::Down) | with_key!(KeyCode::S) => Some(Message::NextPhoto),
+                with_key!(KeyCode::Space) => Some(Message::NextEvent),
                 keyboard::Event::KeyPressed {
-                    key_code: keyboard::KeyCode::Tab,
+                    key_code: KeyCode::Tab,
                     modifiers,
                 } => Some(if modifiers.shift() {
                     Message::PreviousEvent
@@ -93,9 +89,9 @@ pub fn on_choosing_character(event: Event, _: iced::event::Status) -> Option<Mes
             match keyboard_event {
                 with_key!(KeyCode::Left) => Some(Message::PreviousPerson),
                 with_key!(KeyCode::Right) => Some(Message::NextPerson),
-                with_key!(keyboard::KeyCode::Space) => Some(Message::NextStage),
+                with_key!(KeyCode::Space) => Some(Message::NextStage),
                 keyboard::Event::KeyPressed {
-                    key_code: keyboard::KeyCode::Tab,
+                    key_code: KeyCode::Tab,
                     modifiers,
                 } => Some(if modifiers.shift() {
                     Message::PreviousPerson
@@ -116,14 +112,14 @@ pub fn on_graduation(event: Event, _: iced::event::Status) -> Option<Message> {
                 return Some(ret);
             }
             match keyboard_event {
-                with_key!(keyboard::KeyCode::Enter) => Some(Message::NextStage),
-                with_key!(KeyCode::Left) => Some(Message::PreviousEvent),
-                with_key!(KeyCode::Right) => Some(Message::NextEvent),
-                with_key!(keyboard::KeyCode::Up) => Some(Message::PreviousPhoto),
-                with_key!(keyboard::KeyCode::Down) => Some(Message::NextPhoto),
-                with_key!(keyboard::KeyCode::Space) => Some(Message::NextEvent),
+                with_key!(KeyCode::Enter) => Some(Message::NextStage),
+                with_key!(KeyCode::Left) | with_key!(KeyCode::A) => Some(Message::PreviousEvent),
+                with_key!(KeyCode::Right) | with_key!(KeyCode::D) => Some(Message::NextEvent),
+                with_key!(KeyCode::Up) | with_key!(KeyCode::W) => Some(Message::PreviousPhoto),
+                with_key!(KeyCode::Down) | with_key!(KeyCode::S) => Some(Message::NextPhoto),
+                with_key!(KeyCode::Space) => Some(Message::NextEvent),
                 keyboard::Event::KeyPressed {
-                    key_code: keyboard::KeyCode::Tab,
+                    key_code: KeyCode::Tab,
                     modifiers,
                 } => Some(if modifiers.shift() {
                     Message::PreviousEvent

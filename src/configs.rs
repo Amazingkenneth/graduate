@@ -1,17 +1,14 @@
 use crate::audio::AudioStream;
 use crate::{visiting, Message, Stage, State};
-use iced::widget::{
-    self, column, container, horizontal_space, image, row, text, vertical_space, Column, Row,
-};
-use iced::{alignment, subscription, Alignment, Length, Theme};
+use iced::widget::{self, column, container, row, text};
+use iced::{Alignment, Length, Theme};
 // use iced_audio::core::normal_param::NormalParam;
 // use iced_audio::native::h_slider::HSlider;
 use std::io::Write;
 use std::mem::ManuallyDrop;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
-use std::sync::{Arc, Mutex};
-use time;
+use std::sync::Arc;
 
 #[derive(Clone, Debug)]
 pub struct Configs {
@@ -62,7 +59,7 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                             crate::button_from_svg(include_bytes!("./runtime/plus.svg").to_vec(),)
                                 .width(Length::Fixed(40.0))
                                 .on_press(Message::ScaleEnlarge),
-                            "放大",
+                            "放大「按 +」",
                             widget::tooltip::Position::Bottom,
                         )
                         .style(iced::theme::Container::Box),
@@ -70,7 +67,7 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                             crate::button_from_svg(include_bytes!("./runtime/minus.svg").to_vec(),)
                                 .width(Length::Fixed(40.0))
                                 .on_press(Message::ScaleDown),
-                            "缩小",
+                            "缩小「按 -」",
                             widget::tooltip::Position::Bottom,
                         )
                         .style(iced::theme::Container::Box),
@@ -81,7 +78,7 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                                 )
                                 .width(Length::Fixed(40.0))
                                 .on_press(Message::ToggleMode),
-                                "窗口显示",
+                                "窗口显示「Esc」",
                                 widget::tooltip::Position::Bottom,
                             )
                             .style(iced::theme::Container::Box)
@@ -92,7 +89,7 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                                 )
                                 .width(Length::Fixed(40.0))
                                 .on_press(Message::ToggleMode),
-                                "全屏显示",
+                                "全屏显示「Alt + Enter」",
                                 widget::tooltip::Position::Bottom,
                             )
                             .style(iced::theme::Container::Box)
@@ -109,7 +106,7 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                                     )
                                     .width(Length::Fixed(40.0))
                                     .on_press(Message::SwitchMusicStatus),
-                                    "播放 / 暂停",
+                                    "播放 / 暂停「按 M」",
                                     widget::tooltip::Position::Bottom
                                 )
                                 .style(iced::theme::Container::Box)
@@ -120,7 +117,7 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                                     )
                                     .width(Length::Fixed(40.0))
                                     .on_press(Message::NextSong),
-                                    "跳到下一首",
+                                    "跳到下一首「按 N」",
                                     widget::tooltip::Position::Bottom
                                 )
                                 .style(iced::theme::Container::Box)

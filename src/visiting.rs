@@ -1,12 +1,11 @@
-use crate::{ChoosingState, Memories, Stage, State};
-use iced::event;
+use crate::{Memories, Stage, State};
 use iced::widget::image;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
+use std::fs;
 use std::io::Write;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
-use std::{error::Error, fs};
 use time::{Date, PrimitiveDateTime};
 
 #[derive(Clone, Debug)]

@@ -4,6 +4,7 @@ mod choosing;
 mod configs;
 mod entries;
 mod graduation;
+mod imageviewer;
 mod subscriptions;
 mod visiting;
 
@@ -11,21 +12,12 @@ use ::image::ImageFormat;
 use configs::Configs;
 use iced::widget::{
     self, column, container, horizontal_space, image, row, scrollable, text, text_input,
-    vertical_rule, vertical_space, Column, Row,
 };
 use iced::window::Mode;
-use iced::{
-    alignment, subscription, window, Alignment, Application, Color, Command, Element, Event,
-    Length, Settings, Theme,
-};
+use iced::{window, Alignment, Application, Color, Command, Element, Length, Settings, Theme};
 use rand::Rng;
-use reqwest::Client;
-use std::collections::VecDeque;
-use std::fs::File;
-use std::io::Write;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
-use time::PrimitiveDateTime;
 use toml::value::Table;
 
 pub static DELETE_FILES_ON_EXIT: AtomicBool = AtomicBool::new(false);
@@ -43,7 +35,7 @@ fn main() {
     Memories::run(Settings {
         window: window::Settings {
             platform_specific: specific,
-            size: (1400, 800),
+            size: (1500, 900),
             icon: Some(
                 iced::window::icon::from_file_data(
                     include_bytes!("./runtime/icon.png"),
@@ -496,7 +488,10 @@ impl Application for Memories {
                             }
                             _ => {}
                         }
-                        Command::none()
+                        return imageviewer::reset_scale(imageviewer::entryevents_viewer_id(
+                            chosen.on_event,
+                            chosen.on_image,
+                        ));
                     }
                     Stage::ChoosingCharacter(ref mut choosing) => {
                         match choosing.on_character {
@@ -523,7 +518,7 @@ impl Application for Memories {
                                 Message::ChoseCharacter(chosen) => {
                                     choosing.on_character = Some(chosen);
                                     return scrollable::snap_to(
-                                        choosing::generate_id(chosen),
+                                        choosing::generate_scrollable_id(chosen),
                                         scrollable::RelativeOffset::START,
                                     );
                                 }
@@ -561,7 +556,7 @@ impl Application for Memories {
                                 Message::ChoseCharacter(chosen) => {
                                     choosing.on_character = Some(chosen);
                                     return scrollable::snap_to(
-                                        choosing::generate_id(chosen),
+                                        choosing::generate_scrollable_id(chosen),
                                         scrollable::RelativeOffset::START,
                                     );
                                 }
@@ -574,36 +569,44 @@ impl Application for Memories {
                         Command::none()
                     }
                     Stage::ShowingPlots(ref mut displayer) => {
-                        match message {
-                            Message::PreviousEvent => {
-                                displayer.on_event -= 1;
-                                let need_force_run = {
-                                    displayer.events.lock().unwrap()[displayer.on_event]
-                                        .get_image_handle()
-                                };
-                                if let None = need_force_run {
-                                    let handle = {
-                                        let events = displayer.events.lock().unwrap();
-                                        events[displayer.on_event].get_join_handle()
-                                    };
-                                    let memo = std::mem::replace(self, Memories::Initialization);
-                                    return Command::perform(
-                                        visiting::force_load(handle, memo),
-                                        Message::FetchImage,
-                                    );
+                        let mut next_stage = false;
+                        let cur_image = {
+                            let mut events = displayer.events.lock().unwrap();
+                            let len = &events[displayer.on_event].experiences.len();
+                            let on_image = &mut events[displayer.on_event].on_experience;
+                            match message {
+                                Message::PreviousEvent => {
+                                    displayer.on_event -= 1;
                                 }
-                                visiting::load_images(state);
+                                Message::NextEvent => {
+                                    displayer.on_event += 1;
+                                    if displayer.on_event == *len {
+                                        next_stage = true;
+                                    }
+                                }
+                                Message::NextStage => {
+                                    next_stage = true;
+                                }
+                                Message::BackStage => {
+                                    return Command::perform(State::get_idx(), Message::Loaded);
+                                }
+                                Message::PreviousPhoto => {
+                                    *on_image = (*on_image + len - 1) % len;
+                                }
+                                Message::NextPhoto => {
+                                    *on_image = (*on_image + 1) % len;
+                                }
+                                _ => {}
                             }
-                            Message::NextEvent => {
-                                displayer.on_event += 1;
-                                if displayer.on_event == displayer.events.lock().unwrap().len() {
-                                    let state = state.to_owned();
-                                    *self = Memories::Loading(state.configs.clone());
-                                    return Command::perform(
-                                        graduation::load_map(state),
-                                        Message::Loaded,
-                                    );
-                                }
+                            (displayer.on_event, events[displayer.on_event].on_experience)
+                        };
+                        if next_stage {
+                            let state = state.to_owned();
+                            *self = Memories::Loading(state.configs.clone());
+                            return Command::perform(graduation::load_map(state), Message::Loaded);
+                        }
+                        match message {
+                            Message::PreviousEvent | Message::NextEvent => {
                                 let need_force_run = {
                                     displayer.events.lock().unwrap()[displayer.on_event]
                                         .get_image_handle()
@@ -622,37 +625,14 @@ impl Application for Memories {
                                 }
                                 visiting::load_images(state);
                             }
-                            Message::PreviousPhoto => {
-                                let mut events = displayer.events.lock().unwrap();
-                                let len = &events[displayer.on_event].experiences.len();
-                                let on_image = &mut events[displayer.on_event].on_experience;
-                                *on_image = (*on_image + len - 1) % len;
-                            }
-                            Message::NextPhoto => {
-                                let mut events = displayer.events.lock().unwrap();
-                                let len = &events[displayer.on_event].experiences.len();
-                                let on_image = &mut events[displayer.on_event].on_experience;
-                                *on_image = (*on_image + 1) % len;
-                            }
-                            Message::NextStage => {
-                                let state = state.clone();
-                                *self = Memories::Loading(state.configs.clone());
-                                return Command::perform(
-                                    graduation::load_map(state),
-                                    Message::Loaded,
-                                );
-                            }
-                            Message::BackStage => {
-                                return Command::perform(State::get_idx(), Message::Loaded);
-                            }
                             _ => {}
                         }
-                        Command::none()
+                        return imageviewer::reset_scale(imageviewer::showingplots_viewer_id(
+                            cur_image.0,
+                            cur_image.1,
+                        ));
                     }
-                    _ => {
-                        println!("On other stages.");
-                        Command::none()
-                    }
+                    _ => Command::none(),
                 }
             }
         }
@@ -677,18 +657,21 @@ impl Application for Memories {
             Memories::Loaded(state) => {
                 let content = match &state.stage {
                     Stage::EntryEvents(chosen) => row![
-                        image::viewer(
-                            chosen.preload.lock().unwrap()[chosen.on_event as usize]
-                                [chosen.on_image]
-                                .clone()
+                        imageviewer::Viewer::new(
+                            chosen.preload.lock().unwrap()[chosen.on_event][chosen.on_image]
+                                .clone(),
                         )
-                        .width(Length::Fixed(1400.0)),
+                        .id(imageviewer::entryevents_viewer_id(
+                            chosen.on_event,
+                            chosen.on_image
+                        ))
+                        .width(Length::FillPortion(4)),
                         column![
                             widget::tooltip(
                                 button_from_svg(include_bytes!("./runtime/gears.svg").to_vec())
                                     .width(Length::Fixed(80.0))
                                     .on_press(Message::OpenSettings),
-                                "设置 「按 S」",
+                                "设置「按 E」",
                                 iced::widget::tooltip::Position::Top
                             )
                             .style(iced::theme::Container::Box),
@@ -767,7 +750,7 @@ impl Application for Memories {
                         ]
                         .spacing(20)
                         .align_items(Alignment::Center)
-                        .width(Length::Fill),
+                        .width(Length::FillPortion(1)),
                     ]
                     .align_items(Alignment::Center)
                     .into(),
@@ -1076,7 +1059,7 @@ impl Application for Memories {
                                         .align_items(Alignment::Center)
                                         .width(Length::Fill),
                                 )
-                                .id(choosing::generate_id(chosen)),
+                                .id(choosing::generate_scrollable_id(chosen)),
                             )
                             .center_x()
                             .center_y()
@@ -1087,10 +1070,13 @@ impl Application for Memories {
                         let events = displayer.events.lock().unwrap();
                         let experiences = &events[displayer.on_event].experiences;
                         let cur_img = &experiences[events[displayer.on_event].on_experience];
-                        let main_image = image::viewer(cur_img.handle.clone().unwrap())
-                            .width(Length::Fixed(1400.0));
                         row![
-                            main_image,
+                            imageviewer::Viewer::new(cur_img.handle.clone().unwrap())
+                                .id(imageviewer::showingplots_viewer_id(
+                                    displayer.on_event,
+                                    events[displayer.on_event].on_experience
+                                ))
+                                .width(Length::FillPortion(4)),
                             column![
                                 button_from_svg(include_bytes!("./runtime/gears.svg").to_vec())
                                     .width(Length::Fixed(80.0))
@@ -1168,7 +1154,7 @@ impl Application for Memories {
                             ]
                             .spacing(20)
                             .align_items(Alignment::Center)
-                            .width(Length::Fill),
+                            .width(Length::FillPortion(1)),
                         ]
                         .align_items(Alignment::Center)
                         .into()

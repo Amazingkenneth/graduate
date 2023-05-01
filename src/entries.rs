@@ -1,18 +1,17 @@
-use crate::audio::{self, AudioStream};
-use crate::configs::{self, Configs};
+use crate::audio;
+use crate::configs::Configs;
 use crate::visiting::ShootingTime;
-use crate::{choosing, EntryState, Error, Memories, Stage, State};
+use crate::{choosing, EntryState, Stage, State};
 use iced::widget::image;
 use iced::Theme;
 use reqwest::Client;
 use rodio::Sink;
 use std::fs::{self, File};
-use std::io::{Read, Write};
+use std::io::Write;
 use std::mem::ManuallyDrop;
 use std::path::Path;
 use std::sync::atomic::AtomicBool;
 use std::sync::{Arc, Mutex};
-use tokio::time::Duration;
 
 //type JoinHandle = std::thread::JoinHandle<_>;
 impl State {

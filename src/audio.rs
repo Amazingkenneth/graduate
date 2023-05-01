@@ -1,8 +1,7 @@
-use crate::configs;
 use lofty::AudioFile;
 use rand::seq::SliceRandom;
-use rodio::source::{SineWave, Source};
-use rodio::{Decoder, OutputStream, Sink};
+use rodio::source::Source;
+use rodio::OutputStream;
 use std::mem::ManuallyDrop;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;

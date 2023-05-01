@@ -1,7 +1,8 @@
-extern crate embed_resource;
-
+#[cfg(target_os = "windows")]
 fn main() {
-    if cfg!(target_os = "windows") {
-        embed_resource::compile("./src/runtime/icon.rc", embed_resource::NONE);
-    }
+    extern crate embed_resource;
+    embed_resource::compile("./src/runtime/icon.rc", embed_resource::NONE);
 }
+
+#[cfg(not(target_os = "windows"))]
+fn main() {}

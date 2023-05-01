@@ -7,8 +7,12 @@ readme = "README.md"
 version = "0.1.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+build = "build.rs"
 license = "GPL-3.0"
 repository = "https://github.com/Amazingkenneth/graduate"
+
+[target.'cfg(windows)'.build-dependencies]
+embed-resource = "2.1"
 
 [dependencies]
 directories = "5"

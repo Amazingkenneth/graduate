@@ -139,16 +139,16 @@ pub fn open_url(mut filename: String) {
         std::process::Command::new("powershell")
             .args(["start", filename.as_str()])
             .output()
-            .expect("failed to execute process");
+            .unwrap();
     } else if cfg!(target_os = "macos") {
         std::process::Command::new("open")
             .arg(filename)
             .output()
-            .expect("failed to execute process.");
+            .unwrap();
     } else {
         std::process::Command::new("xdg-open")
             .arg(filename)
             .output()
-            .expect("failed to execute process");
+            .unwrap();
     }
 }

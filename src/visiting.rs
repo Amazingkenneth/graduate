@@ -137,8 +137,7 @@ pub async fn get_queue(state: State) -> Result<State, crate::Error> {
     let events_path = std::path::Path::new(&format!("{}/events.toml", &state.storage)).to_owned();
     let queue_table = {
         if events_path.is_file() {
-            let events_text =
-                fs::read_to_string(&events_path).expect("Cannot read events from file.");
+            let events_text = fs::read_to_string(&events_path).unwrap();
             toml::Table::from_str(events_text.as_str()).unwrap()
         } else {
             let events_url = format!(
@@ -147,15 +146,12 @@ pub async fn get_queue(state: State) -> Result<State, crate::Error> {
             );
             let events_text = reqwest::get(events_url)
                 .await
-                .expect("Cannot send request")
+                .unwrap()
                 .text()
                 .await
                 .unwrap();
-            let mut events_file =
-                std::fs::File::create(&events_path).expect("Failed to create events file.");
-            events_file
-                .write_all(&events_text.as_bytes())
-                .expect("Failed to write the image into file in the project directory.");
+            let mut events_file = std::fs::File::create(&events_path).unwrap();
+            events_file.write_all(&events_text.as_bytes()).unwrap();
             toml::Table::from_str(events_text.as_str()).unwrap()
         }
     };
@@ -349,16 +345,9 @@ pub fn load_images(state: &mut State) {
                         let url = format!("{}{}", location, experience.path);
                         let given_mutex = displayer.events.clone();
                         let t = tokio::spawn(async move {
-                            let bytes = reqwest::get(&url)
-                                .await
-                                .expect("Cannot send request")
-                                .bytes()
-                                .await
-                                .expect("Cannot read the image into bytes.");
-                            let mut file = std::fs::File::create(&img_dir)
-                                .expect("Failed to create image file.");
-                            file.write_all(&bytes)
-                                .expect("Failed to write the image into file");
+                            let bytes = reqwest::get(&url).await.unwrap().bytes().await.unwrap();
+                            let mut file = std::fs::File::create(&img_dir).unwrap();
+                            file.write_all(&bytes).unwrap();
                             given_mutex.lock().unwrap()[cur_idx].experiences[cur_img].handle =
                                 Some(image::Handle::from_memory(bytes));
                         });

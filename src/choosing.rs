@@ -40,18 +40,18 @@ pub async fn get_configs(on_character: Option<usize>, state: State) -> Result<St
     let has = state
         .idxtable
         .get("profile")
-        .expect("Cannot get profile.")
+        .unwrap()
         .as_table()
-        .expect("Cannot read as toml::table")
+        .unwrap()
         .to_owned();
     let mut names: Vec<String> = Vec::with_capacity(has.len() + 1);
     names.push(String::from(""));
     for value in 1..=has.len() {
         names.push(
             has.get(&value.to_string())
-                .expect("Cannot find the name of the given number")
+                .unwrap()
                 .as_str()
-                .expect("Cannot convert into `String`")
+                .unwrap()
                 .to_string(),
         );
     }
@@ -69,23 +69,20 @@ pub async fn get_configs(on_character: Option<usize>, state: State) -> Result<St
     let url_prefix = state
         .idxtable
         .get("url_prefix")
-        .expect("Cannot get the prefix")
+        .unwrap()
         .as_str()
-        .expect("cannot convert into str.")
+        .unwrap()
         .to_string();
     let mut threads = vec![];
-    fs::create_dir_all(Path::new(&format!("{}/profile", state.storage)))
-        .expect("Cannot create the directory for profile.");
-    fs::create_dir_all(Path::new(&format!("{}/image/known_people", state.storage)))
-        .expect("Cannot create the directory for image.");
+    fs::create_dir_all(Path::new(&format!("{}/profile", state.storage))).unwrap();
+    fs::create_dir_all(Path::new(&format!("{}/image/known_people", state.storage))).unwrap();
 
     for num in 1..names.len() {
         let img_mutex = img_mutex.clone();
         let profile_mutex = profile_mutex.clone();
         let storage = state.storage.clone();
         let url_prefix = url_prefix.clone();
-        fs::create_dir_all(Path::new(&format!("{}/image/emoji/{}", state.storage, num)))
-            .expect("Cannot create the directory for emoji.");
+        fs::create_dir_all(Path::new(&format!("{}/image/emoji/{}", state.storage, num))).unwrap();
 
         let t = tokio::spawn(async move {
             let profile_path = Path::new(&format!("{}/profile/{}.toml", storage, num)).to_owned();
@@ -102,21 +99,17 @@ pub async fn get_configs(on_character: Option<usize>, state: State) -> Result<St
                     .get(&img_url)
                     .send()
                     .await
-                    .expect("Cannot send request")
+                    .unwrap()
                     .bytes()
                     .await
-                    .expect("Cannot read the image into bytes.");
-                let mut img_file =
-                    std::fs::File::create(&img_path).expect("Failed to create image file.");
-                img_file
-                    .write_all(&img_bytes)
-                    .expect("Failed to write the image into file in the project directory.");
+                    .unwrap();
+                let mut img_file = std::fs::File::create(&img_path).unwrap();
+                img_file.write_all(&img_bytes).unwrap();
                 let mut img_array = img_mutex.lock().unwrap();
                 img_array[num] = Some(image::Handle::from_memory(img_bytes));
             }
             if profile_path.is_file() {
-                let profile_text =
-                    fs::read_to_string(&profile_path).expect("Cannot read profile from file.");
+                let profile_text = fs::read_to_string(&profile_path).unwrap();
                 if let Ok(res) = toml::from_str(profile_text.as_str()) {
                     let mut profile_array = profile_mutex.lock().unwrap();
                     profile_array[num] = res;
@@ -127,43 +120,30 @@ pub async fn get_configs(on_character: Option<usize>, state: State) -> Result<St
                 .get(&profile_url)
                 .send()
                 .await
-                .expect("Cannot send request")
+                .unwrap()
                 .text()
                 .await
-                .expect("Cannot read the image into bytes.");
-            let mut profile_file =
-                std::fs::File::create(&profile_path).expect("Failed to create profile file.");
-            profile_file
-                .write_all(&profile_text.as_bytes())
-                .expect("Failed to write the image into file in the project directory.");
+                .unwrap();
+            let mut profile_file = std::fs::File::create(&profile_path).unwrap();
+            profile_file.write_all(&profile_text.as_bytes()).unwrap();
             let mut profile_array = profile_mutex.lock().unwrap();
-            profile_array[num] =
-                toml::from_str(profile_text.as_str()).expect("Cannot parse into `Profile` type.");
+            profile_array[num] = toml::from_str(profile_text.as_str()).unwrap();
         });
         threads.push(t);
     }
 
-    let emojis = state
-        .idxtable
-        .get("emoji")
-        .expect("Cannot get emoji array!")
-        .as_array()
-        .expect("Cannot convert emojis into an array");
+    let emojis = state.idxtable.get("emoji").unwrap().as_array().unwrap();
     for emoji in emojis {
-        let cur_path = emoji
-            .as_str()
-            .expect("Cannot convert emoji item into str")
-            .to_string();
+        let cur_path = emoji.as_str().unwrap().to_string();
         let emoji_url = format!("{}/image/emoji/{}", url_prefix, cur_path);
         let emoji_dir = format!("{}/image/emoji/{}", state.storage, cur_path);
         let emoji_mutex = emoji_mutex.clone();
         let t = tokio::spawn(async move {
-            let (num_str, emoji_name) =
-                cur_path.split_at(cur_path.find('/').expect("Not valid separator") + 1);
+            let (num_str, emoji_name) = cur_path.split_at(cur_path.find('/').unwrap() + 1);
             let (mut num_string, mut emoji_name) = (num_str.to_string(), emoji_name.to_string());
             num_string.pop();
-            emoji_name.truncate(emoji_name.find('.').expect("Cannot find the suffix."));
-            let num = num_string.parse::<usize>().expect("Cannot parse the num");
+            emoji_name.truncate(emoji_name.find('.').unwrap());
+            let num = num_string.parse::<usize>().unwrap();
             let emoji_path = Path::new(&emoji_dir);
             if emoji_path.is_file() {
                 let mut emoji_array = emoji_mutex.lock().unwrap();
@@ -174,15 +154,12 @@ pub async fn get_configs(on_character: Option<usize>, state: State) -> Result<St
             } else {
                 let emoji_bytes = reqwest::get(&emoji_url)
                     .await
-                    .expect("Cannot send request")
+                    .unwrap()
                     .bytes()
                     .await
-                    .expect("Cannot read the emoji into bytes.");
-                let mut emoji_file =
-                    std::fs::File::create(&emoji_path).expect("Failed to create image file.");
-                emoji_file
-                    .write_all(&emoji_bytes)
-                    .expect("Failed to write the image into file in the project directory.");
+                    .unwrap();
+                let mut emoji_file = std::fs::File::create(&emoji_path).unwrap();
+                emoji_file.write_all(&emoji_bytes).unwrap();
                 let mut emoji_array = emoji_mutex.lock().unwrap();
                 emoji_array[num].push(Emoji {
                     emoji_name,

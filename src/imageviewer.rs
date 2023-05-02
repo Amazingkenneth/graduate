@@ -210,6 +210,13 @@ where
 
                 event::Status::Captured
             }
+            Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Right)) => {
+                let state = tree.state.downcast_mut::<State>();
+                state.scale = 1.0;
+                state.current_offset = Vector::new(0.0, 0.0);
+
+                event::Status::Captured
+            }
             Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left)) => {
                 let state = tree.state.downcast_mut::<State>();
 

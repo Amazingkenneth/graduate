@@ -410,11 +410,11 @@ impl Application for Memories {
                                     state
                                         .get_current_event(chosen.on_event)
                                         .get("image")
-                                        .expect("cannot parse `image` into an array.")
+                                        .unwrap()
                                         .as_array()
-                                        .expect("Cannot read the paths")[chosen.on_image]
+                                        .unwrap()[chosen.on_image]
                                         .as_str()
-                                        .expect("Cannot convert it into String")
+                                        .unwrap()
                                         .to_string()
                                 ),
                                 Stage::ChoosingCharacter(choosing) => match choosing.on_character {
@@ -475,7 +475,7 @@ impl Application for Memories {
                                 state.configs.from_date = state
                                     .get_current_event(cur_event)
                                     .get("date")
-                                    .expect("No date value in the item.")
+                                    .unwrap()
                                     .as_datetime()
                                     .unwrap()
                                     .into();
@@ -665,7 +665,8 @@ impl Application for Memories {
                             chosen.on_event,
                             chosen.on_image
                         ))
-                        .width(Length::FillPortion(4)),
+                        .width(Length::FillPortion(4))
+                        .height(Length::Fill),
                         column![
                             widget::tooltip(
                                 button_from_svg(include_bytes!("./runtime/gears.svg").to_vec())
@@ -679,9 +680,9 @@ impl Application for Memories {
                                 state
                                     .get_current_event(chosen.on_event)
                                     .get("description")
-                                    .expect("No image value in the item.")
+                                    .unwrap()
                                     .as_str()
-                                    .expect("cannot convert into &str")
+                                    .unwrap()
                             )
                             .size(50),
                             text(format!(
@@ -689,12 +690,12 @@ impl Application for Memories {
                                 state
                                     .get_current_event(chosen.on_event)
                                     .get("date")
-                                    .expect("No date value in the item.")
+                                    .unwrap()
                                     .as_datetime()
-                                    .expect("cannot convert into datetime")
+                                    .unwrap()
                                     .date
                                     .as_ref()
-                                    .expect("Cannot get its date")
+                                    .unwrap()
                             ))
                             .size(30),
                             widget::Button::new(text("从这里开始！").size(35))
@@ -710,9 +711,9 @@ impl Application for Memories {
                                 if state
                                     .get_current_event(chosen.on_event)
                                     .get("image")
-                                    .expect("No image value in the item.")
+                                    .unwrap()
                                     .as_array()
-                                    .expect("Cannot read the paths.")
+                                    .unwrap()
                                     .len()
                                     > 1
                                 {
@@ -753,6 +754,7 @@ impl Application for Memories {
                         .width(Length::FillPortion(1)),
                     ]
                     .align_items(Alignment::Center)
+                    .height(Length::Fill)
                     .into(),
                     Stage::ChoosingCharacter(choosing) => match choosing.on_character {
                         None => {
@@ -781,7 +783,7 @@ impl Application for Memories {
                                     heads.push(vec![]);
                                 }
                                 containing -= 1;
-                                heads.last_mut().expect("Cannot get the last value.").push(
+                                heads.last_mut().unwrap().push(
                                     container(
                                         widget::Button::new(
                                             column![
@@ -828,14 +830,10 @@ impl Application for Memories {
                             if let Some(relations) = profile.relationship {
                                 let mut lists = column![];
                                 for relation in &relations {
-                                    let cur_relation =
-                                        relation.as_table().expect("Cannot read as a table");
-                                    let author = cur_relation
-                                        .get("by")
-                                        .expect("Cannot get `with`")
-                                        .as_integer()
-                                        .expect("`with` isn't a valid integer")
-                                        as usize;
+                                    let cur_relation = relation.as_table().unwrap();
+                                    let author =
+                                        cur_relation.get("by").unwrap().as_integer().unwrap()
+                                            as usize;
                                     lists = lists.push(row![
                                         text("是 ").size(30),
                                         widget::Button::new(
@@ -848,11 +846,7 @@ impl Application for Memories {
                                         .style(iced::theme::Button::Text),
                                         text(format!(
                                             " 的 {}；",
-                                            cur_relation
-                                                .get("is")
-                                                .expect("Cannot get `is`")
-                                                .as_str()
-                                                .unwrap()
+                                            cur_relation.get("is").unwrap().as_str().unwrap()
                                         ))
                                         .size(30)
                                     ]);
@@ -928,23 +922,12 @@ impl Application for Memories {
                                 let mut article_vec = vec![];
 
                                 for article in &articles {
-                                    let cur_article =
-                                        article.as_table().expect("Cannot read as a table");
-                                    let content = cur_article
-                                        .get("content")
-                                        .expect("Cannot get `content`")
-                                        .as_str()
-                                        .unwrap();
-                                    let date = cur_article
-                                        .get("date")
-                                        .expect("Cannot get `date`")
-                                        .as_datetime()
-                                        .unwrap();
-                                    let link = cur_article
-                                        .get("link")
-                                        .expect("Cannot get `date`")
-                                        .as_str()
-                                        .unwrap();
+                                    let cur_article = article.as_table().unwrap();
+                                    let content =
+                                        cur_article.get("content").unwrap().as_str().unwrap();
+                                    let date =
+                                        cur_article.get("date").unwrap().as_datetime().unwrap();
+                                    let link = cur_article.get("link").unwrap().as_str().unwrap();
                                     article_vec.push((date, content, link));
                                 }
                                 article_vec.sort_unstable();
@@ -992,14 +975,10 @@ impl Application for Memories {
                             if let Some(comments) = profile.comment {
                                 let mut lists = column![].spacing(15);
                                 for comment in &comments {
-                                    let cur_comment =
-                                        comment.as_table().expect("Cannot read as table");
-                                    let with = cur_comment
-                                        .get("from")
-                                        .expect("Cannot get `from`")
-                                        .as_integer()
-                                        .expect("`from` isn't a valid integer")
-                                        as usize;
+                                    let cur_comment = comment.as_table().unwrap();
+                                    let with =
+                                        cur_comment.get("from").unwrap().as_integer().unwrap()
+                                            as usize;
                                     lists = lists.push(column![
                                         row![
                                             text("来自 ").size(40),
@@ -1019,7 +998,7 @@ impl Application for Memories {
                                             column![text(
                                                 cur_comment
                                                     .get("description")
-                                                    .expect("Cannot get `description`")
+                                                    .unwrap()
                                                     .as_str()
                                                     .expect(
                                                         "Cannot convert `description` into String"
@@ -1028,7 +1007,7 @@ impl Application for Memories {
                                             .size(30),
                                             text(format!(
                                                 "于 {} ",
-                                                cur_comment.get("date").expect("Cannot get `date`").as_datetime().unwrap()
+                                                cur_comment.get("date").unwrap().as_datetime().unwrap()
                                             ))
                                             .size(30)]
                                             .align_items(Alignment::End)
@@ -1076,7 +1055,8 @@ impl Application for Memories {
                                     displayer.on_event,
                                     events[displayer.on_event].on_experience
                                 ))
-                                .width(Length::FillPortion(4)),
+                                .width(Length::FillPortion(4))
+                                .height(Length::Fill),
                             column![
                                 button_from_svg(include_bytes!("./runtime/gears.svg").to_vec())
                                     .width(Length::Fixed(80.0))
@@ -1157,6 +1137,7 @@ impl Application for Memories {
                             .width(Length::FillPortion(1)),
                         ]
                         .align_items(Alignment::Center)
+                        .height(Length::Fill)
                         .into()
                     }
                     _ => {
@@ -1217,7 +1198,7 @@ fn show_profiles(item: Option<toml::value::Array>, with_name: &str) -> Element<M
     if let Some(item) = item {
         let mut lists = column![];
         for i in &item {
-            lists = lists.push(text(i.as_str().expect("Not valid String").to_string()).size(40));
+            lists = lists.push(text(i.as_str().unwrap().to_string()).size(40));
         }
         if !item.is_empty() {
             return Element::from(column![

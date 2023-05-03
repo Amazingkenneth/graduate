@@ -29,6 +29,7 @@ fn main() {
         titlebar_transparent: true,
         fullsize_content_view: true,
     };
+
     #[cfg(not(target_os = "macos"))]
     let specific = Default::default();
 
@@ -885,7 +886,7 @@ impl Application for Memories {
                             content = content.push(show_profiles(profile.plots, "ta 的小日常"));
                             if let Some(summary) = profile.anecdote {
                                 content = content.push(column![
-                                    text("关于 ta 的").size(50),
+                                    text("关于 ta").size(50),
                                     row![
                                         horizontal_space(Length::Fixed(20.0)),
                                         column![
@@ -969,6 +970,8 @@ impl Application for Memories {
                                     );
                                 }
                                 if !articles.is_empty() {
+                                    content =
+                                        content.push(widget::vertical_space(Length::Fixed(10.0)));
                                     content = content.push(row![
                                         widget::Svg::new(widget::svg::Handle::from_memory(
                                             include_bytes!("./runtime/link.svg").to_vec()
@@ -1042,13 +1045,13 @@ impl Application for Memories {
                             container(
                                 scrollable(
                                     column![content.spacing(5), apply_button]
-                                        .align_items(Alignment::Center)
-                                        .width(Length::Fill),
+                                        .align_items(Alignment::Center),
                                 )
                                 .id(choosing::generate_scrollable_id(chosen)),
                             )
                             .center_x()
                             .center_y()
+                            .width(Length::Fill)
                             .height(Length::Fill)
                             .into()
                         }
@@ -1206,7 +1209,7 @@ fn show_profiles(item: Option<toml::value::Array>, with_name: &str) -> Element<M
     if let Some(item) = item {
         let mut lists = column![];
         for i in &item {
-            lists = lists.push(text(i.as_str().unwrap().to_string()).size(40));
+            lists = lists.push(text(i.as_str().unwrap().to_string()).size(30));
         }
         if !item.is_empty() {
             return Element::from(column![

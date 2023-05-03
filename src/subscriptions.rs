@@ -134,28 +134,26 @@ pub fn on_graduation(event: Event, _: iced::event::Status) -> Option<Message> {
 }
 
 #[cfg(target_os = "windows")]
-pub fn open_url(mut filename: String) {
-    filename = format!("\x22{filename}\x22"); // \x22 为英文双引号
+pub fn open_url(filename: String) {
+    // \x22 为英文双引号
     std::process::Command::new("powershell")
-        .args(["start", filename.as_str()])
+        .args(["start", format!("\x22{filename}\x22").as_str()])
         .output()
         .unwrap();
 }
 
 #[cfg(target_os = "macos")]
-pub fn open_url(mut filename: String) {
-    filename = format!("\x22{filename}\x22");
+pub fn open_url(filename: String) {
     std::process::Command::new("open")
-        .arg(filename)
+        .arg(format!("\x22{filename}\x22"))
         .output()
         .unwrap();
 }
 
-#[cfg(not(target_os = "windows", target_os = "macos"))]
-pub fn open_url(mut filename: String) {
-    filename = format!("\x22{filename}\x22");
+#[cfg(not(any(target_os = "windows", target_os = "macos")))]
+pub fn open_url(filename: String) {
     std::process::Command::new("xdg-open")
-        .arg(filename)
+        .arg(format!("\x22{filename}\x22"))
         .output()
         .unwrap();
 }

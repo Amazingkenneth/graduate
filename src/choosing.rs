@@ -3,7 +3,7 @@ use iced::widget::image;
 use rand::Rng;
 use reqwest::Client;
 use serde::Deserialize;
-use std::fs::{self};
+use std::fs;
 use std::io::Write;
 use std::path::Path;
 use std::sync::{Arc, Mutex};

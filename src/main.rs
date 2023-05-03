@@ -107,7 +107,9 @@ pub struct VisitingState {
 
 #[derive(Clone, Debug, Default)]
 pub struct GraduationState {
-    on: i32,
+    on_panorama: usize,
+    on_image: usize,
+    images: Vec<graduation::Panorama>,
 }
 
 #[derive(Clone, Debug)]
@@ -186,7 +188,12 @@ impl Application for Memories {
                 Stage::ShowingPlots(on_plot) => {
                     return format!("瞧瞧 {} 的这段经历", on_plot.character_name)
                 }
-                Stage::Graduated(_) => "就这样，我们毕业啦",
+                Stage::Graduated(img) => {
+                    return format!(
+                        "来看看我们的 {} 吧",
+                        img.images[img.on_panorama].image_names[img.on_image]
+                    )
+                }
             },
             _ => "加载中",
         };

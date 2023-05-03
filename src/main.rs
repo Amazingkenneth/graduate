@@ -1049,6 +1049,7 @@ impl Application for Memories {
                             )
                             .center_x()
                             .center_y()
+                            .height(Length::Fill)
                             .into()
                         }
                     },

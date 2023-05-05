@@ -20,7 +20,7 @@ impl State {
         let idxdir: String = format!("{}{}", proj_dir.data_dir().display(), "/index.toml");
         let config_path = format!("{}{}", proj_dir.config_dir().display(), "/configs.toml");
         let storage: String = proj_dir.data_dir().display().to_string();
-        println!("storage: {}", storage);
+        dbg!(&storage);
         fs::create_dir_all(&storage).unwrap();
         fs::create_dir_all(proj_dir.config_dir().display().to_string()).unwrap();
         let idxurl: String = format!("https://graduate-cdn.netlify.com/index.toml");
@@ -72,13 +72,9 @@ impl State {
                     if !audio_path.is_file() {
                         fs::create_dir_all(audio_path.parent().unwrap()).unwrap();
                         let url = format!("{}{}", location, relative_path);
-                        // println!("url: {}", url);
                         let bytes = cli.get(&url).send().await.unwrap().bytes().await.unwrap();
-                        println!("Done processing image!");
                         let mut file = std::fs::File::create(&audio_dir).unwrap();
-                        file.write_all(&bytes).expect(
-                            "Failed to write the audio into file in the project directory.",
-                        );
+                        file.write_all(&bytes).unwrap();
                     }
                     let mut aud_paths = aud_mutex.lock().unwrap();
                     aud_paths.push(audio_dir);
@@ -113,9 +109,7 @@ impl State {
                     }
                     fs::create_dir_all(img_path.parent().unwrap()).unwrap();
                     let url = format!("{}{}", location, relative_path);
-                    println!("url: {}", url);
                     let bytes = cli.get(&url).send().await.unwrap().bytes().await.unwrap();
-                    println!("Done processing image!");
                     let mut file = std::fs::File::create(&img_dir).unwrap();
                     file.write_all(&bytes).unwrap();
                     fillin.push(image::Handle::from_memory(bytes));
@@ -185,6 +179,18 @@ impl State {
                 .as_datetime()
                 .unwrap()
                 .into();
+            let configs = Configs {
+                scale_factor,
+                theme,
+                from_date,
+                volume_percentage: initial_volume,
+                aud_module: sink_mutex,
+                daemon_running: daemon_status,
+                audio_paths,
+                config_path,
+                shown: false,
+                full_screened: false,
+            };
             let stage = match config_table.get("stage").unwrap().as_str().unwrap() {
                 "ChoosingCharacter" => {
                     let on_character = {
@@ -208,26 +214,27 @@ impl State {
                             }),
                             idxtable,
                             storage,
-                            configs: Configs {
-                                scale_factor,
-                                theme,
-                                from_date,
-                                volume_percentage: initial_volume,
-                                aud_module: sink_mutex,
-                                daemon_running: daemon_status,
-                                audio_paths,
-                                config_path,
-                                shown: false,
-                                full_screened: false,
-                            },
+                            configs,
                         },
                     )
                     .await
                     .unwrap();
                     return Ok(res);
                 }
+                "Graduated" => {
+                    let res = crate::graduation::load_map(State {
+                        stage: Stage::Graduated(crate::GraduationState {
+                            ..Default::default()
+                        }),
+                        idxtable,
+                        storage,
+                        configs,
+                    })
+                    .await
+                    .unwrap();
+                    return Ok(res);
+                }
                 _ => Stage::EntryEvents(EntryState {
-                    // or "EntryEvents"
                     preload: fetched,
                     ..Default::default()
                 }),
@@ -237,18 +244,7 @@ impl State {
                 stage,
                 idxtable,
                 storage,
-                configs: Configs {
-                    scale_factor,
-                    theme,
-                    from_date,
-                    volume_percentage: initial_volume,
-                    aud_module: sink_mutex,
-                    daemon_running: daemon_status,
-                    audio_paths,
-                    config_path,
-                    shown: false,
-                    full_screened: false,
-                },
+                configs,
             })
         } else {
             tokio::spawn(async move {

@@ -29,9 +29,6 @@ impl PartialOrd for Event {
 impl Ord for Event {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         use time::macros::time;
-        if self.experiences.len() == 0 {
-            println!("Error processing: {}", self.description);
-        }
         let cmp_a = match self.experiences.first().unwrap().shot {
             ShootingTime::Approximate(approximate) => {
                 PrimitiveDateTime::new(approximate, time!(0:00))

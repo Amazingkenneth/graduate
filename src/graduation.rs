@@ -6,6 +6,9 @@ use std::io::Write;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 
+use std::sync::atomic::{AtomicUsize, Ordering};
+pub static ON_LOCATION: AtomicUsize = AtomicUsize::new(0);
+
 #[derive(Clone, Debug, Default)]
 pub struct Panorama {
     pub image: Vec<image::Handle>,
@@ -57,10 +60,8 @@ pub async fn load_map(state: State) -> Result<State, crate::Error> {
                     continue;
                 }
                 fs::create_dir_all(img_path.parent().unwrap()).unwrap();
-                let url = format!("{}{}", location, relative_path);
-                println!("url: {}", url);
+                let url = format!("{}/image/panorama/{}", location, relative_path);
                 let bytes = cli.get(&url).send().await.unwrap().bytes().await.unwrap();
-                println!("Done processing image!");
                 let mut file = std::fs::File::create(&img_dir).unwrap();
                 file.write_all(&bytes).unwrap();
                 fillin.push(image::Handle::from_memory(bytes));
@@ -82,24 +83,24 @@ pub async fn load_map(state: State) -> Result<State, crate::Error> {
             let name = j
                 .as_str()
                 .unwrap()
-                .strip_suffix(".jpg\x22")
+                .strip_suffix(".jpg")
                 .unwrap()
-                .to_string()
-                .split_off(1);
+                .to_string();
             names.push(name);
         }
-        let point = pan.get("pinpoint").unwrap().as_table().unwrap();
-        let x = point.get("x").unwrap().as_integer().unwrap() as f32;
-        let y = point.get("y").unwrap().as_integer().unwrap() as f32;
-        pans[i] = Panorama {
+        let point = pan.get("pinpoint").unwrap().as_array().unwrap();
+        let x = point[0].as_integer().unwrap() as f32;
+        let y = point[1].as_integer().unwrap() as f32;
+        dbg!(&names);
+        pans.push(Panorama {
             image: img_fetched[i].clone(),
             image_names: names,
             pinpoint: (x, y),
-        };
+        });
     }
     Ok(State {
         stage: Stage::Graduated(crate::GraduationState {
-            on_panorama: 0,
+            show_panel: true,
             on_image: 0,
             images: pans,
         }),

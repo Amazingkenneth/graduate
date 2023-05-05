@@ -17,7 +17,7 @@ embed-resource = "2.1"
 [dependencies]
 directories = "5"
 iced = { version = "0", features = ["image", "svg", "tokio"] }
-# iced_audio = "0"
+iced_aw = { version = "0", features = ["floating_element"] }
 iced_native = "0"
 image = "0.24"
 lofty = "0"

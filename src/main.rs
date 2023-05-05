@@ -3,18 +3,22 @@ mod audio;
 mod choosing;
 mod configs;
 mod entries;
+mod floatingelement;
 mod graduation;
 mod imageviewer;
 mod subscriptions;
 mod visiting;
 
-use ::image::ImageFormat;
 use configs::Configs;
 use iced::widget::{
     self, column, container, horizontal_space, image, row, scrollable, text, text_input,
 };
 use iced::window::Mode;
 use iced::{window, Alignment, Application, Color, Command, Element, Length, Settings, Theme};
+use iced_aw::floating_element::Offset;
+use iced_aw::native::overlay::FloatingElementOverlay;
+use iced_native::Point;
+use iced_native::Widget;
 use rand::Rng;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
@@ -40,7 +44,7 @@ fn main() {
             icon: Some(
                 iced::window::icon::from_file_data(
                     include_bytes!("./runtime/icon.png"),
-                    Some(ImageFormat::Png),
+                    Some(::image::ImageFormat::Png),
                 )
                 .unwrap(),
             ),
@@ -108,7 +112,7 @@ pub struct VisitingState {
 
 #[derive(Clone, Debug, Default)]
 pub struct GraduationState {
-    on_panorama: usize,
+    show_panel: bool,
     on_image: usize,
     images: Vec<graduation::Panorama>,
 }
@@ -117,6 +121,7 @@ pub struct GraduationState {
 pub enum Message {
     BackStage,
     ChoseCharacter(usize),
+    ClickedPin(usize),
     CopyText(String),
     DescriptionEdited(String),
     EscapeFullScreen,
@@ -144,6 +149,7 @@ pub enum Message {
     SwitchDeleteFilesStatus,
     SwitchMusicStatus,
     ToggleMode,
+    TogglePanelShown,
     UnChoose,
 }
 
@@ -192,7 +198,8 @@ impl Application for Memories {
                 Stage::Graduated(img) => {
                     return format!(
                         "来看看我们的 {} 吧",
-                        img.images[img.on_panorama].image_names[img.on_image]
+                        img.images[graduation::ON_LOCATION.load(Ordering::Relaxed)].image_names
+                            [img.on_image]
                     )
                 }
             },
@@ -640,7 +647,19 @@ impl Application for Memories {
                             cur_image.1,
                         ));
                     }
-                    _ => Command::none(),
+                    Stage::Graduated(ref mut vision) => {
+                        match message {
+                            Message::TogglePanelShown => {
+                                vision.show_panel ^= true;
+                            }
+                            Message::ClickedPin(new_on) => {
+                                dbg!(new_on);
+                                vision.on_image = new_on;
+                            }
+                            _ => {}
+                        }
+                        Command::none()
+                    }
                 }
             }
         }
@@ -648,7 +667,6 @@ impl Application for Memories {
     fn view(&self) -> Element<Message> {
         match self {
             Memories::Loading(_) | Memories::Initialization => {
-                println!("On Memories::Loading");
                 container(
                     column![
                         text("正在加载中  Loading...").size(60),
@@ -677,7 +695,7 @@ impl Application for Memories {
                         .height(Length::Fill),
                         column![
                             widget::tooltip(
-                                button_from_svg(include_bytes!("./runtime/gears.svg").to_vec())
+                                button_from_svg(include_bytes!("./runtime/gears.svg"))
                                     .width(Length::Fixed(80.0))
                                     .on_press(Message::OpenSettings),
                                 "设置「按 E」",
@@ -711,11 +729,9 @@ impl Application for Memories {
                                 .style(iced::theme::Button::Positive)
                                 .on_press(Message::NextStage),
                             row![
-                                button_from_svg(
-                                    include_bytes!("./runtime/arrow-left.svg").to_vec()
-                                )
-                                .width(Length::Fixed(80.0))
-                                .on_press(Message::PreviousEvent),
+                                button_from_svg(include_bytes!("./runtime/arrow-left.svg"))
+                                    .width(Length::Fixed(80.0))
+                                    .on_press(Message::PreviousEvent),
                                 if state
                                     .get_current_event(chosen.on_event)
                                     .get("image")
@@ -726,25 +742,19 @@ impl Application for Memories {
                                     > 1
                                 {
                                     Element::from(column![
-                                        button_from_svg(
-                                            include_bytes!("./runtime/up.svg").to_vec()
-                                        )
-                                        .width(Length::Fixed(40.0))
-                                        .on_press(Message::PreviousPhoto),
-                                        button_from_svg(
-                                            include_bytes!("./runtime/down.svg").to_vec()
-                                        )
-                                        .width(Length::Fixed(40.0))
-                                        .on_press(Message::NextPhoto)
+                                        button_from_svg(include_bytes!("./runtime/up.svg"))
+                                            .width(Length::Fixed(40.0))
+                                            .on_press(Message::PreviousPhoto),
+                                        button_from_svg(include_bytes!("./runtime/down.svg"))
+                                            .width(Length::Fixed(40.0))
+                                            .on_press(Message::NextPhoto)
                                     ])
                                 } else {
                                     Element::from(horizontal_space(Length::Fixed(40.0)))
                                 },
-                                button_from_svg(
-                                    include_bytes!("./runtime/arrow-right.svg").to_vec()
-                                )
-                                .width(Length::Fixed(80.0))
-                                .on_press(Message::NextEvent),
+                                button_from_svg(include_bytes!("./runtime/arrow-right.svg"))
+                                    .width(Length::Fixed(80.0))
+                                    .on_press(Message::NextEvent),
                             ],
                             widget::tooltip(
                                 widget::Button::new(text("打开对应文件").size(30))
@@ -1069,7 +1079,7 @@ impl Application for Memories {
                                 .width(Length::FillPortion(4))
                                 .height(Length::Fill),
                             column![
-                                button_from_svg(include_bytes!("./runtime/gears.svg").to_vec())
+                                button_from_svg(include_bytes!("./runtime/gears.svg"))
                                     .width(Length::Fixed(80.0))
                                     .on_press(Message::OpenSettings),
                                 text(events[displayer.on_event].description.clone()).size(50),
@@ -1077,10 +1087,9 @@ impl Application for Memories {
                                 row![
                                     if displayer.on_event > 0 {
                                         Element::from(
-                                            button_from_svg(
-                                                include_bytes!("./runtime/chevron-left.svg")
-                                                    .to_vec(),
-                                            )
+                                            button_from_svg(include_bytes!(
+                                                "./runtime/chevron-left.svg"
+                                            ))
                                             .width(Length::Fixed(80.0))
                                             .on_press(Message::PreviousEvent),
                                         )
@@ -1089,26 +1098,23 @@ impl Application for Memories {
                                     },
                                     if experiences.len() > 1 {
                                         Element::from(column![
-                                            button_from_svg(
-                                                include_bytes!("./runtime/chevron-up.svg").to_vec()
-                                            )
+                                            button_from_svg(include_bytes!(
+                                                "./runtime/chevron-up.svg"
+                                            ))
                                             .width(Length::Fixed(60.0))
                                             .on_press(Message::PreviousPhoto),
-                                            button_from_svg(
-                                                include_bytes!("./runtime/chevron-down.svg")
-                                                    .to_vec()
-                                            )
+                                            button_from_svg(include_bytes!(
+                                                "./runtime/chevron-down.svg"
+                                            ))
                                             .width(Length::Fixed(60.0))
                                             .on_press(Message::NextPhoto)
                                         ])
                                     } else {
                                         Element::from(horizontal_space(Length::Fixed(60.0)))
                                     },
-                                    button_from_svg(
-                                        include_bytes!("./runtime/chevron-right.svg").to_vec()
-                                    )
-                                    .width(Length::Fixed(80.0))
-                                    .on_press(Message::NextEvent),
+                                    button_from_svg(include_bytes!("./runtime/chevron-right.svg"))
+                                        .width(Length::Fixed(80.0))
+                                        .on_press(Message::NextEvent),
                                 ]
                                 .align_items(Alignment::Center),
                                 widget::tooltip(
@@ -1122,9 +1128,9 @@ impl Application for Memories {
                                 .style(iced::theme::Container::Box),
                                 row![
                                     widget::tooltip(
-                                        button_from_svg(
-                                            include_bytes!("./runtime/left-to-line.svg").to_vec(),
-                                        )
+                                        button_from_svg(include_bytes!(
+                                            "./runtime/left-to-line.svg"
+                                        ),)
                                         .width(Length::Fixed(80.0))
                                         .on_press(Message::BackStage),
                                         "回到最初那样……",
@@ -1132,9 +1138,9 @@ impl Application for Memories {
                                     )
                                     .style(iced::theme::Container::Box),
                                     widget::tooltip(
-                                        button_from_svg(
-                                            include_bytes!("./runtime/right-to-line.svg").to_vec(),
-                                        )
+                                        button_from_svg(include_bytes!(
+                                            "./runtime/right-to-line.svg"
+                                        ),)
                                         .width(Length::Fixed(80.0))
                                         .on_press(Message::NextStage),
                                         "跳过这段时光",
@@ -1151,9 +1157,70 @@ impl Application for Memories {
                         .height(Length::Fill)
                         .into()
                     }
-                    _ => {
-                        println!("current state: {:?}", state);
-                        row![column![text("Not implemented").size(50)].spacing(20)].into()
+                    Stage::Graduated(vision) => {
+                        let displayer = imageviewer::Viewer::new(
+                            vision.images[graduation::ON_LOCATION.load(Ordering::Relaxed)].image
+                                [vision.on_image]
+                                .clone(),
+                        )
+                        .id(imageviewer::entryevents_viewer_id(
+                            graduation::ON_LOCATION.load(Ordering::Relaxed),
+                            vision.on_image,
+                        ))
+                        .width(Length::FillPortion(4))
+                        .height(Length::Fill);
+                        let grab_button = iced_aw::FloatingElement::new(displayer, || {
+                            column![
+                                widget::tooltip(
+                                    crate::button_from_svg(if vision.show_panel {
+                                        include_bytes!("./runtime/chevron-up.svg")
+                                    } else {
+                                        include_bytes!("./runtime/chevron-down.svg")
+                                    })
+                                    .width(Length::Fixed(60.0))
+                                    .on_press(Message::TogglePanelShown),
+                                    if vision.show_panel {
+                                        "收起"
+                                    } else {
+                                        "展开"
+                                    },
+                                    widget::tooltip::Position::Bottom,
+                                )
+                                .style(iced::theme::Container::Box),
+                                widget::vertical_space(Length::Fixed(20.0))
+                            ]
+                            .into()
+                        })
+                        .anchor(iced_aw::floating_element::Anchor::NorthEast)
+                        .offset(Offset { x: 30.0, y: -10.0 });
+                        if vision.show_panel {
+                            let mut current = vec![];
+                            let mut offsets = vec![];
+                            for pan in &vision.images {
+                                let pinpoint = |index| {
+                                    Element::from(
+                                        crate::button_from_svg(include_bytes!(
+                                            "./runtime/location-pin.svg"
+                                        ))
+                                        .width(Length::Fixed(30.0))
+                                        .on_press(Message::ClickedPin(index)),
+                                    )
+                                };
+                                current.push(pinpoint);
+                                offsets.push(Offset {
+                                    x: pan.pinpoint.0,
+                                    y: pan.pinpoint.1,
+                                });
+                            }
+                            let map = container(widget::image(image::Handle::from_memory(
+                                include_bytes!("./runtime/map.png"),
+                            )));
+                            let floating_element =
+                                crate::floatingelement::FloatingElement::new(map, current, offsets);
+                            column![floating_element, grab_button].into()
+                        } else {
+                            column![grab_button].into()
+                        }
                     }
                 };
                 if state.configs.shown {
@@ -1200,7 +1267,7 @@ impl Application for Memories {
     }
 }
 
-pub fn button_from_svg(position: Vec<u8>) -> widget::Button<'static, Message> {
+pub fn button_from_svg(position: &'static [u8]) -> widget::Button<'static, Message> {
     widget::Button::new(widget::Svg::new(widget::svg::Handle::from_memory(position)))
         .style(iced::theme::Button::Text)
 }

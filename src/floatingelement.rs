@@ -1,0 +1,229 @@
+use iced_native::{
+    event, mouse, overlay, Clipboard, Event, Layout, Length, Point, Rectangle, Shell,
+};
+use iced_native::{widget::Tree, Element, Widget};
+
+use iced_aw::floating_element::Offset;
+use iced_aw::native::floating_element::anchor::Anchor;
+use iced_aw::native::overlay::FloatingElementOverlay;
+
+#[allow(missing_debug_implementations)]
+pub struct FloatingElement<'a, B, Message, Renderer>
+where
+    B: Fn(usize) -> Element<'a, Message, Renderer>,
+    Message: Clone,
+    Renderer: iced_native::Renderer,
+{
+    /// The anchor of the element.
+    anchor: Anchor,
+    /// The offset of the element.
+    offset: Vec<Offset>,
+    /// The visibility of the element.
+    hidden: bool,
+    /// The underlying element.
+    underlay: Element<'a, Message, Renderer>,
+    /// The floating element of the [`FloatingElementOverlay`](FloatingElementOverlay).
+    element: Vec<B>,
+}
+
+impl<'a, B, Message, Renderer> FloatingElement<'a, B, Message, Renderer>
+where
+    B: Fn(usize) -> Element<'a, Message, Renderer>,
+    Message: Clone,
+    Renderer: iced_native::Renderer,
+{
+    pub fn new<U>(underlay: U, element: Vec<B>, offset: Vec<Offset>) -> Self
+    where
+        U: Into<Element<'a, Message, Renderer>>,
+    {
+        FloatingElement {
+            anchor: Anchor::NorthWest,
+            offset,
+            hidden: false,
+            underlay: underlay.into(),
+            element,
+        }
+    }
+
+    /// Sets the [`Anchor`](Anchor) of the [`FloatingElement`](FloatingElement).
+    #[must_use]
+    pub fn anchor(mut self, anchor: Anchor) -> Self {
+        self.anchor = anchor;
+        self
+    }
+
+    /// Hide or unhide the [`Element`](iced_native::Element) on the
+    /// [`FloatingElement`](FloatingElement).
+    #[must_use]
+    pub fn hide(mut self, hide: bool) -> Self {
+        self.hidden = hide;
+        self
+    }
+}
+
+impl<'a, B, Message, Renderer> Widget<Message, Renderer>
+    for FloatingElement<'a, B, Message, Renderer>
+where
+    B: Fn(usize) -> Element<'a, Message, Renderer>,
+    Message: 'a + Clone,
+    Renderer: 'a + iced_native::Renderer,
+{
+    fn children(&self) -> Vec<iced_native::widget::Tree> {
+        let mut elements = vec![Tree::new(&self.underlay)];
+        for (index, value) in self.element.iter().enumerate() {
+            elements.push(Tree::new(&(value)(index)));
+        }
+        elements
+    }
+
+    fn diff(&self, tree: &mut Tree) {
+        let mut elements = vec![&self.underlay];
+        let mut store = vec![];
+        for (index, value) in self.element.iter().enumerate() {
+            store.push((value)(index));
+        }
+        for i in store.iter() {
+            elements.push(&i);
+        }
+        tree.diff_children(&elements.as_slice());
+    }
+
+    fn width(&self) -> Length {
+        self.underlay.as_widget().width()
+    }
+
+    fn height(&self) -> Length {
+        self.underlay.as_widget().height()
+    }
+
+    fn layout(
+        &self,
+        renderer: &Renderer,
+        limits: &iced_native::layout::Limits,
+    ) -> iced_native::layout::Node {
+        self.underlay.as_widget().layout(renderer, limits)
+    }
+
+    fn on_event(
+        &mut self,
+        state: &mut Tree,
+        event: Event,
+        layout: Layout<'_>,
+        cursor_position: Point,
+        renderer: &Renderer,
+        clipboard: &mut dyn Clipboard,
+        shell: &mut Shell<'_, Message>,
+    ) -> event::Status {
+        self.underlay.as_widget_mut().on_event(
+            &mut state.children[0],
+            event,
+            layout,
+            cursor_position,
+            renderer,
+            clipboard,
+            shell,
+        )
+    }
+
+    fn mouse_interaction(
+        &self,
+        state: &Tree,
+        layout: Layout<'_>,
+        cursor_position: Point,
+        viewport: &Rectangle,
+        renderer: &Renderer,
+    ) -> mouse::Interaction {
+        self.underlay.as_widget().mouse_interaction(
+            &state.children[0],
+            layout,
+            cursor_position,
+            viewport,
+            renderer,
+        )
+    }
+
+    fn draw(
+        &self,
+        state: &iced_native::widget::Tree,
+        renderer: &mut Renderer,
+        theme: &Renderer::Theme,
+        style: &iced_native::renderer::Style,
+        layout: Layout<'_>,
+        cursor_position: Point,
+        viewport: &Rectangle,
+    ) {
+        self.underlay.as_widget().draw(
+            &state.children[0],
+            renderer,
+            theme,
+            style,
+            layout,
+            cursor_position,
+            viewport,
+        );
+    }
+
+    fn overlay<'b>(
+        &'b mut self,
+        state: &'b mut Tree,
+        layout: Layout<'_>,
+        renderer: &Renderer,
+    ) -> Option<overlay::Element<'b, Message, Renderer>> {
+        if self.hidden {
+            return self
+                .underlay
+                .as_widget_mut()
+                .overlay(&mut state.children[0], layout, renderer);
+        }
+
+        let bounds = layout.bounds();
+
+        let position = match self.anchor {
+            Anchor::NorthWest => Point::new(0.0, 0.0),
+            Anchor::NorthEast => Point::new(bounds.width, 0.0),
+            Anchor::SouthWest => Point::new(0.0, bounds.height),
+            Anchor::SouthEast => Point::new(bounds.width, bounds.height),
+            Anchor::North => Point::new(bounds.center_x(), 0.0),
+            Anchor::East => Point::new(bounds.width, bounds.center_y()),
+            Anchor::South => Point::new(bounds.center_x(), bounds.height),
+            Anchor::West => Point::new(0.0, bounds.center_y()),
+        };
+
+        let position = Point::new(bounds.x + position.x, bounds.y + position.y);
+
+        let mut group = iced_native::overlay::Group::new();
+
+        for (index, value) in state.children.iter_mut().enumerate() {
+            if index != 0 {
+                group = group.push(
+                    FloatingElementOverlay::new(
+                        value,
+                        (self.element[index - 1])(index - 1),
+                        &self.anchor,
+                        &self.offset[index - 1],
+                    )
+                    .overlay(position),
+                );
+            }
+        }
+        Some(group.into())
+    }
+}
+
+impl<'a, B, Message, Renderer> From<FloatingElement<'a, B, Message, Renderer>>
+    for Element<'a, Message, Renderer>
+where
+    B: 'a + Fn(usize) -> Element<'a, Message, Renderer>,
+    Message: 'a + Clone,
+    Renderer: 'a + iced_native::Renderer,
+{
+    fn from(floating_element: FloatingElement<'a, B, Message, Renderer>) -> Self {
+        Element::new(floating_element)
+    }
+}
+
+// pub fn pack_closure<'a>(
+//     ret: Element<'a, crate::Message, iced::Renderer>,
+// ) -> Element<'a, crate::Message, iced::Renderer> {
+//     return ret;
+// }

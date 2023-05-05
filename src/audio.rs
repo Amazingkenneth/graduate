@@ -26,7 +26,6 @@ pub async fn play_music(
     running_status: Arc<AtomicBool>,
     initial_volume: f32,
 ) {
-    println!("initial_volume: {initial_volume}");
     stream
         .lock()
         .unwrap()
@@ -38,7 +37,6 @@ pub async fn play_music(
             let audio_buf = std::fs::File::open(&audio_dir).unwrap();
             let cur_duration = {
                 let mut another_buf = std::fs::File::open(&audio_dir).unwrap();
-                println!("audio_dir: {}", audio_dir);
                 let tagged_file =
                     lofty::TaggedFile::read_from(&mut another_buf, lofty::ParseOptions::new())
                         .unwrap();

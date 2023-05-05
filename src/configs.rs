@@ -56,7 +56,7 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                     .align_items(Alignment::Center),
                     row![
                         widget::tooltip(
-                            crate::button_from_svg(include_bytes!("./runtime/plus.svg").to_vec(),)
+                            crate::button_from_svg(include_bytes!("./runtime/plus.svg"),)
                                 .width(Length::Fixed(40.0))
                                 .on_press(Message::ScaleEnlarge),
                             "放大「按 +」",
@@ -64,7 +64,7 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                         )
                         .style(iced::theme::Container::Box),
                         widget::tooltip(
-                            crate::button_from_svg(include_bytes!("./runtime/minus.svg").to_vec(),)
+                            crate::button_from_svg(include_bytes!("./runtime/minus.svg"),)
                                 .width(Length::Fixed(40.0))
                                 .on_press(Message::ScaleDown),
                             "缩小「按 -」",
@@ -73,22 +73,18 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                         .style(iced::theme::Container::Box),
                         if config.full_screened {
                             widget::tooltip(
-                                crate::button_from_svg(
-                                    include_bytes!("./runtime/compress.svg").to_vec(),
-                                )
-                                .width(Length::Fixed(40.0))
-                                .on_press(Message::ToggleMode),
+                                crate::button_from_svg(include_bytes!("./runtime/compress.svg"))
+                                    .width(Length::Fixed(40.0))
+                                    .on_press(Message::ToggleMode),
                                 "窗口显示「Esc」",
                                 widget::tooltip::Position::Bottom,
                             )
                             .style(iced::theme::Container::Box)
                         } else {
                             widget::tooltip(
-                                crate::button_from_svg(
-                                    include_bytes!("./runtime/expand.svg").to_vec(),
-                                )
-                                .width(Length::Fixed(40.0))
-                                .on_press(Message::ToggleMode),
+                                crate::button_from_svg(include_bytes!("./runtime/expand.svg"))
+                                    .width(Length::Fixed(40.0))
+                                    .on_press(Message::ToggleMode),
                                 "全屏显示「Alt + Enter」",
                                 widget::tooltip::Position::Bottom,
                             )
@@ -101,20 +97,18 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                         {
                             row![
                                 widget::tooltip(
-                                    crate::button_from_svg(
-                                        include_bytes!("./runtime/pause.svg").to_vec(),
-                                    )
-                                    .width(Length::Fixed(40.0))
-                                    .on_press(Message::SwitchMusicStatus),
+                                    crate::button_from_svg(include_bytes!("./runtime/pause.svg"),)
+                                        .width(Length::Fixed(40.0))
+                                        .on_press(Message::SwitchMusicStatus),
                                     "播放 / 暂停「按 M」",
                                     widget::tooltip::Position::Bottom
                                 )
                                 .style(iced::theme::Container::Box)
                                 .gap(5),
                                 widget::tooltip(
-                                    crate::button_from_svg(
-                                        include_bytes!("./runtime/square-right.svg").to_vec()
-                                    )
+                                    crate::button_from_svg(include_bytes!(
+                                        "./runtime/square-right.svg"
+                                    ))
                                     .width(Length::Fixed(40.0))
                                     .on_press(Message::NextSong),
                                     "跳到下一首「按 N」",
@@ -124,11 +118,9 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                             ]
                         } else {
                             row![widget::tooltip(
-                                crate::button_from_svg(
-                                    include_bytes!("./runtime/play.svg").to_vec(),
-                                )
-                                .width(Length::Fixed(40.0))
-                                .on_press(Message::SwitchMusicStatus),
+                                crate::button_from_svg(include_bytes!("./runtime/play.svg"),)
+                                    .width(Length::Fixed(40.0))
+                                    .on_press(Message::SwitchMusicStatus),
                                 "播放 / 暂停",
                                 widget::tooltip::Position::Bottom
                             )

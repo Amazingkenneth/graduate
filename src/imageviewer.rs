@@ -471,3 +471,6 @@ pub fn entryevents_viewer_id(i: usize, j: usize) -> Id {
 pub fn showingplots_viewer_id(i: usize, j: usize) -> Id {
     Id::new(format!("ShowingPlots: {}-{}", i, j))
 }
+pub fn graduation_viewer_id(i: usize, j: usize) -> Id {
+    Id::new(format!("Graduation: {}-{}", i, j))
+}

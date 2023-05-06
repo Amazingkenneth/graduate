@@ -6,6 +6,7 @@ mod entries;
 mod floatingelement;
 mod graduation;
 mod imageviewer;
+mod quadbutton;
 mod subscriptions;
 mod visiting;
 
@@ -146,6 +147,7 @@ pub enum Message {
     ScaleDown,
     ScaleEnlarge,
     ScaleRestore,
+    SelectedImage(String),
     SwitchDeleteFilesStatus,
     SwitchMusicStatus,
     ToggleMode,
@@ -208,7 +210,6 @@ impl Application for Memories {
         format!("{} - 有你，才是一班。", subtitle)
     }
     fn update(&mut self, message: Message) -> Command<Message> {
-        eprintln!("On update()");
         match self {
             Memories::Initialization => {
                 match message {
@@ -494,7 +495,7 @@ impl Application for Memories {
                                     .as_datetime()
                                     .unwrap()
                                     .into();
-                                let state = state.clone();
+                                let state = state.to_owned();
                                 *self = Memories::Loading(state.configs.clone());
                                 return Command::perform(
                                     choosing::get_configs(None, state),
@@ -552,7 +553,7 @@ impl Application for Memories {
                                     choosing.on_character = None;
                                 }
                                 Message::NextStage => {
-                                    let state = state.clone();
+                                    let state = state.to_owned();
                                     *self = Memories::Loading(state.configs.clone());
                                     return Command::perform(
                                         visiting::get_queue(state),
@@ -602,9 +603,6 @@ impl Application for Memories {
                                 Message::NextStage => {
                                     next_stage = true;
                                 }
-                                Message::BackStage => {
-                                    return Command::perform(State::get_idx(), Message::Loaded);
-                                }
                                 Message::PreviousPhoto => {
                                     *on_image = (*on_image + len - 1) % len;
                                 }
@@ -621,6 +619,10 @@ impl Application for Memories {
                             return Command::perform(graduation::load_map(state), Message::Loaded);
                         }
                         match message {
+                            Message::BackStage => {
+                                *self = Memories::Loading(state.configs.clone());
+                                return Command::perform(State::get_idx(), Message::Loaded);
+                            }
                             Message::PreviousEvent | Message::NextEvent => {
                                 let need_force_run = {
                                     displayer.events.lock().unwrap()[displayer.on_event]
@@ -653,8 +655,20 @@ impl Application for Memories {
                                 vision.show_panel ^= true;
                             }
                             Message::ClickedPin(new_on) => {
-                                dbg!(new_on);
-                                vision.on_image = new_on;
+                                graduation::ON_LOCATION.store(new_on, Ordering::Relaxed);
+                            }
+                            Message::SelectedImage(s) => {
+                                for (index, value) in vision.images
+                                    [graduation::ON_LOCATION.load(Ordering::Relaxed)]
+                                .image_names
+                                .iter()
+                                .enumerate()
+                                {
+                                    if value == &s {
+                                        vision.on_image = index;
+                                        break;
+                                    }
+                                }
                             }
                             _ => {}
                         }
@@ -681,7 +695,7 @@ impl Application for Memories {
             .center_y()
             .into(),
             Memories::Loaded(state) => {
-                let content = match &state.stage {
+                let content: Element<Message, iced::Renderer> = match &state.stage {
                     Stage::EntryEvents(chosen) => row![
                         imageviewer::Viewer::new(
                             chosen.preload.lock().unwrap()[chosen.on_event][chosen.on_image]
@@ -726,7 +740,10 @@ impl Application for Memories {
                             .size(30),
                             widget::Button::new(text("从这里开始！").size(35))
                                 .padding(15)
-                                .style(iced::theme::Button::Positive)
+                                // .style(iced::theme::Button::Positive)
+                                .style(iced::theme::Button::Custom(Box::new(
+                                    quadbutton::QuadButton::Positive
+                                )))
                                 .on_press(Message::NextStage),
                             row![
                                 button_from_svg(include_bytes!("./runtime/arrow-left.svg"))
@@ -1158,50 +1175,32 @@ impl Application for Memories {
                         .into()
                     }
                     Stage::Graduated(vision) => {
-                        let displayer = imageviewer::Viewer::new(
-                            vision.images[graduation::ON_LOCATION.load(Ordering::Relaxed)].image
-                                [vision.on_image]
-                                .clone(),
-                        )
-                        .id(imageviewer::entryevents_viewer_id(
-                            graduation::ON_LOCATION.load(Ordering::Relaxed),
-                            vision.on_image,
-                        ))
-                        .width(Length::FillPortion(4))
-                        .height(Length::Fill);
-                        let grab_button = iced_aw::FloatingElement::new(displayer, || {
-                            column![
-                                widget::tooltip(
-                                    crate::button_from_svg(if vision.show_panel {
-                                        include_bytes!("./runtime/chevron-up.svg")
-                                    } else {
-                                        include_bytes!("./runtime/chevron-down.svg")
-                                    })
-                                    .width(Length::Fixed(60.0))
-                                    .on_press(Message::TogglePanelShown),
-                                    if vision.show_panel {
-                                        "收起"
-                                    } else {
-                                        "展开"
-                                    },
-                                    widget::tooltip::Position::Bottom,
-                                )
-                                .style(iced::theme::Container::Box),
-                                widget::vertical_space(Length::Fixed(20.0))
-                            ]
-                            .into()
-                        })
-                        .anchor(iced_aw::floating_element::Anchor::NorthEast)
-                        .offset(Offset { x: 30.0, y: -10.0 });
+                        let images =
+                            &vision.images[graduation::ON_LOCATION.load(Ordering::Relaxed)];
+                        let displayer =
+                            imageviewer::Viewer::new(images.image[vision.on_image].clone())
+                                .id(imageviewer::entryevents_viewer_id(
+                                    graduation::ON_LOCATION.load(Ordering::Relaxed),
+                                    vision.on_image,
+                                ))
+                                .width(Length::FillPortion(4))
+                                .height(Length::Fill);
+
                         if vision.show_panel {
                             let mut current = vec![];
                             let mut offsets = vec![];
                             for pan in &vision.images {
                                 let pinpoint = |index| {
                                     Element::from(
-                                        crate::button_from_svg(include_bytes!(
-                                            "./runtime/location-pin.svg"
-                                        ))
+                                        crate::button_from_svg(
+                                            if index
+                                                == graduation::ON_LOCATION.load(Ordering::Relaxed)
+                                            {
+                                                include_bytes!("./runtime/location-check.svg")
+                                            } else {
+                                                include_bytes!("./runtime/location-pin.svg")
+                                            },
+                                        )
                                         .width(Length::Fixed(30.0))
                                         .on_press(Message::ClickedPin(index)),
                                     )
@@ -1217,9 +1216,115 @@ impl Application for Memories {
                             )));
                             let floating_element =
                                 crate::floatingelement::FloatingElement::new(map, current, offsets);
-                            column![floating_element, grab_button].into()
+                            if images.image.len() > 1 {
+                                column![
+                                    floating_element,
+                                    iced_aw::FloatingElement::new(displayer, move || {
+                                        Element::from(column![
+                                            row![
+                                                widget::pick_list(
+                                                    images.image_names.clone(),
+                                                    Some(
+                                                        images.image_names[vision.on_image].clone()
+                                                    ),
+                                                    Message::SelectedImage,
+                                                ),
+                                                horizontal_space(10.0),
+                                                widget::tooltip(
+                                                    crate::button_from_svg(include_bytes!(
+                                                        "./runtime/chevron-up.svg"
+                                                    ))
+                                                    .width(Length::Fixed(60.0))
+                                                    .on_press(Message::TogglePanelShown),
+                                                    "收起",
+                                                    widget::tooltip::Position::Bottom,
+                                                )
+                                                .style(iced::theme::Container::Box)
+                                            ]
+                                            .align_items(Alignment::Center),
+                                            widget::vertical_space(Length::Fixed(20.0))
+                                        ])
+                                    })
+                                    .anchor(iced_aw::floating_element::Anchor::NorthEast)
+                                    .offset(Offset { x: 30.0, y: -10.0 })
+                                ]
+                                .into()
+                            } else {
+                                column![
+                                    floating_element,
+                                    iced_aw::FloatingElement::new(displayer, || {
+                                        Element::from(column![
+                                            widget::tooltip(
+                                                crate::button_from_svg(include_bytes!(
+                                                    "./runtime/chevron-up.svg"
+                                                ))
+                                                .width(Length::Fixed(60.0))
+                                                .on_press(Message::TogglePanelShown),
+                                                "收起",
+                                                widget::tooltip::Position::Bottom,
+                                            )
+                                            .style(iced::theme::Container::Box),
+                                            widget::vertical_space(Length::Fixed(20.0))
+                                        ])
+                                    })
+                                    .anchor(iced_aw::floating_element::Anchor::NorthEast)
+                                    .offset(Offset { x: 30.0, y: -10.0 }),
+                                ]
+                                .into()
+                            }
                         } else {
-                            column![grab_button].into()
+                            if images.image.len() > 1 {
+                                Element::from(
+                                    iced_aw::FloatingElement::new(displayer, move || {
+                                        Element::from(column![
+                                            row![
+                                                widget::pick_list(
+                                                    images.image_names.clone(),
+                                                    Some(
+                                                        images.image_names[vision.on_image].clone()
+                                                    ),
+                                                    Message::SelectedImage,
+                                                ),
+                                                horizontal_space(10.0),
+                                                widget::tooltip(
+                                                    crate::button_from_svg(include_bytes!(
+                                                        "./runtime/chevron-down.svg"
+                                                    ))
+                                                    .width(Length::Fixed(60.0))
+                                                    .on_press(Message::TogglePanelShown),
+                                                    "展开",
+                                                    widget::tooltip::Position::Bottom,
+                                                )
+                                                .style(iced::theme::Container::Box)
+                                            ]
+                                            .align_items(Alignment::Center),
+                                            widget::vertical_space(Length::Fixed(20.0))
+                                        ])
+                                    })
+                                    .anchor(iced_aw::floating_element::Anchor::NorthEast)
+                                    .offset(Offset { x: 30.0, y: -10.0 }),
+                                )
+                            } else {
+                                Element::from(
+                                    iced_aw::FloatingElement::new(displayer, || {
+                                        Element::from(column![
+                                            widget::tooltip(
+                                                crate::button_from_svg(include_bytes!(
+                                                    "./runtime/chevron-down.svg"
+                                                ))
+                                                .width(Length::Fixed(60.0))
+                                                .on_press(Message::TogglePanelShown),
+                                                "展开",
+                                                widget::tooltip::Position::Bottom,
+                                            )
+                                            .style(iced::theme::Container::Box),
+                                            widget::vertical_space(Length::Fixed(20.0))
+                                        ])
+                                    })
+                                    .anchor(iced_aw::floating_element::Anchor::NorthEast)
+                                    .offset(Offset { x: 30.0, y: -10.0 }),
+                                )
+                            }
                         }
                     }
                 };
@@ -1232,7 +1337,6 @@ impl Application for Memories {
         }
     }
     fn subscription(&self) -> iced::Subscription<Message> {
-        // from iced_native::events_with
         match self {
             Memories::Initialization => iced::Subscription::none(),
             Memories::Loading(_) => iced::subscription::events_with(subscriptions::on_loading),
@@ -1244,9 +1348,11 @@ impl Application for Memories {
                     iced::subscription::events_with(subscriptions::on_choosing_character)
                 }
                 Stage::ShowingPlots(_) => {
+                    iced::subscription::events_with(subscriptions::on_showing_plots)
+                }
+                Stage::Graduated(_) => {
                     iced::subscription::events_with(subscriptions::on_graduation)
                 }
-                _ => iced::Subscription::none(),
             },
         }
     }

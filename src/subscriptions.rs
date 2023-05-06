@@ -112,6 +112,21 @@ pub fn on_graduation(event: Event, _: iced::event::Status) -> Option<Message> {
                 return Some(ret);
             }
             match keyboard_event {
+                with_key!(KeyCode::Space) => Some(Message::TogglePanelShown),
+                _ => None,
+            }
+        }
+        _ => None,
+    }
+}
+
+pub fn on_showing_plots(event: Event, _: iced::event::Status) -> Option<Message> {
+    match event {
+        Event::Keyboard(keyboard_event) => {
+            if let Some(ret) = global_response(keyboard_event) {
+                return Some(ret);
+            }
+            match keyboard_event {
                 with_key!(KeyCode::Enter) => Some(Message::NextStage),
                 with_key!(KeyCode::Left) | with_key!(KeyCode::A) => Some(Message::PreviousEvent),
                 with_key!(KeyCode::Right) | with_key!(KeyCode::D) => Some(Message::NextEvent),

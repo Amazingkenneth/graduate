@@ -91,7 +91,6 @@ pub async fn load_map(state: State) -> Result<State, crate::Error> {
         let point = pan.get("pinpoint").unwrap().as_array().unwrap();
         let x = point[0].as_integer().unwrap() as f32;
         let y = point[1].as_integer().unwrap() as f32;
-        dbg!(&names);
         pans.push(Panorama {
             image: img_fetched[i].clone(),
             image_names: names,

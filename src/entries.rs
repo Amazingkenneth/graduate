@@ -125,7 +125,6 @@ impl State {
         for t in threads {
             t.await?;
         }
-
         let audio_paths: Vec<String> = std::mem::take(&mut aud_mutex.lock().unwrap());
         let given_paths = audio_paths.clone();
         let sink = {
@@ -221,25 +220,24 @@ impl State {
                     .unwrap();
                     return Ok(res);
                 }
-                "Graduated" => {
-                    let res = crate::graduation::load_map(State {
-                        stage: Stage::Graduated(crate::GraduationState {
-                            ..Default::default()
-                        }),
-                        idxtable,
-                        storage,
-                        configs,
-                    })
-                    .await
-                    .unwrap();
-                    return Ok(res);
-                }
+                // "Graduated" => {
+                //     let res = crate::graduation::load_map(State {
+                //         stage: Stage::Graduated(crate::GraduationState {
+                //             ..Default::default()
+                //         }),
+                //         idxtable,
+                //         storage,
+                //         configs,
+                //     })
+                //     .await
+                //     .unwrap();
+                //     return Ok(res);
+                // }
                 _ => Stage::EntryEvents(EntryState {
                     preload: fetched,
                     ..Default::default()
                 }),
             };
-
             Ok(State {
                 stage,
                 idxtable,

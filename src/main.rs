@@ -180,7 +180,7 @@ impl Application for Memories {
     fn new(_flags: ()) -> (Memories, Command<Message>) {
         (
             Memories::Initialization,
-            Command::perform(State::get_idx(true), Message::Loaded),
+            Command::perform(State::get_idx(None), Message::Loaded),
         )
     }
 
@@ -550,7 +550,7 @@ impl Application for Memories {
                                         state.stage = Stage::EntryEvents(previous);
                                     } else {
                                         return Command::perform(
-                                            State::get_idx(false),
+                                            State::get_idx(Some(state.to_owned())),
                                             Message::Loaded,
                                         );
                                     }

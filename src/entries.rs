@@ -15,14 +15,14 @@ use std::sync::{Arc, Mutex};
 
 //type JoinHandle = std::thread::JoinHandle<_>;
 impl State {
-    pub async fn get_idx(need_load: bool) -> Result<State, crate::Error> {
+    pub async fn get_idx(reusable: Option<State>) -> Result<State, crate::Error> {
         let proj_dir = directories::ProjectDirs::from("", "Class1", "Graduate").unwrap();
         let idxdir: String = format!("{}{}", proj_dir.data_dir().display(), "/index.toml");
         let config_path = format!("{}{}", proj_dir.config_dir().display(), "/configs.toml");
         let storage: String = proj_dir.data_dir().display().to_string();
         dbg!(&storage);
         let idxurl: String = format!("https://graduate-cdn.netlify.com/index.toml");
-        let content = if need_load {
+        let content = if let None = reusable {
             fs::create_dir_all(&storage).unwrap();
             fs::create_dir_all(proj_dir.config_dir().display().to_string()).unwrap();
             let cli = Client::new().to_owned();
@@ -45,12 +45,6 @@ impl State {
             .as_array()
             .unwrap()
             .to_owned();
-        let fetch_audios = idxtable
-            .get("audio")
-            .unwrap()
-            .as_table()
-            .unwrap()
-            .to_owned();
         let location = idxtable
             .get("url_prefix")
             .unwrap()
@@ -62,29 +56,38 @@ impl State {
         let img_mutex: Arc<Mutex<Vec<_>>> = Arc::new(Mutex::new(images));
         let audios: Vec<String> = Vec::new();
         let aud_mutex: Arc<Mutex<Vec<_>>> = Arc::new(Mutex::new(audios));
-        // 循环中创建多个线程
+
         let mut threads = vec![];
-        for audio_type in fetch_audios.values() {
-            let cur_audios = audio_type.as_array().unwrap().to_owned();
-            for fetching in cur_audios {
-                let aud_mutex = aud_mutex.clone();
-                let location = location.clone();
-                let relative_path = fetching.as_str().unwrap().to_owned().to_string();
-                let audio_dir = format!("{}{}", &storage, relative_path);
-                let t = tokio::spawn(async move {
-                    let cli = Client::new();
-                    let audio_path = Path::new(&audio_dir);
-                    if !audio_path.is_file() {
-                        fs::create_dir_all(audio_path.parent().unwrap()).unwrap();
-                        let url = format!("{}{}", location, relative_path);
-                        let bytes = cli.get(&url).send().await.unwrap().bytes().await.unwrap();
-                        let mut file = std::fs::File::create(&audio_dir).unwrap();
-                        file.write_all(&bytes).unwrap();
-                    }
-                    let mut aud_paths = aud_mutex.lock().unwrap();
-                    aud_paths.push(audio_dir);
-                });
-                threads.push(t);
+        if let None = reusable {
+            let fetch_audios = idxtable
+                .get("audio")
+                .unwrap()
+                .as_table()
+                .unwrap()
+                .to_owned();
+            // 循环中创建多个线程
+            for audio_type in fetch_audios.values() {
+                let cur_audios = audio_type.as_array().unwrap().to_owned();
+                for fetching in cur_audios {
+                    let aud_mutex = aud_mutex.clone();
+                    let location = location.clone();
+                    let relative_path = fetching.as_str().unwrap().to_owned().to_string();
+                    let audio_dir = format!("{}{}", &storage, relative_path);
+                    let t = tokio::spawn(async move {
+                        let cli = Client::new();
+                        let audio_path = Path::new(&audio_dir);
+                        if !audio_path.is_file() {
+                            fs::create_dir_all(audio_path.parent().unwrap()).unwrap();
+                            let url = format!("{}{}", location, relative_path);
+                            let bytes = cli.get(&url).send().await.unwrap().bytes().await.unwrap();
+                            let mut file = std::fs::File::create(&audio_dir).unwrap();
+                            file.write_all(&bytes).unwrap();
+                        }
+                        let mut aud_paths = aud_mutex.lock().unwrap();
+                        aud_paths.push(audio_dir);
+                    });
+                    threads.push(t);
+                }
             }
         }
         for (i, cur_image) in together_events.iter().enumerate() {
@@ -130,6 +133,16 @@ impl State {
         for t in threads {
             t.await?;
         }
+        let fetched = Arc::new(Mutex::new(img_mutex.lock().unwrap().to_vec()));
+        if let Some(state) = reusable {
+            return Ok(State {
+                stage: Stage::EntryEvents(EntryState {
+                    preload: fetched,
+                    ..Default::default()
+                }),
+                ..state
+            });
+        }
         let audio_paths: Vec<String> = std::mem::take(&mut aud_mutex.lock().unwrap());
         let given_paths = audio_paths.clone();
         let sink = {
@@ -144,7 +157,6 @@ impl State {
         let daemon_status = Arc::new(AtomicBool::new(true));
         let given_status = daemon_status.clone();
 
-        let fetched = Arc::new(Mutex::new(img_mutex.lock().unwrap().to_vec()));
         if let Ok(init_configs) = std::fs::read_to_string(&config_path) {
             let config_table = init_configs
                 .parse::<toml::value::Value>()

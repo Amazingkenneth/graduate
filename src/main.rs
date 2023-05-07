@@ -549,8 +549,10 @@ impl Application for Memories {
                                     if let Some(previous) = choosing.previous_stage.to_owned() {
                                         state.stage = Stage::EntryEvents(previous);
                                     } else {
+                                        let state = state.to_owned();
+                                        *self = Memories::Loading(state.configs.clone());
                                         return Command::perform(
-                                            State::get_idx(Some(state.to_owned())),
+                                            State::get_idx(Some(state)),
                                             Message::Loaded,
                                         );
                                     }
@@ -1178,7 +1180,7 @@ impl Application for Memories {
                                     "按 O",
                                     widget::tooltip::Position::Bottom
                                 )
-                                .gap(10)
+                                .gap(8)
                                 .style(iced::theme::Container::Box),
                                 row![
                                     widget::tooltip(

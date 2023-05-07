@@ -98,8 +98,9 @@ pub struct ChoosingState {
     on_character: Option<usize>,
     profiles: Vec<choosing::Profile>,
     avatars: Vec<choosing::Avatar>,
+    homepage_offset: scrollable::RelativeOffset,
     description: String,
-    previous_stage: EntryState,
+    previous_stage: Option<EntryState>,
     element_count: usize,
 }
 
@@ -108,11 +109,12 @@ pub struct VisitingState {
     character_name: String,
     on_event: usize,
     events: Arc<Mutex<Vec<visiting::Event>>>,
-    // images: VecDeque<visiting::ImgLoader>,
+    homepage_offset: scrollable::RelativeOffset,
 }
 
 #[derive(Clone, Debug, Default)]
 pub struct GraduationState {
+    homepage_offset: scrollable::RelativeOffset,
     show_panel: bool,
     on_image: usize,
     images: Vec<graduation::Panorama>,
@@ -129,6 +131,7 @@ pub enum Message {
     FetchImage(Result<Memories, Error>),
     FinishedTyping,
     HideSettings,
+    HomepageScrolled(scrollable::RelativeOffset),
     IsDarkTheme(bool),
     Loaded(Result<State, Error>),
     LoadedImage(Result<EntryState, Error>),
@@ -177,7 +180,7 @@ impl Application for Memories {
     fn new(_flags: ()) -> (Memories, Command<Message>) {
         (
             Memories::Initialization,
-            Command::perform(State::get_idx(), Message::Loaded),
+            Command::perform(State::get_idx(true), Message::Loaded),
         )
     }
 
@@ -498,7 +501,11 @@ impl Application for Memories {
                                 let state = state.to_owned();
                                 *self = Memories::Loading(state.configs.clone());
                                 return Command::perform(
-                                    choosing::get_configs(None, state),
+                                    choosing::get_configs(
+                                        None,
+                                        scrollable::RelativeOffset::START,
+                                        state,
+                                    ),
                                     Message::Loaded,
                                 );
                             }
@@ -539,18 +546,31 @@ impl Application for Memories {
                                     );
                                 }
                                 Message::BackStage => {
-                                    state.stage =
-                                        Stage::EntryEvents(choosing.previous_stage.to_owned());
+                                    if let Some(previous) = choosing.previous_stage.to_owned() {
+                                        state.stage = Stage::EntryEvents(previous);
+                                    } else {
+                                        return Command::perform(
+                                            State::get_idx(false),
+                                            Message::Loaded,
+                                        );
+                                    }
                                 }
                                 Message::Refresh => {
                                     let mut rng = rand::thread_rng();
                                     choosing.element_count = rng.gen_range(6..=8);
+                                }
+                                Message::HomepageScrolled(new_offset) => {
+                                    choosing.homepage_offset = new_offset;
                                 }
                                 _ => {}
                             },
                             Some(chosen) => match message {
                                 Message::UnChoose => {
                                     choosing.on_character = None;
+                                    return scrollable::snap_to(
+                                        scrollable::Id::new("HomepageScrollable"),
+                                        choosing.homepage_offset,
+                                    );
                                 }
                                 Message::NextStage => {
                                     let state = state.to_owned();
@@ -620,8 +640,13 @@ impl Application for Memories {
                         }
                         match message {
                             Message::BackStage => {
+                                let homepage_offset = displayer.homepage_offset;
+                                let state = state.to_owned();
                                 *self = Memories::Loading(state.configs.clone());
-                                return Command::perform(State::get_idx(), Message::Loaded);
+                                return Command::perform(
+                                    choosing::get_configs(None, homepage_offset, state),
+                                    Message::Loaded,
+                                );
                             }
                             Message::PreviousEvent | Message::NextEvent => {
                                 let need_force_run = {
@@ -669,6 +694,15 @@ impl Application for Memories {
                                         break;
                                     }
                                 }
+                            }
+                            Message::BackStage => {
+                                let homepage_offset = vision.homepage_offset;
+                                let state = state.to_owned();
+                                *self = Memories::Loading(state.configs.clone());
+                                return Command::perform(
+                                    choosing::get_configs(None, homepage_offset, state),
+                                    Message::Loaded,
+                                );
                             }
                             _ => {}
                         }
@@ -844,7 +878,9 @@ impl Application for Memories {
                                 }
                                 scroll_head = scroll_head.push(cur_row);
                             }
-                            let content = scrollable(column![searchbox, scroll_head,].spacing(10));
+                            let content = scrollable(column![searchbox, scroll_head,].spacing(10))
+                                .id(scrollable::Id::new("HomepageScrollable"))
+                                .on_scroll(Message::HomepageScrolled);
                             container(content).width(Length::Fill).into()
                         }
                         Some(chosen) => {
@@ -1142,6 +1178,7 @@ impl Application for Memories {
                                     "按 O",
                                     widget::tooltip::Position::Bottom
                                 )
+                                .gap(10)
                                 .style(iced::theme::Container::Box),
                                 row![
                                     widget::tooltip(
@@ -1150,7 +1187,7 @@ impl Application for Memories {
                                         ),)
                                         .width(Length::Fixed(80.0))
                                         .on_press(Message::BackStage),
-                                        "回到最初那样……",
+                                        "重新选取角色",
                                         widget::tooltip::Position::Bottom
                                     )
                                     .style(iced::theme::Container::Box),
@@ -1201,7 +1238,7 @@ impl Application for Memories {
                                                 include_bytes!("./runtime/location-pin.svg")
                                             },
                                         )
-                                        .width(Length::Fixed(30.0))
+                                        .width(Length::Fixed(36.0))
                                         .on_press(Message::ClickedPin(index)),
                                     )
                                 };
@@ -1221,7 +1258,20 @@ impl Application for Memories {
                                     floating_element,
                                     iced_aw::FloatingElement::new(displayer, move || {
                                         Element::from(column![
+                                            widget::vertical_space(Length::Fixed(20.0)),
                                             row![
+                                                horizontal_space(Length::Fixed(20.0)),
+                                                widget::tooltip(
+                                                    crate::button_from_svg(include_bytes!(
+                                                        "./runtime/backward-step.svg"
+                                                    ))
+                                                    .width(Length::Fixed(40.0))
+                                                    .on_press(Message::BackStage),
+                                                    "返回",
+                                                    widget::tooltip::Position::Top,
+                                                )
+                                                .style(iced::theme::Container::Box),
+                                                horizontal_space(Length::Fill),
                                                 widget::pick_list(
                                                     images.image_names.clone(),
                                                     Some(
@@ -1229,63 +1279,98 @@ impl Application for Memories {
                                                     ),
                                                     Message::SelectedImage,
                                                 ),
-                                                horizontal_space(10.0),
-                                                widget::tooltip(
-                                                    crate::button_from_svg(include_bytes!(
-                                                        "./runtime/chevron-up.svg"
-                                                    ))
-                                                    .width(Length::Fixed(60.0))
-                                                    .on_press(Message::TogglePanelShown),
-                                                    "收起",
-                                                    widget::tooltip::Position::Bottom,
-                                                )
-                                                .style(iced::theme::Container::Box)
+                                                horizontal_space(Length::Fixed(10.0)),
+                                                column![
+                                                    widget::vertical_space(Length::Fixed(10.0)),
+                                                    widget::tooltip(
+                                                        crate::button_from_svg(include_bytes!(
+                                                            "./runtime/chevron-up.svg"
+                                                        ))
+                                                        .width(Length::Fixed(60.0))
+                                                        .on_press(Message::TogglePanelShown),
+                                                        "收起",
+                                                        widget::tooltip::Position::Top,
+                                                    )
+                                                    .style(iced::theme::Container::Box)
+                                                ],
+                                                horizontal_space(Length::Fixed(20.0)),
                                             ]
-                                            .align_items(Alignment::Center),
-                                            widget::vertical_space(Length::Fixed(20.0))
+                                            .width(Length::Fill)
+                                            .align_items(Alignment::Center)
                                         ])
                                     })
-                                    .anchor(iced_aw::floating_element::Anchor::NorthEast)
-                                    .offset(Offset { x: 30.0, y: -10.0 })
+                                    .anchor(iced_aw::floating_element::Anchor::South)
+                                    .offset(Offset { x: 0.0, y: 6.0 })
                                 ]
                                 .into()
                             } else {
                                 column![
                                     floating_element,
-                                    iced_aw::FloatingElement::new(displayer, || {
+                                    iced_aw::FloatingElement::new(displayer, move || {
                                         Element::from(column![
-                                            widget::tooltip(
-                                                crate::button_from_svg(include_bytes!(
-                                                    "./runtime/chevron-up.svg"
-                                                ))
-                                                .width(Length::Fixed(60.0))
-                                                .on_press(Message::TogglePanelShown),
-                                                "收起",
-                                                widget::tooltip::Position::Bottom,
-                                            )
-                                            .style(iced::theme::Container::Box),
-                                            widget::vertical_space(Length::Fixed(20.0))
+                                            widget::vertical_space(Length::Fixed(20.0)),
+                                            row![
+                                                horizontal_space(Length::Fixed(20.0)),
+                                                widget::tooltip(
+                                                    crate::button_from_svg(include_bytes!(
+                                                        "./runtime/backward-step.svg"
+                                                    ))
+                                                    .width(Length::Fixed(40.0))
+                                                    .on_press(Message::BackStage),
+                                                    "返回",
+                                                    widget::tooltip::Position::Top,
+                                                )
+                                                .style(iced::theme::Container::Box),
+                                                horizontal_space(Length::Fill),
+                                                column![
+                                                    widget::vertical_space(Length::Fixed(10.0)),
+                                                    widget::tooltip(
+                                                        crate::button_from_svg(include_bytes!(
+                                                            "./runtime/chevron-up.svg"
+                                                        ))
+                                                        .width(Length::Fixed(60.0))
+                                                        .on_press(Message::TogglePanelShown),
+                                                        "收起",
+                                                        widget::tooltip::Position::Top,
+                                                    )
+                                                    .style(iced::theme::Container::Box)
+                                                ],
+                                                horizontal_space(Length::Fixed(20.0)),
+                                            ]
+                                            .width(Length::Fill)
+                                            .align_items(Alignment::Center)
                                         ])
                                     })
-                                    .anchor(iced_aw::floating_element::Anchor::NorthEast)
-                                    .offset(Offset { x: 30.0, y: -10.0 }),
+                                    .anchor(iced_aw::floating_element::Anchor::South)
+                                    .offset(Offset { x: 0.0, y: 6.0 })
                                 ]
                                 .into()
                             }
                         } else {
                             if images.image.len() > 1 {
-                                Element::from(
-                                    iced_aw::FloatingElement::new(displayer, move || {
-                                        Element::from(column![
-                                            row![
-                                                widget::pick_list(
-                                                    images.image_names.clone(),
-                                                    Some(
-                                                        images.image_names[vision.on_image].clone()
-                                                    ),
-                                                    Message::SelectedImage,
-                                                ),
-                                                horizontal_space(10.0),
+                                iced_aw::FloatingElement::new(displayer, move || {
+                                    Element::from(column![
+                                        widget::vertical_space(Length::Fixed(20.0)),
+                                        row![
+                                            horizontal_space(Length::Fixed(20.0)),
+                                            widget::tooltip(
+                                                crate::button_from_svg(include_bytes!(
+                                                    "./runtime/backward-step.svg"
+                                                ))
+                                                .width(Length::Fixed(40.0))
+                                                .on_press(Message::BackStage),
+                                                "返回",
+                                                widget::tooltip::Position::Top,
+                                            )
+                                            .style(iced::theme::Container::Box),
+                                            horizontal_space(Length::Fill),
+                                            widget::pick_list(
+                                                images.image_names.clone(),
+                                                Some(images.image_names[vision.on_image].clone()),
+                                                Message::SelectedImage,
+                                            ),
+                                            horizontal_space(Length::Fixed(10.0)),
+                                            column![
                                                 widget::tooltip(
                                                     crate::button_from_svg(include_bytes!(
                                                         "./runtime/chevron-down.svg"
@@ -1293,37 +1378,59 @@ impl Application for Memories {
                                                     .width(Length::Fixed(60.0))
                                                     .on_press(Message::TogglePanelShown),
                                                     "展开",
-                                                    widget::tooltip::Position::Bottom,
+                                                    widget::tooltip::Position::Top,
                                                 )
-                                                .style(iced::theme::Container::Box)
-                                            ]
-                                            .align_items(Alignment::Center),
-                                            widget::vertical_space(Length::Fixed(20.0))
-                                        ])
-                                    })
-                                    .anchor(iced_aw::floating_element::Anchor::NorthEast)
-                                    .offset(Offset { x: 30.0, y: -10.0 }),
-                                )
+                                                .style(iced::theme::Container::Box),
+                                                widget::vertical_space(Length::Fixed(10.0)),
+                                            ],
+                                            horizontal_space(Length::Fixed(20.0)),
+                                        ]
+                                        .width(Length::Fill)
+                                        .align_items(Alignment::Center)
+                                    ])
+                                })
+                                .anchor(iced_aw::floating_element::Anchor::South)
+                                .offset(Offset { x: 0.0, y: 6.0 })
+                                .into()
                             } else {
-                                Element::from(
-                                    iced_aw::FloatingElement::new(displayer, || {
-                                        Element::from(column![
+                                iced_aw::FloatingElement::new(displayer, move || {
+                                    Element::from(column![
+                                        widget::vertical_space(Length::Fixed(20.0)),
+                                        row![
+                                            horizontal_space(Length::Fixed(20.0)),
                                             widget::tooltip(
                                                 crate::button_from_svg(include_bytes!(
-                                                    "./runtime/chevron-down.svg"
+                                                    "./runtime/backward-step.svg"
                                                 ))
-                                                .width(Length::Fixed(60.0))
-                                                .on_press(Message::TogglePanelShown),
-                                                "展开",
-                                                widget::tooltip::Position::Bottom,
+                                                .width(Length::Fixed(40.0))
+                                                .on_press(Message::BackStage),
+                                                "返回",
+                                                widget::tooltip::Position::Top,
                                             )
                                             .style(iced::theme::Container::Box),
-                                            widget::vertical_space(Length::Fixed(20.0))
-                                        ])
-                                    })
-                                    .anchor(iced_aw::floating_element::Anchor::NorthEast)
-                                    .offset(Offset { x: 30.0, y: -10.0 }),
-                                )
+                                            horizontal_space(Length::Fill),
+                                            column![
+                                                widget::tooltip(
+                                                    crate::button_from_svg(include_bytes!(
+                                                        "./runtime/chevron-down.svg"
+                                                    ))
+                                                    .width(Length::Fixed(60.0))
+                                                    .on_press(Message::TogglePanelShown),
+                                                    "展开",
+                                                    widget::tooltip::Position::Top,
+                                                )
+                                                .style(iced::theme::Container::Box),
+                                                widget::vertical_space(Length::Fixed(10.0)),
+                                            ],
+                                            horizontal_space(Length::Fixed(20.0)),
+                                        ]
+                                        .width(Length::Fill)
+                                        .align_items(Alignment::Center)
+                                    ])
+                                })
+                                .anchor(iced_aw::floating_element::Anchor::South)
+                                .offset(Offset { x: 0.0, y: 6.0 })
+                                .into()
                             }
                         }
                     }

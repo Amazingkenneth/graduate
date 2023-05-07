@@ -1,5 +1,6 @@
 use crate::{ChoosingState, State};
 use iced::widget::image;
+use iced_native::widget::scrollable::RelativeOffset;
 use rand::Rng;
 use reqwest::Client;
 use serde::Deserialize;
@@ -36,7 +37,11 @@ pub struct Emoji {
     pub emoji_name: String,
 }
 
-pub async fn get_configs(on_character: Option<usize>, state: State) -> Result<State, crate::Error> {
+pub async fn get_configs(
+    on_character: Option<usize>,
+    homepage_offset: iced::widget::scrollable::RelativeOffset,
+    state: State,
+) -> Result<State, crate::Error> {
     let has = state
         .idxtable
         .get("profile")
@@ -196,21 +201,23 @@ pub async fn get_configs(on_character: Option<usize>, state: State) -> Result<St
     }
     let mut rng = rand::thread_rng();
     let element_count: usize = rng.gen_range(6..=8);
-    if let crate::Stage::EntryEvents(previous) = state.stage {
-        Ok(State {
-            stage: crate::Stage::ChoosingCharacter(ChoosingState {
-                avatars,
-                element_count,
-                on_character,
-                profiles: profile_fetched.to_vec(),
-                description: String::from(""),
-                previous_stage: previous,
-            }),
-            ..state
-        })
+    let previous_stage = if let crate::Stage::EntryEvents(previous) = state.stage {
+        Some(previous)
     } else {
-        panic!("Not on EntryStage!")
-    }
+        None
+    };
+    Ok(State {
+        stage: crate::Stage::ChoosingCharacter(ChoosingState {
+            avatars,
+            element_count,
+            on_character,
+            profiles: profile_fetched.to_vec(),
+            description: String::from(""),
+            previous_stage,
+            homepage_offset,
+        }),
+        ..state
+    })
 }
 
 pub fn generate_scrollable_id(i: usize) -> iced::widget::scrollable::Id {

@@ -15,19 +15,24 @@ use std::sync::{Arc, Mutex};
 
 //type JoinHandle = std::thread::JoinHandle<_>;
 impl State {
-    pub async fn get_idx() -> Result<State, crate::Error> {
+    pub async fn get_idx(need_load: bool) -> Result<State, crate::Error> {
         let proj_dir = directories::ProjectDirs::from("", "Class1", "Graduate").unwrap();
         let idxdir: String = format!("{}{}", proj_dir.data_dir().display(), "/index.toml");
         let config_path = format!("{}{}", proj_dir.config_dir().display(), "/configs.toml");
         let storage: String = proj_dir.data_dir().display().to_string();
         dbg!(&storage);
-        fs::create_dir_all(&storage).unwrap();
-        fs::create_dir_all(proj_dir.config_dir().display().to_string()).unwrap();
         let idxurl: String = format!("https://graduate-cdn.netlify.com/index.toml");
-        let cli = Client::new().to_owned();
-        let content = cli.get(&idxurl).send().await.unwrap().text().await.unwrap();
-        let mut buffer = File::create(idxdir).unwrap();
-        buffer.write_all(content.as_bytes()).unwrap();
+        let content = if need_load {
+            fs::create_dir_all(&storage).unwrap();
+            fs::create_dir_all(proj_dir.config_dir().display().to_string()).unwrap();
+            let cli = Client::new().to_owned();
+            let content = cli.get(&idxurl).send().await.unwrap().text().await.unwrap();
+            let mut buffer = File::create(idxdir).unwrap();
+            buffer.write_all(content.as_bytes()).unwrap();
+            content
+        } else {
+            fs::read_to_string(idxdir).unwrap()
+        };
         let idxtable = content
             .parse::<toml::value::Value>()
             .unwrap()
@@ -206,6 +211,7 @@ impl State {
                     };
                     let res = choosing::get_configs(
                         on_character,
+                        iced::widget::scrollable::RelativeOffset::START,
                         State {
                             stage: Stage::EntryEvents(EntryState {
                                 preload: fetched,

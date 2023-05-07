@@ -97,8 +97,14 @@ pub async fn load_map(state: State) -> Result<State, crate::Error> {
             pinpoint: (x, y),
         });
     }
+    let homepage_offset = match state.stage {
+        Stage::ChoosingCharacter(chosen) => chosen.homepage_offset,
+        Stage::ShowingPlots(displayer) => displayer.homepage_offset,
+        _ => iced::widget::scrollable::RelativeOffset::START,
+    };
     Ok(State {
         stage: Stage::Graduated(crate::GraduationState {
+            homepage_offset,
             show_panel: true,
             on_image: 0,
             images: pans,

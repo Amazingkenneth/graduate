@@ -160,7 +160,7 @@ pub async fn get_queue(state: State) -> Result<State, crate::Error> {
         }
         _ => (0, String::from("")),
     };
-    match state.stage {
+    let homepage_offset = match state.stage {
         Stage::ChoosingCharacter(choosing) => {
             let profiles = choosing.profiles;
             for (num, profile) in profiles.iter().enumerate() {
@@ -222,9 +222,10 @@ pub async fn get_queue(state: State) -> Result<State, crate::Error> {
                     }
                 }
             }
+            choosing.homepage_offset
         }
         _ => return Err(crate::Error::APIError),
-    }
+    };
     let queue_array = queue_table.get("event").unwrap().as_array().unwrap();
     for event in queue_array {
         let cur_table = event.as_table().unwrap();
@@ -290,6 +291,7 @@ pub async fn get_queue(state: State) -> Result<State, crate::Error> {
     fs::create_dir_all(format!("{}/image/camera", state.storage)).unwrap();
     let mut state = State {
         stage: Stage::ShowingPlots(crate::VisitingState {
+            homepage_offset,
             character_name,
             events: Arc::new(Mutex::new(queue_event)),
             on_event,

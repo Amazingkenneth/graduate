@@ -117,7 +117,9 @@ impl State {
                     }
                     fs::create_dir_all(img_path.parent().unwrap()).unwrap();
                     let url = format!("{}{}", location, relative_path);
-                    let bytes = cli.get(&url).send().await.unwrap().bytes().await.unwrap();
+                    let bytes = cli.get(&url).send().await.unwrap().bytes().await.expect(
+                        format!("Panics when trying to fetch image of path: {img_dir}").as_str(),
+                    );
                     let mut file = std::fs::File::create(&img_dir).unwrap();
                     file.write_all(&bytes).unwrap();
                     fillin.push(image::Handle::from_memory(bytes));

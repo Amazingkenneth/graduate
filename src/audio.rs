@@ -8,6 +8,8 @@ use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
 use tokio::time::{sleep, Duration};
 
+static IS_FIRST_AUDIO: AtomicBool = AtomicBool::new(true);
+
 pub struct AudioStream {
     pub sink: rodio::Sink,
     pub stream: OutputStream,
@@ -31,7 +33,6 @@ pub async fn play_music(
         .unwrap()
         .sink
         .set_volume(initial_volume / 100.0);
-    let mut is_first_audio = true;
     loop {
         for audio_dir in &paths {
             let audio_buf = std::fs::File::open(&audio_dir).unwrap();
@@ -44,8 +45,8 @@ pub async fn play_music(
             };
             let file = std::io::BufReader::new(audio_buf);
             let source = rodio::Decoder::new(file).unwrap();
-            if is_first_audio {
-                is_first_audio = false;
+            if IS_FIRST_AUDIO.load(Ordering::Relaxed) {
+                IS_FIRST_AUDIO.store(false, Ordering::Relaxed);
                 let sink = &stream.lock().unwrap().sink;
                 sink.append(source.fade_in(Duration::from_secs(8)));
             } else {

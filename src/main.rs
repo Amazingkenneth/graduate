@@ -1108,10 +1108,13 @@ impl Application for Memories {
                             ]
                             .spacing(20);
                             container(
-                                scrollable(
+                                scrollable(row![
+                                    horizontal_space(Length::FillPortion(1)),
                                     column![content.spacing(5), apply_button]
-                                        .align_items(Alignment::Center),
-                                )
+                                        .align_items(Alignment::Center)
+                                        .width(Length::FillPortion(18)),
+                                    horizontal_space(Length::FillPortion(1)),
+                                ])
                                 .id(choosing::generate_scrollable_id(chosen)),
                             )
                             .center_x()

@@ -1,5 +1,6 @@
 use crate::{Memories, Stage, State};
 use iced::widget::image;
+use rand::prelude::SliceRandom;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use std::fs;
@@ -160,6 +161,7 @@ pub async fn get_queue(state: State) -> Result<State, crate::Error> {
         }
         _ => (0, String::from("")),
     };
+    let mut rng = rand::thread_rng();
     let homepage_offset = match state.stage {
         Stage::ChoosingCharacter(choosing) => {
             let profiles = choosing.profiles;
@@ -190,7 +192,7 @@ pub async fn get_queue(state: State) -> Result<State, crate::Error> {
                                 with.push(num as usize);
                             }
                             for it in &with {
-                                if it == &chose_person {
+                                if it == &chose_person || it == &0 && chose_person <= 35 {
                                     personal_images.push(Experience {
                                         path: img
                                             .get("path")
@@ -207,7 +209,9 @@ pub async fn get_queue(state: State) -> Result<State, crate::Error> {
                                 }
                             }
                         }
+
                         if !personal_images.is_empty() {
+                            personal_images.shuffle(&mut rng);
                             queue_event.push(Event {
                                 description: event_table
                                     .get("description")

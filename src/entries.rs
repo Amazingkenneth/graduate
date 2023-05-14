@@ -26,10 +26,14 @@ impl State {
             fs::create_dir_all(&storage).unwrap();
             fs::create_dir_all(proj_dir.config_dir().display().to_string()).unwrap();
             let cli = Client::new().to_owned();
-            let content = cli.get(&idxurl).send().await.unwrap().text().await.unwrap();
-            let mut buffer = File::create(idxdir).unwrap();
-            buffer.write_all(content.as_bytes()).unwrap();
-            content
+            if let Ok(fetching) = cli.get(&idxurl).send().await {
+                let content = fetching.text().await.unwrap();
+                let mut buffer = File::create(idxdir).unwrap();
+                buffer.write_all(content.as_bytes()).unwrap();
+                content
+            } else {
+                fs::read_to_string(idxdir).unwrap()
+            }
         } else {
             fs::read_to_string(idxdir).unwrap()
         };

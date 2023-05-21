@@ -5,7 +5,7 @@ use iced_native::layout;
 use iced_native::mouse;
 use iced_native::renderer;
 use iced_native::widget;
-use iced_native::widget::operation::{self, Operation};
+use iced_native::widget::operation;
 use iced_native::widget::scrollable::RelativeOffset;
 use iced_native::widget::tree::{self, Tree};
 use iced_native::{

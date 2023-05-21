@@ -1,4 +1,4 @@
-use crate::{ChoosingState, Stage, State};
+use crate::{Stage, State};
 use iced::widget::image;
 use reqwest::Client;
 use std::fs;
@@ -6,7 +6,7 @@ use std::io::Write;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::AtomicUsize;
 pub static ON_LOCATION: AtomicUsize = AtomicUsize::new(0);
 
 #[derive(Clone, Debug, Default)]

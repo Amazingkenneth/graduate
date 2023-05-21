@@ -1,4 +1,4 @@
-#![allow(dead_code, unused_imports)]
+#![allow(dead_code)]
 mod audio;
 mod choosing;
 mod configs;
@@ -7,6 +7,7 @@ mod floatingelement;
 mod graduation;
 mod imageviewer;
 mod quadbutton;
+mod sink;
 mod subscriptions;
 mod visiting;
 
@@ -17,9 +18,6 @@ use iced::widget::{
 use iced::window::Mode;
 use iced::{window, Alignment, Application, Color, Command, Element, Length, Settings, Theme};
 use iced_aw::floating_element::Offset;
-use iced_aw::native::overlay::FloatingElementOverlay;
-use iced_native::Point;
-use iced_native::Widget;
 use rand::Rng;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
@@ -51,6 +49,7 @@ fn main() {
             ),
             ..window::Settings::default()
         },
+        text_multithreading: true,
         default_font: Some(include_bytes!("./YEFONTFuJiYaTi-3.ttf")),
         ..Settings::default()
     })
@@ -276,43 +275,34 @@ impl Application for Memories {
                         DELETE_FILES_ON_EXIT.fetch_xor(true, Ordering::Relaxed);
                     }
                     Message::SwitchMusicStatus => {
-                        if config
-                            .daemon_running
-                            .load(std::sync::atomic::Ordering::Relaxed)
-                        {
-                            let sink = &config.aud_module.lock().unwrap().sink;
-                            if sink.is_paused() {
-                                sink.play();
-                            } else {
-                                sink.pause();
-                            }
+                        let audio_stream = audio::AUDIO_PLAYER.lock().unwrap();
+                        let sink = &audio_stream.as_ref().unwrap().sink;
+                        if sink.is_paused() {
+                            sink.play();
                         } else {
-                            let (stream, stream_handle) =
-                                rodio::OutputStream::try_default().unwrap();
-                            let audio_stream = std::mem::ManuallyDrop::new(audio::AudioStream {
-                                sink: rodio::Sink::try_new(&stream_handle).unwrap(),
-                                stream,
-                            });
-                            config.aud_module = Arc::new(Mutex::new(audio_stream));
-                            let given_mutex = config.aud_module.clone();
-                            config.daemon_running.store(true, Ordering::Relaxed);
-                            let running_status = config.daemon_running.clone();
-                            let paths = config.audio_paths.clone();
-                            tokio::spawn(async {
-                                audio::play_music(given_mutex, paths, running_status, 1.0).await;
-                            });
+                            sink.pause();
                         }
+                        return Command::none();
+                    }
+                    Message::NextSong => {
+                        audio::AUDIO_PLAYER
+                            .lock()
+                            .unwrap()
+                            .as_ref()
+                            .unwrap()
+                            .sink
+                            .stop();
                         return Command::none();
                     }
                     Message::ModifyVolume(new_volume) => {
                         config.volume_percentage = new_volume;
-                        if config
-                            .daemon_running
-                            .load(std::sync::atomic::Ordering::Relaxed)
-                        {
-                            let sink = &config.aud_module.lock().unwrap().sink;
-                            sink.set_volume(new_volume / 100.0);
-                        }
+                        audio::AUDIO_PLAYER
+                            .lock()
+                            .unwrap()
+                            .as_ref()
+                            .unwrap()
+                            .sink
+                            .set_volume(new_volume / 100.0);
                         return Command::none();
                     }
                     _ => (),
@@ -334,24 +324,6 @@ impl Application for Memories {
                     Message::EscapeFullScreen => {
                         state.configs.full_screened = false;
                         return iced::window::change_mode(Mode::Windowed);
-                    }
-                    Message::NextSong => {
-                        if state
-                            .configs
-                            .daemon_running
-                            .load(std::sync::atomic::Ordering::Relaxed)
-                        {
-                            let require_restart = {
-                                let sink = &state.configs.aud_module.lock().unwrap().sink;
-                                sink.skip_one();
-                                sink.len() <= 1
-                            };
-                            if require_restart {
-                                state.configs.aud_module.lock().unwrap().sink.pause();
-                                audio::restart(&mut state.configs);
-                            }
-                        }
-                        return Command::none();
                     }
                     Message::ScaleDown => {
                         state.configs.scale_factor /= 1.05;
@@ -390,32 +362,34 @@ impl Application for Memories {
                         return Command::none();
                     }
                     Message::SwitchMusicStatus => {
-                        if state
-                            .configs
-                            .daemon_running
-                            .load(std::sync::atomic::Ordering::Relaxed)
-                        {
-                            let sink = &state.configs.aud_module.lock().unwrap().sink;
-                            if sink.is_paused() || sink.empty() {
-                                sink.play();
-                            } else {
-                                sink.pause();
-                            }
+                        let audio_stream = audio::AUDIO_PLAYER.lock().unwrap();
+                        let sink = &audio_stream.as_ref().unwrap().sink;
+                        if sink.is_paused() {
+                            sink.play();
                         } else {
-                            audio::restart(&mut state.configs);
+                            sink.pause();
                         }
+                        return Command::none();
+                    }
+                    Message::NextSong => {
+                        audio::AUDIO_PLAYER
+                            .lock()
+                            .unwrap()
+                            .as_ref()
+                            .unwrap()
+                            .sink
+                            .stop();
                         return Command::none();
                     }
                     Message::ModifyVolume(new_volume) => {
                         state.configs.volume_percentage = new_volume;
-                        if state
-                            .configs
-                            .daemon_running
-                            .load(std::sync::atomic::Ordering::Relaxed)
-                        {
-                            let sink = &state.configs.aud_module.lock().unwrap().sink;
-                            sink.set_volume(new_volume / 100.0);
-                        }
+                        audio::AUDIO_PLAYER
+                            .lock()
+                            .unwrap()
+                            .as_ref()
+                            .unwrap()
+                            .sink
+                            .set_volume(new_volume / 100.0);
                         return Command::none();
                     }
                     Message::OpenUrl(filename) => {

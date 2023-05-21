@@ -1,14 +1,9 @@
-use crate::audio::AudioStream;
+use crate::audio::AUDIO_PLAYER;
 use crate::{visiting, Message, Stage, State};
 use iced::widget::{self, column, container, row, text};
 use iced::{Alignment, Length, Theme};
-// use iced_audio::core::normal_param::NormalParam;
-// use iced_audio::native::h_slider::HSlider;
 use std::io::Write;
-use std::mem::ManuallyDrop;
-use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
-use std::sync::Arc;
 
 #[derive(Clone, Debug)]
 pub struct Configs {
@@ -19,9 +14,6 @@ pub struct Configs {
     pub theme: Theme,
     pub from_date: visiting::ShootingTime,
     pub volume_percentage: f32,
-    pub aud_module: Arc<std::sync::Mutex<ManuallyDrop<AudioStream>>>,
-    pub audio_paths: Vec<String>,
-    pub daemon_running: Arc<AtomicBool>,
 }
 
 pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::Element<Message> {
@@ -90,11 +82,24 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                             )
                             .style(iced::theme::Container::Box)
                         },
-                        if config
-                            .daemon_running
-                            .load(std::sync::atomic::Ordering::Relaxed)
-                            && !config.aud_module.lock().unwrap().sink.is_paused()
+                        if AUDIO_PLAYER
+                            .lock()
+                            .unwrap()
+                            .as_ref()
+                            .unwrap()
+                            .sink
+                            .is_paused()
                         {
+                            row![widget::tooltip(
+                                crate::button_from_svg(include_bytes!("./runtime/play.svg"),)
+                                    .width(Length::Fixed(40.0))
+                                    .on_press(Message::SwitchMusicStatus),
+                                "播放 / 暂停",
+                                widget::tooltip::Position::Bottom
+                            )
+                            .style(iced::theme::Container::Box)
+                            .gap(5)]
+                        } else {
                             row![
                                 widget::tooltip(
                                     crate::button_from_svg(include_bytes!("./runtime/pause.svg"),)
@@ -116,16 +121,6 @@ pub fn settings_over(config: Configs, content: iced::Element<Message>) -> iced::
                                 )
                                 .style(iced::theme::Container::Box)
                             ]
-                        } else {
-                            row![widget::tooltip(
-                                crate::button_from_svg(include_bytes!("./runtime/play.svg"),)
-                                    .width(Length::Fixed(40.0))
-                                    .on_press(Message::SwitchMusicStatus),
-                                "播放 / 暂停",
-                                widget::tooltip::Position::Bottom
-                            )
-                            .style(iced::theme::Container::Box)
-                            .gap(5)]
                         },
                     ]
                 ]
@@ -187,8 +182,16 @@ pub fn save_configs(state: &mut State) {
         toml::Value::Datetime(configs.from_date.clone().into()),
     );
     map.insert(
-        String::from("audio-playing"),
-        toml::Value::Boolean(configs.daemon_running.load(Ordering::Relaxed)),
+        String::from("audio-paused"),
+        toml::Value::Boolean(
+            AUDIO_PLAYER
+                .lock()
+                .unwrap()
+                .as_ref()
+                .unwrap()
+                .sink
+                .is_paused(),
+        ),
     );
     let mut buffer = std::fs::File::create(state.configs.config_path.clone()).unwrap();
     buffer

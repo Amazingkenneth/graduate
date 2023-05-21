@@ -5,12 +5,9 @@ use crate::{choosing, EntryState, Stage, State};
 use iced::widget::image;
 use iced::Theme;
 use reqwest::Client;
-use rodio::Sink;
 use std::fs::{self, File};
 use std::io::Write;
-use std::mem::ManuallyDrop;
 use std::path::Path;
-use std::sync::atomic::AtomicBool;
 use std::sync::{Arc, Mutex};
 
 //type JoinHandle = std::thread::JoinHandle<_>;
@@ -150,18 +147,14 @@ impl State {
             });
         }
         let audio_paths: Vec<String> = std::mem::take(&mut aud_mutex.lock().unwrap());
-        let given_paths = audio_paths.clone();
-        let sink = {
+        let _ = {
             let (stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
-            ManuallyDrop::new(audio::AudioStream {
-                sink: Sink::try_new(&stream_handle).unwrap(),
+            *audio::AUDIO_PLAYER.lock().unwrap() = Some(audio::AudioStream {
+                sink: crate::sink::Sink::try_new(&stream_handle).unwrap(),
                 stream,
-            })
+                audio_paths,
+            });
         };
-        let sink_mutex = Arc::new(Mutex::new(sink));
-        let given_mutex = sink_mutex.clone();
-        let daemon_status = Arc::new(AtomicBool::new(true));
-        let given_status = daemon_status.clone();
 
         if let Ok(init_configs) = std::fs::read_to_string(&config_path) {
             let config_table = init_configs
@@ -175,16 +168,25 @@ impl State {
                 .unwrap()
                 .as_float()
                 .unwrap() as f32;
-            if config_table
-                .get("audio-playing")
+            audio::AUDIO_PLAYER
+                .lock()
                 .unwrap()
-                .as_bool()
+                .as_mut()
                 .unwrap()
-            {
-                tokio::spawn(async move {
-                    audio::play_music(given_mutex, given_paths, given_status, initial_volume).await;
-                });
+                .sink
+                .set_volume(initial_volume / 100.0);
+            if config_table.get("audio-paused").unwrap().as_bool().unwrap() {
+                audio::AUDIO_PLAYER
+                    .lock()
+                    .unwrap()
+                    .as_mut()
+                    .unwrap()
+                    .sink
+                    .pause();
             }
+            tokio::spawn(async {
+                audio::play_music().await;
+            });
             let theme = if config_table.get("light-theme").unwrap().as_bool().unwrap() {
                 Theme::Light
             } else {
@@ -206,9 +208,6 @@ impl State {
                 theme,
                 from_date,
                 volume_percentage: initial_volume,
-                aud_module: sink_mutex,
-                daemon_running: daemon_status,
-                audio_paths,
                 config_path,
                 shown: false,
                 full_screened: false,
@@ -269,8 +268,8 @@ impl State {
                 configs,
             })
         } else {
-            tokio::spawn(async move {
-                audio::play_music(given_mutex, given_paths, given_status, 1.0).await;
+            tokio::spawn(async {
+                audio::play_music().await;
             });
             Ok(State {
                 stage: Stage::EntryEvents(EntryState {
@@ -286,9 +285,6 @@ impl State {
                         time::macros::datetime!(2020-06-01 0:00),
                     ),
                     volume_percentage: 100.0,
-                    aud_module: sink_mutex,
-                    daemon_running: daemon_status,
-                    audio_paths,
                     config_path,
                     shown: false,
                     full_screened: false,

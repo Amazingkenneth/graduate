@@ -15,6 +15,7 @@ repository = "https://github.com/Amazingkenneth/graduate"
 embed-resource = "2.1"
 
 [dependencies]
+cpal = "0"
 directories = "5"
 iced = { version = "0", features = ["image", "svg", "tokio"] }
 iced_aw = { version = "0", features = ["floating_element"] }

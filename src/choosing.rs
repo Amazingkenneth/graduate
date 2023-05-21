@@ -1,6 +1,5 @@
 use crate::{ChoosingState, State};
 use iced::widget::image;
-use iced_native::widget::scrollable::RelativeOffset;
 use rand::Rng;
 use reqwest::Client;
 use serde::Deserialize;

@@ -15,13 +15,11 @@ repository = "https://github.com/Amazingkenneth/graduate"
 embed-resource = "2.1"
 
 [dependencies]
-cpal = "0"
 directories = "5"
 iced = { version = "0", features = ["image", "svg", "tokio"] }
 iced_aw = { version = "0", features = ["floating_element"] }
 iced_native = "0"
 image = "0.24"
-lofty = "0"
 rand = "0"
 reqwest = "0"
 rodio = { version = "0", default-features = false, features = [

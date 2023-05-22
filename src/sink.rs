@@ -3,7 +3,7 @@ use std::sync::mpsc::Receiver;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use cpal::FromSample;
+use rodio::cpal::FromSample;
 use rodio::{queue, source::Done, Sample, Source};
 use rodio::{OutputStreamHandle, PlayError};
 

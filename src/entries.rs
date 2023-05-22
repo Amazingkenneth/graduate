@@ -184,8 +184,8 @@ impl State {
                     .sink
                     .pause();
             }
-            tokio::spawn(async {
-                audio::play_music().await;
+            std::thread::spawn(|| {
+                audio::play_music();
             });
             let theme = if config_table.get("light-theme").unwrap().as_bool().unwrap() {
                 Theme::Light
@@ -268,8 +268,8 @@ impl State {
                 configs,
             })
         } else {
-            tokio::spawn(async {
-                audio::play_music().await;
+            std::thread::spawn(|| {
+                audio::play_music();
             });
             Ok(State {
                 stage: Stage::EntryEvents(EntryState {

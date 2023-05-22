@@ -24,7 +24,7 @@ impl std::fmt::Debug for AudioStream {
     }
 }
 
-pub async fn play_music() {
+pub fn play_music() {
     let mut paths = AUDIO_PLAYER
         .lock()
         .unwrap()
@@ -59,16 +59,8 @@ pub async fn play_music() {
             if let Some(sleep_until_end) = sleep_mutex.as_ref() {
                 let _ = sleep_until_end.recv();
             }
-            std::thread::sleep(std::time::Duration::from_secs(5));
-            // if stream.lock().unwrap().sink.is_paused() {
-            //     drop(stream.lock().unwrap());
-            //     running_status.store(false, Ordering::Relaxed);
-            //     return;
-            // }
         }
         let mut rng = rand::thread_rng();
         paths.shuffle(&mut rng);
     }
 }
-
-pub fn restart() {}

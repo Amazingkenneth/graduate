@@ -134,9 +134,9 @@ dependencies = [
 
 [[package]]
 name = "base64"
-version = "0.21.0"
+version = "0.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4a4ddaa51a5bc52a6948f74c06d20aaaddb71924eab79b8c97a8c556e942d6a"
+checksum = "3f1e31e207a6b8fb791a38ea3105e6cb541f55e4d029902d3039a4ad07cc4105"
 
 [[package]]
 name = "bindgen"
@@ -1293,14 +1293,12 @@ dependencies = [
 name = "graduate"
 version = "0.1.0"
 dependencies = [
- "cpal",
  "directories",
  "embed-resource",
  "iced",
  "iced_aw",
  "iced_native",
  "image",
- "lofty",
  "rand",
  "reqwest",
  "rodio",
@@ -1890,33 +1888,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "lofty"
-version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0cb2b21027aa98f860de475b3ee8b10f36df689121b5752efeb7a64bec1f4d45"
-dependencies = [
- "base64",
- "byteorder",
- "flate2",
- "lofty_attr",
- "log",
- "ogg_pager",
- "once_cell",
- "paste",
-]
-
-[[package]]
-name = "lofty_attr"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9482ad911db377f8362c658aff576aac289c84cf5c25ca058e2c49d9bc3301dc"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.16",
-]
-
-[[package]]
 name = "log"
 version = "0.4.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2389,15 +2360,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ogg_pager"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d218a406e5de88e1c492d0162d569916f7436efe851ba5cc40a4bf4fa97cb40"
-dependencies = [
- "byteorder",
-]
-
-[[package]]
 name = "once_cell"
 version = "1.17.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2542,12 +2504,6 @@ dependencies = [
  "smallvec",
  "windows-sys 0.45.0",
 ]
-
-[[package]]
-name = "paste"
-version = "1.0.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f746c4065a8fa3fe23974dd82f15431cc8d40779821001404d10d2e79ca7d79"
 
 [[package]]
 name = "peeking_take_while"

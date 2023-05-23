@@ -9,6 +9,8 @@ use std::path::Path;
 use std::sync::{Arc, Mutex};
 use toml::value::{Array, Table};
 
+pub const CHARACTERS_WITH_NO_PHOTOS: [usize; 10] = [38, 43, 44, 45, 46, 47, 49, 50, 53, 54];
+
 #[derive(Clone, Default, Deserialize, Debug)]
 pub struct Profile {
     pub anecdote: Option<Table>,
@@ -20,6 +22,7 @@ pub struct Profile {
     pub nickname: Option<Array>,
     pub plots: Option<Array>,
     pub relationship: Option<Array>,
+    // pub reviews: Option<Array>,
 }
 
 #[derive(Clone, Debug)]

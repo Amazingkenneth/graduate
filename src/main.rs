@@ -1070,17 +1070,19 @@ impl Application for Memories {
                                     ]);
                                 }
                             }
-                            let apply_button = row![
-                                widget::Button::new(text("返回").size(30))
-                                    .padding(15)
-                                    .style(iced::theme::Button::Secondary)
-                                    .on_press(Message::UnChoose),
-                                widget::Button::new(text("选好啦").size(30))
-                                    .padding(15)
-                                    .style(iced::theme::Button::Primary)
-                                    .on_press(Message::NextStage),
-                            ]
+                            let mut apply_button = row![widget::Button::new(text("返回").size(30))
+                                .padding(15)
+                                .style(iced::theme::Button::Secondary)
+                                .on_press(Message::UnChoose),]
                             .spacing(20);
+                            if !choosing::CHARACTERS_WITH_NO_PHOTOS.contains(&chosen) {
+                                apply_button = apply_button.push(
+                                    widget::Button::new(text("选好啦").size(30))
+                                        .padding(15)
+                                        .style(iced::theme::Button::Primary)
+                                        .on_press(Message::NextStage),
+                                );
+                            }
                             container(
                                 scrollable(row![
                                     horizontal_space(Length::FillPortion(1)),

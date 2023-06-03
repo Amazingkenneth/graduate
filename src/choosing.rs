@@ -10,6 +10,13 @@ use std::sync::{Arc, Mutex};
 use toml::value::{Array, Table};
 
 pub const CHARACTERS_WITH_NO_PHOTOS: [usize; 10] = [38, 43, 44, 45, 46, 47, 49, 50, 53, 54];
+pub const SEMESTER_NAMES: [&str; 5] = [
+    "七年级上学期",
+    "七年级下学期",
+    "八年级上学期",
+    "八年级下学期",
+    "九年级上学期",
+];
 
 #[derive(Clone, Default, Deserialize, Debug)]
 pub struct Profile {
@@ -22,7 +29,7 @@ pub struct Profile {
     pub nickname: Option<Array>,
     pub plots: Option<Array>,
     pub relationship: Option<Array>,
-    // pub reviews: Option<Array>,
+    pub reviews: Option<Array>,
 }
 
 #[derive(Clone, Debug)]

@@ -1021,6 +1021,25 @@ impl Application for Memories {
                                     ]);
                                 }
                             }
+                            if let Some(reviews) = profile.reviews {
+                                let mut lists = column![].spacing(15);
+                                for (index, review) in reviews.iter().enumerate() {
+                                    let cur_review = review.as_str().unwrap();
+                                    lists = lists.push(column![
+                                        text(choosing::SEMESTER_NAMES[index])
+                                            .size(20)
+                                            .style(Color::from_rgb8(172, 255, 63)),
+                                        row![
+                                            horizontal_space(Length::Fixed(20.0)),
+                                            text(cur_review).size(30)
+                                        ]
+                                    ]);
+                                }
+                                content = content.push(column![
+                                    text("班主任评语").size(50),
+                                    row![horizontal_space(Length::Fixed(20.0)), lists,]
+                                ]);
+                            }
                             if let Some(comments) = profile.comment {
                                 let mut lists = column![].spacing(15);
                                 for comment in &comments {

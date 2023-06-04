@@ -1027,8 +1027,8 @@ impl Application for Memories {
                                     let cur_review = review.as_str().unwrap();
                                     lists = lists.push(column![
                                         text(choosing::SEMESTER_NAMES[index])
-                                            .size(20)
-                                            .style(Color::from_rgb8(172, 255, 63)),
+                                            .size(25)
+                                            .style(Color::from_rgb8(120, 158, 204)),
                                         row![
                                             horizontal_space(Length::Fixed(20.0)),
                                             text(cur_review).size(30)

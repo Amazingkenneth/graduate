@@ -64,6 +64,36 @@ pub struct Experience {
     pub join_handle: Arc<Mutex<Option<tokio::task::JoinHandle<()>>>>,
 }
 
+impl PartialEq for Experience {
+    fn eq(&self, other: &Self) -> bool {
+        self.shot == other.shot
+    }
+}
+impl Eq for Experience {}
+impl PartialOrd for Experience {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+impl Ord for Experience {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        use time::macros::time;
+        let cmp_a = match self.shot {
+            ShootingTime::Approximate(approximate) => {
+                PrimitiveDateTime::new(approximate, time!(0:00))
+            }
+            ShootingTime::Precise(precise) => precise.clone(),
+        };
+        let cmp_b = match other.shot {
+            ShootingTime::Approximate(approximate) => {
+                PrimitiveDateTime::new(approximate, time!(0:00))
+            }
+            ShootingTime::Precise(precise) => precise.clone(),
+        };
+        cmp_a.cmp(&cmp_b)
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd)]
 pub enum ShootingTime {
     Precise(time::PrimitiveDateTime),
@@ -161,76 +191,70 @@ pub async fn get_queue(state: State) -> Result<State, crate::Error> {
         }
         _ => (0, String::from("")),
     };
-    let mut rng = rand::thread_rng();
     let homepage_offset = match state.stage {
-        Stage::ChoosingCharacter(choosing) => {
-            let profiles = choosing.profiles;
-            for (num, profile) in profiles.iter().enumerate() {
-                if let Some(experience) = &profile.experience {
-                    for event_value in experience {
-                        let event_table = event_value.as_table().unwrap();
-                        let mut event_time = None;
-                        if let Some(occur_time) = event_table.get("date") {
-                            event_time = occur_time.as_datetime().unwrap().into();
-                        }
-                        let img_array = event_table.get("image").unwrap().as_array().unwrap();
-                        let mut personal_images = vec![];
-                        for img in img_array {
-                            let shot = if let Some(meta_date) = img.get("date") {
-                                meta_date.as_datetime().unwrap().into()
-                            } else {
-                                event_time.unwrap().into()
-                            };
-                            let mut with: Vec<usize> = vec![num];
-                            if let Some(appearing) = img.get("with") {
-                                with = appearing
-                                    .as_array()
-                                    .unwrap()
-                                    .iter()
-                                    .map(|v| v.as_integer().unwrap() as usize)
-                                    .collect();
-                                with.push(num as usize);
-                            }
-                            for it in &with {
-                                if it == &chose_person || it == &0 && chose_person <= 35 {
-                                    personal_images.push(Experience {
-                                        path: img
-                                            .get("path")
-                                            .unwrap()
-                                            .as_str()
-                                            .unwrap()
-                                            .to_string(),
-                                        shot,
-                                        with: Some(with),
-                                        handle: None,
-                                        join_handle: Arc::new(Mutex::new(None)),
-                                    });
-                                    break;
-                                }
-                            }
-                        }
-
-                        if !personal_images.is_empty() {
-                            personal_images.shuffle(&mut rng);
-                            queue_event.push(Event {
-                                description: event_table
-                                    .get("description")
-                                    .unwrap()
-                                    .as_str()
-                                    .unwrap()
-                                    .to_string(),
-                                experiences: personal_images,
-                                on_experience: 0,
-                            });
-                        }
-                    }
-                }
-            }
-            choosing.homepage_offset
-        }
+        Stage::ChoosingCharacter(choosing) => choosing.homepage_offset,
         _ => return Err(crate::Error::APIError),
     };
     let queue_array = queue_table.get("event").unwrap().as_array().unwrap();
+    let experience_array = queue_table.get("experience").unwrap().as_array().unwrap();
+    let mut rng = rand::thread_rng();
+    for exp in experience_array {
+        let cur_exp = exp.as_table().unwrap();
+        let experience = cur_exp.get("image").unwrap().as_array().unwrap();
+        let mut images = Vec::<Experience>::with_capacity(experience.len());
+        for img in experience {
+            let img_shotdate = img.get("date").unwrap().as_datetime().unwrap().into();
+            let Some(with_people) = img.get("with") else {
+                images.push(Experience {
+                    path: img.get("path").unwrap().as_str().unwrap().to_string(),
+                    shot: img_shotdate,
+                    with: None,
+                    handle: None,
+                    join_handle: Arc::new(Mutex::new(None)),
+                });
+                continue;
+            };
+            let with_people = with_people.as_array().unwrap();
+            let mut with = Vec::with_capacity(with_people.len());
+            for i in with_people {
+                with.push(i.as_integer().unwrap() as usize);
+            }
+            for it in &with {
+                if it == &chose_person {
+                    images.push(Experience {
+                        path: format!(
+                            "image/experience/{}",
+                            img.get("path").unwrap().as_str().unwrap()
+                        ),
+                        shot: img_shotdate,
+                        with: Some(with),
+                        handle: None,
+                        join_handle: Arc::new(Mutex::new(None)),
+                    });
+                    break;
+                }
+            }
+        }
+        if !images.is_empty() {
+            let description = cur_exp
+                .get("description")
+                .unwrap()
+                .as_str()
+                .unwrap()
+                .to_string();
+            for index in (0..images.len() - 1).rev() {
+                if images[index] != images[index + 1] {
+                    let mut shuffling = images.split_off(index + 1);
+                    shuffling.shuffle(&mut rng);
+                    queue_event.push(Event {
+                        description: description.clone(),
+                        experiences: shuffling,
+                        on_experience: 0,
+                    });
+                }
+            }
+        }
+    }
     for event in queue_array {
         let cur_table = event.as_table().unwrap();
         let experience = cur_table.get("image").unwrap().as_array().unwrap();
@@ -266,6 +290,7 @@ pub async fn get_queue(state: State) -> Result<State, crate::Error> {
             }
         }
         if !images.is_empty() {
+            images.shuffle(&mut rng);
             queue_event.push(Event {
                 description: cur_table
                     .get("description")

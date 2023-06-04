@@ -23,7 +23,6 @@ pub struct Profile {
     pub anecdote: Option<Table>,
     pub article: Option<Array>,
     pub comment: Option<Array>,
-    pub experience: Option<Array>,
     pub introduction: Option<String>,
     pub name_en: Option<String>,
     pub nickname: Option<Array>,

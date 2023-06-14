@@ -21,10 +21,10 @@ iced = { git = "https://github.com/iced-rs/iced.git", features = [
     "svg",
     "tokio",
 ] }
-iced_aw = { git = "https://github.com/iced-rs/iced_aw.git", features = [
+iced_aw = { git = "https://github.com/Amazingkenneth/iced_aw.git", features = [
     "floating_element",
 ] }
-iced_native = "0"
+iced_native = { git = "https://github.com/iced-rs/iced.git" }
 image = "0.24"
 rand = "0"
 reqwest = "0"

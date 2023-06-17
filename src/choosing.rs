@@ -9,7 +9,8 @@ use std::path::Path;
 use std::sync::{Arc, Mutex};
 use toml::value::{Array, Table};
 
-pub const CHARACTERS_WITH_NO_PHOTOS: [usize; 10] = [38, 43, 44, 45, 46, 47, 49, 50, 53, 54];
+pub const CHARACTERS_WITH_NO_PHOTOS: [usize; 14] =
+    [38, 43, 44, 45, 46, 47, 49, 50, 51, 52, 53, 54, 56, 59];
 pub const SEMESTER_NAMES: [&str; 5] = [
     "七年级上学期",
     "七年级下学期",

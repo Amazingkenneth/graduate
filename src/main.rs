@@ -431,7 +431,15 @@ impl Application for Memories {
                                         events[displayer.on_event].experiences[*on_image].path
                                     )
                                 }
-                                _ => String::from(""),
+                                Stage::Graduated(vision) => {
+                                    format!(
+                                        "{}/image/panorama/{}.jpg",
+                                        state.storage,
+                                        vision.images
+                                            [graduation::ON_LOCATION.load(Ordering::Relaxed)]
+                                        .image_names[vision.on_image]
+                                    )
+                                }
                             };
                             subscriptions::open_url(name);
                         }
@@ -1227,8 +1235,7 @@ impl Application for Memories {
                                 ))
                                 .width(Length::FillPortion(4))
                                 .height(Length::Fill);
-
-                        if vision.show_panel {
+                        let displayer = if vision.show_panel {
                             let mut current = vec![];
                             let mut offsets = vec![];
                             for pan in &vision.images {
@@ -1307,7 +1314,6 @@ impl Application for Memories {
                                     .anchor(iced_aw::floating_element::Anchor::South)
                                     .offset(Offset { x: 0.0, y: 6.0 })
                                 ]
-                                .into()
                             } else {
                                 column![
                                     floating_element,
@@ -1349,11 +1355,10 @@ impl Application for Memories {
                                     .anchor(iced_aw::floating_element::Anchor::South)
                                     .offset(Offset { x: 0.0, y: 6.0 })
                                 ]
-                                .into()
                             }
                         } else {
                             if images.image.len() > 1 {
-                                iced_aw::FloatingElement::new(displayer, move || {
+                                column![iced_aw::FloatingElement::new(displayer, move || {
                                     Element::from(column![
                                         widget::vertical_space(Length::Fixed(20.0)),
                                         row![
@@ -1395,10 +1400,9 @@ impl Application for Memories {
                                     ])
                                 })
                                 .anchor(iced_aw::floating_element::Anchor::South)
-                                .offset(Offset { x: 0.0, y: 6.0 })
-                                .into()
+                                .offset(Offset { x: 0.0, y: 6.0 })]
                             } else {
-                                iced_aw::FloatingElement::new(displayer, move || {
+                                column![iced_aw::FloatingElement::new(displayer, move || {
                                     Element::from(column![
                                         widget::vertical_space(Length::Fixed(20.0)),
                                         row![
@@ -1434,10 +1438,10 @@ impl Application for Memories {
                                     ])
                                 })
                                 .anchor(iced_aw::floating_element::Anchor::South)
-                                .offset(Offset { x: 0.0, y: 6.0 })
-                                .into()
+                                .offset(Offset { x: 0.0, y: 6.0 })]
                             }
-                        }
+                        };
+                        displayer.into()
                     }
                 };
                 if state.configs.shown {

@@ -243,19 +243,19 @@ impl State {
                     .unwrap();
                     return Ok(res);
                 }
-                // "Graduated" => {
-                //     let res = crate::graduation::load_map(State {
-                //         stage: Stage::Graduated(crate::GraduationState {
-                //             ..Default::default()
-                //         }),
-                //         idxtable,
-                //         storage,
-                //         configs,
-                //     })
-                //     .await
-                //     .unwrap();
-                //     return Ok(res);
-                // }
+                "Graduated" => {
+                    let res = crate::graduation::load_map(State {
+                        stage: Stage::Graduated(crate::GraduationState {
+                            ..Default::default()
+                        }),
+                        idxtable,
+                        storage,
+                        configs,
+                    })
+                    .await
+                    .unwrap();
+                    return Ok(res);
+                }
                 _ => Stage::EntryEvents(EntryState {
                     preload: fetched,
                     ..Default::default()

@@ -1,14 +1,14 @@
-// https://docs.rs/iced_native/latest/src/iced_native/widget/image/viewer.rs.html
-use iced_native::event::{self, Event};
-use iced_native::image;
-use iced_native::layout;
-use iced_native::mouse;
-use iced_native::renderer;
-use iced_native::widget;
-use iced_native::widget::operation;
-use iced_native::widget::scrollable::RelativeOffset;
-use iced_native::widget::tree::{self, Tree};
-use iced_native::{
+// https://docs.rs/iced_core/latest/src/iced_core/widget/image/viewer.rs.html
+use iced::widget::scrollable::RelativeOffset;
+use iced_core::event::{self, Event};
+use iced_core::image;
+use iced_core::layout;
+use iced_core::mouse;
+use iced_core::renderer;
+use iced_core::widget;
+use iced_core::widget::operation;
+use iced_core::widget::tree::{self, Tree};
+use iced_core::{
     Clipboard, Element, Layout, Length, Pixels, Point, Rectangle, Shell, Size, Vector, Widget,
 };
 use std::hash::Hash;
@@ -149,13 +149,13 @@ where
         tree: &mut Tree,
         event: Event,
         layout: Layout<'_>,
-        cursor_position: Point,
+        cursor_position: iced::mouse::Cursor,
         renderer: &Renderer,
         _clipboard: &mut dyn Clipboard,
         _shell: &mut Shell<'_, Message>,
     ) -> event::Status {
         let bounds = layout.bounds();
-        let is_mouse_over = bounds.contains(cursor_position);
+        let is_mouse_over = cursor_position.is_over(bounds);
 
         match event {
             Event::Mouse(mouse::Event::WheelScrolled { delta }) if is_mouse_over => {
@@ -179,7 +179,8 @@ where
 
                             let factor = state.scale / previous_scale - 1.0;
 
-                            let cursor_to_center = cursor_position - bounds.center();
+                            let cursor_to_center =
+                                cursor_position.position().unwrap() - bounds.center();
 
                             let adjustment =
                                 cursor_to_center * factor + state.current_offset * factor;
@@ -205,7 +206,7 @@ where
             Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) if is_mouse_over => {
                 let state = tree.state.downcast_mut::<State>();
 
-                state.cursor_grabbed_at = Some(cursor_position);
+                state.cursor_grabbed_at = Some(cursor_position.position().unwrap());
                 state.starting_offset = state.current_offset;
 
                 event::Status::Captured
@@ -267,13 +268,13 @@ where
         &self,
         tree: &Tree,
         layout: Layout<'_>,
-        cursor_position: Point,
+        cursor_position: iced::mouse::Cursor,
         _viewport: &Rectangle,
         _renderer: &Renderer,
     ) -> mouse::Interaction {
         let state = tree.state.downcast_ref::<State>();
         let bounds = layout.bounds();
-        let is_mouse_over = bounds.contains(cursor_position);
+        let is_mouse_over = cursor_position.is_over(bounds);
 
         if state.is_cursor_grabbed() {
             mouse::Interaction::Grabbing
@@ -291,7 +292,7 @@ where
         _theme: &Renderer::Theme,
         _style: &renderer::Style,
         layout: Layout<'_>,
-        _cursor_position: Point,
+        _cursor_position: iced::mouse::Cursor,
         _viewport: &Rectangle,
     ) {
         let state = tree.state.downcast_ref::<State>();
@@ -328,7 +329,7 @@ where
         tree: &mut Tree,
         _layout: Layout<'_>,
         _renderer: &Renderer,
-        operation: &mut dyn iced_native::widget::Operation<Message>,
+        operation: &mut dyn iced_core::widget::Operation<Message>,
     ) {
         let state = tree.state.downcast_mut::<State>();
 
@@ -346,8 +347,11 @@ pub struct State {
 }
 
 impl operation::Scrollable for State {
-    fn snap_to(&mut self, offset: iced_native::widget::scrollable::RelativeOffset) {
+    fn snap_to(&mut self, offset: iced::widget::scrollable::RelativeOffset) {
         State::snap_to(self, offset);
+    }
+    fn scroll_to(&mut self, _: iced::widget::scrollable::AbsoluteOffset) {
+        todo!()
     }
 }
 
@@ -473,4 +477,7 @@ pub fn showingplots_viewer_id(i: usize, j: usize) -> Id {
 }
 pub fn graduation_viewer_id(i: usize, j: usize) -> Id {
     Id::new(format!("Graduation: {}-{}", i, j))
+}
+pub fn emoji_id(i: usize, j: usize) -> Id {
+    Id::new(format!("emoji: {}-{}", i, j))
 }

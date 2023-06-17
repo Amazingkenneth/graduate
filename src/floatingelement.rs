@@ -1,7 +1,5 @@
-use iced_native::{
-    event, mouse, overlay, Clipboard, Event, Layout, Length, Point, Rectangle, Shell,
-};
-use iced_native::{widget::Tree, Element, Widget};
+use iced_core::{event, mouse, overlay, Clipboard, Event, Layout, Length, Point, Rectangle, Shell};
+use iced_core::{widget::Tree, Element, Widget};
 
 use iced_aw::floating_element::Offset;
 use iced_aw::native::floating_element::anchor::Anchor;
@@ -12,7 +10,7 @@ pub struct FloatingElement<'a, B, Message, Renderer>
 where
     B: Fn(usize) -> Element<'a, Message, Renderer>,
     Message: Clone,
-    Renderer: iced_native::Renderer,
+    Renderer: iced_core::Renderer,
 {
     /// The anchor of the element.
     anchor: Anchor,
@@ -30,7 +28,7 @@ impl<'a, B, Message, Renderer> FloatingElement<'a, B, Message, Renderer>
 where
     B: Fn(usize) -> Element<'a, Message, Renderer>,
     Message: Clone,
-    Renderer: iced_native::Renderer,
+    Renderer: iced_core::Renderer,
 {
     pub fn new<U>(underlay: U, element: Vec<B>, offset: Vec<Offset>) -> Self
     where
@@ -52,7 +50,7 @@ where
         self
     }
 
-    /// Hide or unhide the [`Element`](iced_native::Element) on the
+    /// Hide or unhide the [`Element`](iced_core::Element) on the
     /// [`FloatingElement`](FloatingElement).
     #[must_use]
     pub fn hide(mut self, hide: bool) -> Self {
@@ -66,9 +64,9 @@ impl<'a, B, Message, Renderer> Widget<Message, Renderer>
 where
     B: Fn(usize) -> Element<'a, Message, Renderer>,
     Message: 'a + Clone,
-    Renderer: 'a + iced_native::Renderer,
+    Renderer: 'a + iced_core::Renderer,
 {
-    fn children(&self) -> Vec<iced_native::widget::Tree> {
+    fn children(&self) -> Vec<iced_core::widget::Tree> {
         let mut elements = vec![Tree::new(&self.underlay)];
         for (index, value) in self.element.iter().enumerate() {
             elements.push(Tree::new(&(value)(index)));
@@ -99,8 +97,8 @@ where
     fn layout(
         &self,
         renderer: &Renderer,
-        limits: &iced_native::layout::Limits,
-    ) -> iced_native::layout::Node {
+        limits: &iced_core::layout::Limits,
+    ) -> iced_core::layout::Node {
         self.underlay.as_widget().layout(renderer, limits)
     }
 
@@ -109,7 +107,7 @@ where
         state: &mut Tree,
         event: Event,
         layout: Layout<'_>,
-        cursor_position: Point,
+        cursor_position: mouse::Cursor,
         renderer: &Renderer,
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
@@ -129,7 +127,7 @@ where
         &self,
         state: &Tree,
         layout: Layout<'_>,
-        cursor_position: Point,
+        cursor_position: mouse::Cursor,
         viewport: &Rectangle,
         renderer: &Renderer,
     ) -> mouse::Interaction {
@@ -144,12 +142,12 @@ where
 
     fn draw(
         &self,
-        state: &iced_native::widget::Tree,
+        state: &iced_core::widget::Tree,
         renderer: &mut Renderer,
         theme: &Renderer::Theme,
-        style: &iced_native::renderer::Style,
+        style: &iced_core::renderer::Style,
         layout: Layout<'_>,
-        cursor_position: Point,
+        cursor_position: mouse::Cursor,
         viewport: &Rectangle,
     ) {
         self.underlay.as_widget().draw(
@@ -191,7 +189,7 @@ where
 
         let position = Point::new(bounds.x + position.x, bounds.y + position.y);
 
-        let mut group = iced_native::overlay::Group::new();
+        let mut group = iced_core::overlay::Group::new();
 
         for (index, value) in state.children.iter_mut().enumerate() {
             if index != 0 {
@@ -215,7 +213,7 @@ impl<'a, B, Message, Renderer> From<FloatingElement<'a, B, Message, Renderer>>
 where
     B: 'a + Fn(usize) -> Element<'a, Message, Renderer>,
     Message: 'a + Clone,
-    Renderer: 'a + iced_native::Renderer,
+    Renderer: 'a + iced_core::Renderer,
 {
     fn from(floating_element: FloatingElement<'a, B, Message, Renderer>) -> Self {
         Element::new(floating_element)

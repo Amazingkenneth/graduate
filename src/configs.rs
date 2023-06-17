@@ -198,14 +198,16 @@ pub fn save_configs(state: &mut State) {
         .write_all(toml::to_string_pretty(&map).unwrap().as_bytes())
         .unwrap();
 }
-
 mod modal {
-    use iced_native::alignment::Alignment;
-    use iced_native::widget::{self, Tree};
-    use iced_native::{
-        event, layout, mouse, overlay, renderer, Clipboard, Color, Element, Event, Layout, Length,
-        Point, Rectangle, Shell, Size, Widget,
-    };
+    use iced::alignment::Alignment;
+    use iced::event;
+    use iced::mouse;
+    use iced::{Color, Element, Event, Length, Point, Rectangle, Size};
+    use iced_core::layout::{self, Layout};
+    use iced_core::overlay;
+    use iced_core::renderer;
+    use iced_core::widget::{self, Widget};
+    use iced_core::{self, Clipboard, Shell};
 
     /// A widget that centers a modal element over some base element
     pub struct Modal<'a, Message, Renderer> {
@@ -239,14 +241,17 @@ mod modal {
 
     impl<'a, Message, Renderer> Widget<Message, Renderer> for Modal<'a, Message, Renderer>
     where
-        Renderer: iced_native::Renderer,
+        Renderer: iced_core::Renderer,
         Message: Clone,
     {
-        fn children(&self) -> Vec<Tree> {
-            vec![Tree::new(&self.base), Tree::new(&self.modal)]
+        fn children(&self) -> Vec<widget::Tree> {
+            vec![
+                widget::Tree::new(&self.base),
+                widget::Tree::new(&self.modal),
+            ]
         }
 
-        fn diff(&self, tree: &mut Tree) {
+        fn diff(&self, tree: &mut widget::Tree) {
             tree.diff_children(&[&self.base, &self.modal]);
         }
 
@@ -264,10 +269,10 @@ mod modal {
 
         fn on_event(
             &mut self,
-            state: &mut Tree,
+            state: &mut widget::Tree,
             event: Event,
             layout: Layout<'_>,
-            cursor_position: Point,
+            cursor: mouse::Cursor,
             renderer: &Renderer,
             clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
@@ -276,7 +281,7 @@ mod modal {
                 &mut state.children[0],
                 event,
                 layout,
-                cursor_position,
+                cursor,
                 renderer,
                 clipboard,
                 shell,
@@ -285,12 +290,12 @@ mod modal {
 
         fn draw(
             &self,
-            state: &Tree,
+            state: &widget::Tree,
             renderer: &mut Renderer,
-            theme: &<Renderer as iced_native::Renderer>::Theme,
+            theme: &<Renderer as iced_core::Renderer>::Theme,
             style: &renderer::Style,
             layout: Layout<'_>,
-            cursor_position: Point,
+            cursor: mouse::Cursor,
             viewport: &Rectangle,
         ) {
             self.base.as_widget().draw(
@@ -299,14 +304,14 @@ mod modal {
                 theme,
                 style,
                 layout,
-                cursor_position,
+                cursor,
                 viewport,
             );
         }
 
         fn overlay<'b>(
             &'b mut self,
-            state: &'b mut Tree,
+            state: &'b mut widget::Tree,
             layout: Layout<'_>,
             _renderer: &Renderer,
         ) -> Option<overlay::Element<'b, Message, Renderer>> {
@@ -323,16 +328,16 @@ mod modal {
 
         fn mouse_interaction(
             &self,
-            state: &Tree,
+            state: &widget::Tree,
             layout: Layout<'_>,
-            cursor_position: Point,
+            cursor: mouse::Cursor,
             viewport: &Rectangle,
             renderer: &Renderer,
         ) -> mouse::Interaction {
             self.base.as_widget().mouse_interaction(
                 &state.children[0],
                 layout,
-                cursor_position,
+                cursor,
                 viewport,
                 renderer,
             )
@@ -340,7 +345,7 @@ mod modal {
 
         fn operate(
             &self,
-            state: &mut Tree,
+            state: &mut widget::Tree,
             layout: Layout<'_>,
             renderer: &Renderer,
             operation: &mut dyn widget::Operation<Message>,
@@ -353,7 +358,7 @@ mod modal {
 
     struct Overlay<'a, 'b, Message, Renderer> {
         content: &'b mut Element<'a, Message, Renderer>,
-        tree: &'b mut Tree,
+        tree: &'b mut widget::Tree,
         size: Size,
         on_blur: Option<Message>,
     }
@@ -361,7 +366,7 @@ mod modal {
     impl<'a, 'b, Message, Renderer> overlay::Overlay<Message, Renderer>
         for Overlay<'a, 'b, Message, Renderer>
     where
-        Renderer: iced_native::Renderer,
+        Renderer: iced_core::Renderer,
         Message: Clone,
     {
         fn layout(&self, renderer: &Renderer, _bounds: Size, position: Point) -> layout::Node {
@@ -382,7 +387,7 @@ mod modal {
             &mut self,
             event: Event,
             layout: Layout<'_>,
-            cursor_position: Point,
+            cursor: mouse::Cursor,
             renderer: &Renderer,
             clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
@@ -391,7 +396,7 @@ mod modal {
 
             if let Some(message) = self.on_blur.as_ref() {
                 if let Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) = &event {
-                    if !content_bounds.contains(cursor_position) {
+                    if !cursor.is_over(content_bounds) {
                         shell.publish(message.clone());
                         return event::Status::Captured;
                     }
@@ -402,7 +407,7 @@ mod modal {
                 self.tree,
                 event,
                 layout.children().next().unwrap(),
-                cursor_position,
+                cursor,
                 renderer,
                 clipboard,
                 shell,
@@ -412,15 +417,15 @@ mod modal {
         fn draw(
             &self,
             renderer: &mut Renderer,
-            theme: &Renderer::Theme,
+            theme: &<Renderer as iced_core::Renderer>::Theme,
             style: &renderer::Style,
             layout: Layout<'_>,
-            cursor_position: Point,
+            cursor: mouse::Cursor,
         ) {
             renderer.fill_quad(
                 renderer::Quad {
                     bounds: layout.bounds(),
-                    border_radius: renderer::BorderRadius::from(0.0),
+                    border_radius: Default::default(),
                     border_width: 0.0,
                     border_color: Color::TRANSPARENT,
                 },
@@ -436,7 +441,7 @@ mod modal {
                 theme,
                 style,
                 layout.children().next().unwrap(),
-                cursor_position,
+                cursor,
                 &layout.bounds(),
             );
         }
@@ -458,15 +463,27 @@ mod modal {
         fn mouse_interaction(
             &self,
             layout: Layout<'_>,
-            cursor_position: Point,
+            cursor: mouse::Cursor,
             viewport: &Rectangle,
             renderer: &Renderer,
         ) -> mouse::Interaction {
             self.content.as_widget().mouse_interaction(
                 self.tree,
                 layout.children().next().unwrap(),
-                cursor_position,
+                cursor,
                 viewport,
+                renderer,
+            )
+        }
+
+        fn overlay<'c>(
+            &'c mut self,
+            layout: Layout<'_>,
+            renderer: &Renderer,
+        ) -> Option<overlay::Element<'c, Message, Renderer>> {
+            self.content.as_widget_mut().overlay(
+                self.tree,
+                layout.children().next().unwrap(),
                 renderer,
             )
         }
@@ -474,7 +491,7 @@ mod modal {
 
     impl<'a, Message, Renderer> From<Modal<'a, Message, Renderer>> for Element<'a, Message, Renderer>
     where
-        Renderer: 'a + iced_native::Renderer,
+        Renderer: 'a + iced_core::Renderer,
         Message: 'a + Clone,
     {
         fn from(modal: Modal<'a, Message, Renderer>) -> Self {

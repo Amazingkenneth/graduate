@@ -3,10 +3,10 @@ pub enum QuadButton {
     Primary,
     Positive,
 }
+use iced::widget::button::{Appearance, StyleSheet};
 use iced::{Background, Color};
-use iced_native::widget::button::{Appearance, StyleSheet};
 impl StyleSheet for QuadButton {
-    type Style = iced_native::Theme;
+    type Style = iced::Theme;
 
     fn active(&self, _: &Self::Style) -> Appearance {
         let background_color = match self {
@@ -14,8 +14,8 @@ impl StyleSheet for QuadButton {
             Self::Positive => Color::from_rgb8(18, 102, 79),
         };
         Appearance {
-            shadow_offset: iced_native::Vector { x: 5.0, y: 5.0 },
-            border_radius: 10.0,
+            shadow_offset: iced_core::Vector { x: 5.0, y: 5.0 },
+            border_radius: 10.0.into(),
             background: Some(Background::Color(background_color)),
             text_color: Color::from_rgb(1.0, 1.0, 1.0),
             ..Default::default()
@@ -30,6 +30,7 @@ impl StyleSheet for QuadButton {
                     a: color.a * 0.9,
                     ..color
                 }),
+                Background::Gradient(gradient) => Background::Gradient(gradient.mul_alpha(0.5)),
             }),
             ..active
         }
@@ -50,6 +51,7 @@ impl StyleSheet for QuadButton {
                     a: color.a * 0.5,
                     ..color
                 }),
+                Background::Gradient(gradient) => Background::Gradient(gradient.mul_alpha(0.5)),
             }),
             text_color: Color {
                 a: active.text_color.a * 0.5,

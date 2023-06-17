@@ -49,8 +49,7 @@ fn main() {
             ),
             ..window::Settings::default()
         },
-        text_multithreading: true,
-        default_font: Some(include_bytes!("./YEFONTFuJiYaTi-3.ttf")),
+        default_font: iced::Font::with_name("YEFONTFuJiYaTi"),
         ..Settings::default()
     })
     .unwrap();
@@ -122,6 +121,7 @@ pub struct GraduationState {
 #[derive(Clone, Debug)]
 pub enum Message {
     BackStage,
+    FontLoaded(Result<(), iced::font::Error>),
     ChoseCharacter(usize),
     ClickedPin(usize),
     CopyText(String),
@@ -130,7 +130,7 @@ pub enum Message {
     FetchImage(Result<Memories, Error>),
     FinishedTyping,
     HideSettings,
-    HomepageScrolled(scrollable::RelativeOffset),
+    HomepageScrolled(scrollable::Viewport),
     IsDarkTheme(bool),
     Loaded(Result<State, Error>),
     LoadedImage(Result<EntryState, Error>),
@@ -179,7 +179,11 @@ impl Application for Memories {
     fn new(_flags: ()) -> (Memories, Command<Message>) {
         (
             Memories::Initialization,
-            Command::perform(State::get_idx(None), Message::Loaded),
+            Command::batch(vec![
+                iced::font::load(include_bytes!("./YEFONTFuJiYaTi.ttf").as_slice())
+                    .map(Message::FontLoaded),
+                Command::perform(State::get_idx(None), Message::Loaded),
+            ]),
         )
     }
 
@@ -536,7 +540,7 @@ impl Application for Memories {
                                     choosing.element_count = rng.gen_range(6..=8);
                                 }
                                 Message::HomepageScrolled(new_offset) => {
-                                    choosing.homepage_offset = new_offset;
+                                    choosing.homepage_offset = new_offset.relative_offset();
                                 }
                                 _ => {}
                             },
@@ -907,11 +911,14 @@ impl Application for Memories {
                             }
 
                             let mut emojis = row![].align_items(Alignment::Center).spacing(5);
-                            for i in &choosing.avatars[chosen].emoji {
+                            for (j, i) in choosing.avatars[chosen].emoji.iter().enumerate() {
                                 emojis = emojis.push(
                                     column![
-                                        widget::image::viewer(i.emoji.clone())
-                                            .height(Length::Fixed(400.0)),
+                                        imageviewer::Viewer::new(i.emoji.clone())
+                                            .height(Length::Fixed(400.0)).id(imageviewer::emoji_id(
+                                                chosen,
+                                                j
+                                            )),
                                         text(i.emoji_name.clone()).size(30)
                                     ]
                                     .align_items(Alignment::Center),

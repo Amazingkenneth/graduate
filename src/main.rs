@@ -915,10 +915,8 @@ impl Application for Memories {
                                 emojis = emojis.push(
                                     column![
                                         imageviewer::Viewer::new(i.emoji.clone())
-                                            .height(Length::Fixed(400.0)).id(imageviewer::emoji_id(
-                                                chosen,
-                                                j
-                                            )),
+                                            .height(Length::Fixed(400.0))
+                                            .id(imageviewer::emoji_id(chosen, j)),
                                         text(i.emoji_name.clone()).size(30)
                                     ]
                                     .align_items(Alignment::Center),
@@ -1256,7 +1254,7 @@ impl Application for Memories {
                                 });
                             }
                             let map = container(widget::image(image::Handle::from_memory(
-                                include_bytes!("./runtime/map.png"),
+                                include_bytes!("./runtime/map.jpg"),
                             )));
                             let floating_element =
                                 crate::floatingelement::FloatingElement::new(map, current, offsets);

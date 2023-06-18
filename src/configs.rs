@@ -10,7 +10,6 @@ pub struct Configs {
     pub shown: bool,
     pub full_screened: bool,
     pub config_path: String,
-    pub scale_factor: f64,
     pub theme: Theme,
     pub from_date: visiting::ShootingTime,
     pub volume_percentage: f32,
@@ -171,7 +170,7 @@ pub fn save_configs(state: &mut State) {
     );
     map.insert(
         String::from("scale-factor"),
-        toml::Value::Float(configs.scale_factor),
+        toml::Value::Float(crate::load_scale_factor()),
     );
     map.insert(
         String::from("light-theme"),

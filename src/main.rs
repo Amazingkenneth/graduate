@@ -21,11 +21,21 @@ use iced::widget::{
 use iced::window::Mode;
 use iced::{window, Alignment, Application, Color, Command, Element, Length, Settings, Theme};
 use rand::Rng;
+use std::sync::atomic::AtomicU64;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use toml::value::Table;
 
 pub static DELETE_FILES_ON_EXIT: AtomicBool = AtomicBool::new(false);
+pub static SCALE_FACTOR: AtomicU64 = AtomicU64::new(0x3FF0000000000000); // 1.0f64
+
+pub fn store_scale_factor(value: f64) {
+    let as_u64 = value.to_bits();
+    SCALE_FACTOR.store(as_u64, Ordering::Relaxed);
+}
+pub fn load_scale_factor() -> f64 {
+    f64::from_bits(SCALE_FACTOR.load(Ordering::Relaxed))
+}
 
 fn main() {
     #[cfg(target_os = "macos")]
@@ -256,13 +266,13 @@ impl Application for Memories {
                         *self = memo;
                     }
                     Message::ScaleDown => {
-                        config.scale_factor /= 1.05;
+                        store_scale_factor(load_scale_factor() / 1.05);
                     }
                     Message::ScaleEnlarge => {
-                        config.scale_factor *= 1.05;
+                        store_scale_factor(load_scale_factor() * 1.05);
                     }
                     Message::ScaleRestore => {
-                        config.scale_factor = 1.0;
+                        store_scale_factor(1.0);
                     }
                     Message::IsDarkTheme(is_dark) => {
                         if is_dark {
@@ -332,17 +342,17 @@ impl Application for Memories {
                         return iced::window::change_mode(Mode::Windowed);
                     }
                     Message::ScaleDown => {
-                        state.configs.scale_factor /= 1.05;
+                        store_scale_factor(load_scale_factor() / 1.05);
                         configs::save_configs(state);
                         return Command::none();
                     }
                     Message::ScaleEnlarge => {
-                        state.configs.scale_factor *= 1.05;
+                        store_scale_factor(load_scale_factor() * 1.05);
                         configs::save_configs(state);
                         return Command::none();
                     }
                     Message::ScaleRestore => {
-                        state.configs.scale_factor = 1.0;
+                        store_scale_factor(1.0);
                         configs::save_configs(state);
                         return Command::none();
                     }
@@ -671,6 +681,7 @@ impl Application for Memories {
                             }
                             Message::ClickedPin(new_on) => {
                                 graduation::ON_LOCATION.store(new_on, Ordering::Relaxed);
+                                vision.on_image = 0;
                             }
                             Message::SelectedImage(s) => {
                                 for (index, value) in vision.images
@@ -1236,48 +1247,8 @@ impl Application for Memories {
                                     graduation::ON_LOCATION.load(Ordering::Relaxed),
                                     vision.on_image,
                                 ))
-                                .width(Length::FillPortion(4))
+                                .width(Length::Fill)
                                 .height(Length::Fill);
-                        // let components = crate::components::Component::new(
-                        //     displayer,
-                        //     vec![
-                        //         || {
-                        //             Element::from(
-                        //                 widget::tooltip(
-                        //                     crate::button_from_svg(include_bytes!(
-                        //                         "./runtime/backward-step.svg"
-                        //                     ))
-                        //                     .width(Length::Fixed(40.0))
-                        //                     .on_press(Message::BackStage),
-                        //                     "返回",
-                        //                     widget::tooltip::Position::Top,
-                        //                 )
-                        //                 .style(iced::theme::Container::Box),
-                        //             )
-                        //         },
-                        //         || {
-                        //             Element::from(widget::pick_list(
-                        //                 images.image_names.clone(),
-                        //                 Some(images.image_names[vision.on_image].clone()),
-                        //                 Message::SelectedImage,
-                        //             ))
-                        //         },
-                        //         || {
-                        //             Element::from(
-                        //                 widget::tooltip(
-                        //                     crate::button_from_svg(include_bytes!(
-                        //                         "./runtime/chevron-up.svg"
-                        //                     ))
-                        //                     .width(Length::Fixed(60.0))
-                        //                     .on_press(Message::TogglePanelShown),
-                        //                     "收起",
-                        //                     widget::tooltip::Position::Top,
-                        //                 )
-                        //                 .style(iced::theme::Container::Box),
-                        //             )
-                        //         },
-                        //     ],
-                        // );
                         if vision.show_panel {
                             let mut current = vec![];
                             let mut offsets = vec![];
@@ -1398,11 +1369,7 @@ impl Application for Memories {
         }
     }
     fn scale_factor(&self) -> f64 {
-        match self {
-            Memories::Initialization => 1.0,
-            Memories::Loading(config) => config.scale_factor,
-            Memories::Loaded(state) => state.configs.scale_factor,
-        }
+        load_scale_factor()
     }
 
     fn theme(&self) -> Theme {

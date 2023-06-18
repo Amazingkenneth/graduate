@@ -192,11 +192,13 @@ impl State {
             } else {
                 Theme::Dark
             };
-            let scale_factor = config_table
-                .get("scale-factor")
-                .unwrap()
-                .as_float()
-                .unwrap();
+            crate::store_scale_factor(
+                config_table
+                    .get("scale-factor")
+                    .unwrap()
+                    .as_float()
+                    .unwrap(),
+            );
             let from_date: ShootingTime = config_table
                 .get("from-date")
                 .unwrap()
@@ -204,7 +206,6 @@ impl State {
                 .unwrap()
                 .into();
             let configs = Configs {
-                scale_factor,
                 theme,
                 from_date,
                 volume_percentage: initial_volume,
@@ -279,7 +280,6 @@ impl State {
                 idxtable,
                 storage,
                 configs: Configs {
-                    scale_factor: 1.0,
                     theme: Theme::Light,
                     from_date: crate::visiting::ShootingTime::Precise(
                         time::macros::datetime!(2020-06-01 0:00),

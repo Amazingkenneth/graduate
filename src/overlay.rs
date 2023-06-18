@@ -60,43 +60,45 @@ where
     ) -> iced_core::layout::Node {
         let limits = Limits::new(Size::ZERO, bounds);
         let mut element = self.element.as_widget().layout(renderer, &limits);
+        let fixed_offset_x = self.offset.x / 1500.0 * bounds.width;
+        let fixed_offset_y = self.offset.y / 900.0 * bounds.height;
 
         match self.anchor {
             Anchor::NorthWest => element.move_to(Point::new(
-                position.x + self.offset.x,
-                position.y + self.offset.y,
+                position.x + fixed_offset_x,
+                position.y + fixed_offset_y,
             )),
             Anchor::NorthEast => element.move_to(Point::new(
-                position.x - element.bounds().width - self.offset.x,
-                position.y + self.offset.y,
+                position.x - element.bounds().width - fixed_offset_x,
+                position.y + fixed_offset_y,
             )),
             Anchor::SouthWest => element.move_to(Point::new(
-                position.x + self.offset.x,
-                position.y - element.bounds().height - self.offset.y,
+                position.x + fixed_offset_x,
+                position.y - element.bounds().height - fixed_offset_y,
             )),
             Anchor::SouthEast => element.move_to(Point::new(
-                position.x - element.bounds().width - self.offset.x,
-                position.y - element.bounds().height - self.offset.y,
+                position.x - element.bounds().width - fixed_offset_x,
+                position.y - element.bounds().height - fixed_offset_y,
             )),
             Anchor::North => element.move_to(Point::new(
-                position.x + self.offset.x - element.bounds().width / 2.0,
-                position.y + self.offset.y,
+                position.x + fixed_offset_x - element.bounds().width / 2.0,
+                position.y + fixed_offset_y,
             )),
             Anchor::East => element.move_to(Point::new(
-                position.x - element.bounds().width - self.offset.x,
+                position.x - element.bounds().width - fixed_offset_x,
                 position.y - element.bounds().height / 2.0,
             )),
             Anchor::South => element.move_to(Point::new(
-                position.x + self.offset.x - element.bounds().width / 2.0,
-                position.y - element.bounds().height - self.offset.y,
+                position.x + fixed_offset_x - element.bounds().width / 2.0,
+                position.y - element.bounds().height - fixed_offset_y,
             )),
             Anchor::West => element.move_to(Point::new(
-                position.x + self.offset.x,
+                position.x + fixed_offset_x,
                 position.y - element.bounds().height / 2.0,
             )),
             Anchor::Center => element.move_to(Point::new(
-                position.x + self.offset.x - element.bounds().width / 2.0,
-                position.y - element.bounds().height / 2.0,
+                position.x + fixed_offset_x - element.bounds().width / 2.0,
+                position.y + fixed_offset_y - element.bounds().height / 2.0,
             )),
         }
 

@@ -35,7 +35,7 @@ where
         U: Into<Element<'a, Message, Renderer>>,
     {
         Pinpoint {
-            anchor: Anchor::NorthWest,
+            anchor: Anchor::Center,
             offset,
             hidden: false,
             underlay: underlay.into(),

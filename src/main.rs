@@ -217,7 +217,7 @@ impl Application for Memories {
                 }
                 Stage::Graduated(img) => {
                     return format!(
-                        "来看看我们的 {} 吧",
+                        "来看看 {} 吧",
                         img.images[graduation::ON_LOCATION.load(Ordering::Relaxed)].image_names
                             [img.on_image]
                     )

@@ -3,21 +3,23 @@ mod audio;
 mod choosing;
 mod configs;
 mod entries;
-mod floatingelement;
 mod graduation;
 mod imageviewer;
+mod overlay;
+mod pinpoint;
 mod quadbutton;
 mod sink;
 mod subscriptions;
 mod visiting;
 
+use crate::overlay::Offset;
 use configs::Configs;
 use iced::widget::{
     self, column, container, horizontal_space, image, row, scrollable, text, text_input,
+    vertical_space,
 };
 use iced::window::Mode;
 use iced::{window, Alignment, Application, Color, Command, Element, Length, Settings, Theme};
-use iced_aw::floating_element::Offset;
 use rand::Rng;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
@@ -925,7 +927,8 @@ impl Application for Memories {
                                         imageviewer::Viewer::new(i.emoji.clone())
                                             .height(Length::Fixed(400.0))
                                             .id(imageviewer::emoji_id(chosen, j)),
-                                        text(i.emoji_name.clone()).size(30)
+                                        text(i.emoji_name.clone()).size(30),
+                                        vertical_space(Length::Fixed(5.0))
                                     ]
                                     .align_items(Alignment::Center),
                                 );
@@ -1235,7 +1238,47 @@ impl Application for Memories {
                                 ))
                                 .width(Length::FillPortion(4))
                                 .height(Length::Fill);
-                        let displayer = if vision.show_panel {
+                        // let components = crate::components::Component::new(
+                        //     displayer,
+                        //     vec![
+                        //         || {
+                        //             Element::from(
+                        //                 widget::tooltip(
+                        //                     crate::button_from_svg(include_bytes!(
+                        //                         "./runtime/backward-step.svg"
+                        //                     ))
+                        //                     .width(Length::Fixed(40.0))
+                        //                     .on_press(Message::BackStage),
+                        //                     "返回",
+                        //                     widget::tooltip::Position::Top,
+                        //                 )
+                        //                 .style(iced::theme::Container::Box),
+                        //             )
+                        //         },
+                        //         || {
+                        //             Element::from(widget::pick_list(
+                        //                 images.image_names.clone(),
+                        //                 Some(images.image_names[vision.on_image].clone()),
+                        //                 Message::SelectedImage,
+                        //             ))
+                        //         },
+                        //         || {
+                        //             Element::from(
+                        //                 widget::tooltip(
+                        //                     crate::button_from_svg(include_bytes!(
+                        //                         "./runtime/chevron-up.svg"
+                        //                     ))
+                        //                     .width(Length::Fixed(60.0))
+                        //                     .on_press(Message::TogglePanelShown),
+                        //                     "收起",
+                        //                     widget::tooltip::Position::Top,
+                        //                 )
+                        //                 .style(iced::theme::Container::Box),
+                        //             )
+                        //         },
+                        //     ],
+                        // );
+                        if vision.show_panel {
                             let mut current = vec![];
                             let mut offsets = vec![];
                             for pan in &vision.images {
@@ -1263,185 +1306,67 @@ impl Application for Memories {
                             let map = container(widget::image(image::Handle::from_memory(
                                 include_bytes!("./runtime/map.jpg"),
                             )));
-                            let floating_element =
-                                crate::floatingelement::FloatingElement::new(map, current, offsets);
+                            let pinpointed_map =
+                                crate::pinpoint::Pinpoint::new(map, current, offsets);
+                            let mut components = column![
+                                widget::tooltip(
+                                    crate::button_from_svg(include_bytes!(
+                                        "./runtime/backward-step.svg"
+                                    ))
+                                    .width(Length::Fixed(40.0))
+                                    .on_press(Message::BackStage),
+                                    "返回",
+                                    widget::tooltip::Position::Top,
+                                )
+                                .style(iced::theme::Container::Box),
+                                widget::tooltip(
+                                    crate::button_from_svg(include_bytes!(
+                                        "./runtime/chevron-up.svg"
+                                    ))
+                                    .width(Length::Fixed(60.0))
+                                    .on_press(Message::TogglePanelShown),
+                                    "全屏查看",
+                                    widget::tooltip::Position::Top,
+                                )
+                                .gap(-5.0)
+                                .style(iced::theme::Container::Box)
+                            ]
+                            .align_items(Alignment::Center);
                             if images.image.len() > 1 {
-                                column![
-                                    floating_element,
-                                    iced_aw::FloatingElement::new(displayer, move || {
-                                        Element::from(column![
-                                            widget::vertical_space(Length::Fixed(20.0)),
-                                            row![
-                                                horizontal_space(Length::Fixed(20.0)),
-                                                widget::tooltip(
-                                                    crate::button_from_svg(include_bytes!(
-                                                        "./runtime/backward-step.svg"
-                                                    ))
-                                                    .width(Length::Fixed(40.0))
-                                                    .on_press(Message::BackStage),
-                                                    "返回",
-                                                    widget::tooltip::Position::Top,
-                                                )
-                                                .style(iced::theme::Container::Box),
-                                                horizontal_space(Length::Fill),
-                                                widget::pick_list(
-                                                    images.image_names.clone(),
-                                                    Some(
-                                                        images.image_names[vision.on_image].clone()
-                                                    ),
-                                                    Message::SelectedImage,
-                                                ),
-                                                horizontal_space(Length::Fixed(10.0)),
-                                                column![
-                                                    widget::vertical_space(Length::Fixed(10.0)),
-                                                    widget::tooltip(
-                                                        crate::button_from_svg(include_bytes!(
-                                                            "./runtime/chevron-up.svg"
-                                                        ))
-                                                        .width(Length::Fixed(60.0))
-                                                        .on_press(Message::TogglePanelShown),
-                                                        "收起",
-                                                        widget::tooltip::Position::Top,
-                                                    )
-                                                    .style(iced::theme::Container::Box)
-                                                ],
-                                                horizontal_space(Length::Fixed(20.0)),
-                                            ]
-                                            .width(Length::Fill)
-                                            .align_items(Alignment::Center)
-                                        ])
-                                    })
-                                    .anchor(iced_aw::floating_element::Anchor::South)
-                                    .offset(Offset { x: 0.0, y: 6.0 })
-                                ]
-                            } else {
-                                column![
-                                    floating_element,
-                                    iced_aw::FloatingElement::new(displayer, move || {
-                                        Element::from(column![
-                                            widget::vertical_space(Length::Fixed(20.0)),
-                                            row![
-                                                horizontal_space(Length::Fixed(20.0)),
-                                                widget::tooltip(
-                                                    crate::button_from_svg(include_bytes!(
-                                                        "./runtime/backward-step.svg"
-                                                    ))
-                                                    .width(Length::Fixed(40.0))
-                                                    .on_press(Message::BackStage),
-                                                    "返回",
-                                                    widget::tooltip::Position::Top,
-                                                )
-                                                .style(iced::theme::Container::Box),
-                                                horizontal_space(Length::Fill),
-                                                column![
-                                                    widget::vertical_space(Length::Fixed(10.0)),
-                                                    widget::tooltip(
-                                                        crate::button_from_svg(include_bytes!(
-                                                            "./runtime/chevron-up.svg"
-                                                        ))
-                                                        .width(Length::Fixed(60.0))
-                                                        .on_press(Message::TogglePanelShown),
-                                                        "收起",
-                                                        widget::tooltip::Position::Top,
-                                                    )
-                                                    .style(iced::theme::Container::Box)
-                                                ],
-                                                horizontal_space(Length::Fixed(20.0)),
-                                            ]
-                                            .width(Length::Fill)
-                                            .align_items(Alignment::Center)
-                                        ])
-                                    })
-                                    .anchor(iced_aw::floating_element::Anchor::South)
-                                    .offset(Offset { x: 0.0, y: 6.0 })
-                                ]
+                                components = components.push(widget::pick_list(
+                                    images.image_names.clone(),
+                                    Some(images.image_names[vision.on_image].clone()),
+                                    Message::SelectedImage,
+                                ));
                             }
+                            column![
+                                pinpointed_map,
+                                row![
+                                    container(components).center_y().height(Length::Fill),
+                                    displayer
+                                ]
+                            ]
+                            .into()
                         } else {
-                            if images.image.len() > 1 {
-                                column![iced_aw::FloatingElement::new(displayer, move || {
-                                    Element::from(column![
-                                        widget::vertical_space(Length::Fixed(20.0)),
-                                        row![
-                                            horizontal_space(Length::Fixed(20.0)),
-                                            widget::tooltip(
-                                                crate::button_from_svg(include_bytes!(
-                                                    "./runtime/backward-step.svg"
-                                                ))
-                                                .width(Length::Fixed(40.0))
-                                                .on_press(Message::BackStage),
-                                                "返回",
-                                                widget::tooltip::Position::Top,
-                                            )
-                                            .style(iced::theme::Container::Box),
-                                            horizontal_space(Length::Fill),
-                                            widget::pick_list(
-                                                images.image_names.clone(),
-                                                Some(images.image_names[vision.on_image].clone()),
-                                                Message::SelectedImage,
-                                            ),
-                                            horizontal_space(Length::Fixed(10.0)),
-                                            column![
-                                                widget::tooltip(
-                                                    crate::button_from_svg(include_bytes!(
-                                                        "./runtime/chevron-down.svg"
-                                                    ))
-                                                    .width(Length::Fixed(60.0))
-                                                    .on_press(Message::TogglePanelShown),
-                                                    "展开",
-                                                    widget::tooltip::Position::Top,
-                                                )
-                                                .style(iced::theme::Container::Box),
-                                                widget::vertical_space(Length::Fixed(10.0)),
-                                            ],
-                                            horizontal_space(Length::Fixed(20.0)),
-                                        ]
-                                        .width(Length::Fill)
-                                        .align_items(Alignment::Center)
-                                    ])
-                                })
-                                .anchor(iced_aw::floating_element::Anchor::South)
-                                .offset(Offset { x: 0.0, y: 6.0 })]
-                            } else {
-                                column![iced_aw::FloatingElement::new(displayer, move || {
-                                    Element::from(column![
-                                        widget::vertical_space(Length::Fixed(20.0)),
-                                        row![
-                                            horizontal_space(Length::Fixed(20.0)),
-                                            widget::tooltip(
-                                                crate::button_from_svg(include_bytes!(
-                                                    "./runtime/backward-step.svg"
-                                                ))
-                                                .width(Length::Fixed(40.0))
-                                                .on_press(Message::BackStage),
-                                                "返回",
-                                                widget::tooltip::Position::Top,
-                                            )
-                                            .style(iced::theme::Container::Box),
-                                            horizontal_space(Length::Fill),
-                                            column![
-                                                widget::tooltip(
-                                                    crate::button_from_svg(include_bytes!(
-                                                        "./runtime/chevron-down.svg"
-                                                    ))
-                                                    .width(Length::Fixed(60.0))
-                                                    .on_press(Message::TogglePanelShown),
-                                                    "展开",
-                                                    widget::tooltip::Position::Top,
-                                                )
-                                                .style(iced::theme::Container::Box),
-                                                widget::vertical_space(Length::Fixed(10.0)),
-                                            ],
-                                            horizontal_space(Length::Fixed(20.0)),
-                                        ]
-                                        .width(Length::Fill)
-                                        .align_items(Alignment::Center)
-                                    ])
-                                })
-                                .anchor(iced_aw::floating_element::Anchor::South)
-                                .offset(Offset { x: 0.0, y: 6.0 })]
-                            }
-                        };
-                        displayer.into()
+                            column![overlay::Component::new(displayer, || {
+                                column![
+                                    vertical_space(Length::Fixed(40.0)),
+                                    widget::tooltip(
+                                        crate::button_from_svg(include_bytes!(
+                                            "./runtime/chevron-down.svg"
+                                        ))
+                                        .width(Length::Fixed(60.0))
+                                        .on_press(Message::TogglePanelShown),
+                                        "收起",
+                                        widget::tooltip::Position::Top,
+                                    )
+                                    .gap(-10.0)
+                                    .style(iced::theme::Container::Box),
+                                ]
+                                .into()
+                            })]
+                            .into()
+                        }
                     }
                 };
                 if state.configs.shown {

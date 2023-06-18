@@ -1,12 +1,12 @@
 use iced_core::{event, mouse, overlay, Clipboard, Event, Layout, Length, Point, Rectangle, Shell};
 use iced_core::{widget::Tree, Element, Widget};
 
-use iced_aw::floating_element::Offset;
-use iced_aw::native::floating_element::anchor::Anchor;
-use iced_aw::native::overlay::FloatingElementOverlay;
+use crate::overlay::Anchor;
+use crate::overlay::FloatingElementOverlay;
+use crate::overlay::Offset;
 
 #[allow(missing_debug_implementations)]
-pub struct FloatingElement<'a, B, Message, Renderer>
+pub struct Pinpoint<'a, B, Message, Renderer>
 where
     B: Fn(usize) -> Element<'a, Message, Renderer>,
     Message: Clone,
@@ -24,7 +24,7 @@ where
     element: Vec<B>,
 }
 
-impl<'a, B, Message, Renderer> FloatingElement<'a, B, Message, Renderer>
+impl<'a, B, Message, Renderer> Pinpoint<'a, B, Message, Renderer>
 where
     B: Fn(usize) -> Element<'a, Message, Renderer>,
     Message: Clone,
@@ -34,7 +34,7 @@ where
     where
         U: Into<Element<'a, Message, Renderer>>,
     {
-        FloatingElement {
+        Pinpoint {
             anchor: Anchor::NorthWest,
             offset,
             hidden: false,
@@ -59,8 +59,7 @@ where
     }
 }
 
-impl<'a, B, Message, Renderer> Widget<Message, Renderer>
-    for FloatingElement<'a, B, Message, Renderer>
+impl<'a, B, Message, Renderer> Widget<Message, Renderer> for Pinpoint<'a, B, Message, Renderer>
 where
     B: Fn(usize) -> Element<'a, Message, Renderer>,
     Message: 'a + Clone,
@@ -185,6 +184,7 @@ where
             Anchor::East => Point::new(bounds.width, bounds.center_y()),
             Anchor::South => Point::new(bounds.center_x(), bounds.height),
             Anchor::West => Point::new(0.0, bounds.center_y()),
+            Anchor::Center => Point::new(bounds.center_x(), bounds.center_y()),
         };
 
         let position = Point::new(bounds.x + position.x, bounds.y + position.y);
@@ -208,14 +208,14 @@ where
     }
 }
 
-impl<'a, B, Message, Renderer> From<FloatingElement<'a, B, Message, Renderer>>
+impl<'a, B, Message, Renderer> From<Pinpoint<'a, B, Message, Renderer>>
     for Element<'a, Message, Renderer>
 where
     B: 'a + Fn(usize) -> Element<'a, Message, Renderer>,
     Message: 'a + Clone,
     Renderer: 'a + iced_core::Renderer,
 {
-    fn from(floating_element: FloatingElement<'a, B, Message, Renderer>) -> Self {
+    fn from(floating_element: Pinpoint<'a, B, Message, Renderer>) -> Self {
         Element::new(floating_element)
     }
 }

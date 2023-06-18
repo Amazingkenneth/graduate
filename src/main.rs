@@ -238,6 +238,15 @@ impl Application for Memories {
                     Message::FetchImage(Ok(memo)) => {
                         *self = memo;
                     }
+                    Message::ScaleDown => {
+                        store_scale_factor(load_scale_factor() / 1.05);
+                    }
+                    Message::ScaleEnlarge => {
+                        store_scale_factor(load_scale_factor() * 1.05);
+                    }
+                    Message::ScaleRestore => {
+                        store_scale_factor(1.0);
+                    }
                     _ => (),
                 }
                 Command::none()

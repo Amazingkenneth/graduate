@@ -1133,7 +1133,6 @@ dependencies = [
  "embed-resource",
  "iced",
  "iced_core",
- "iced_winit",
  "image",
  "rand",
  "reqwest",

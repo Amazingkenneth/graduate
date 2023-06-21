@@ -625,7 +625,7 @@ impl Application for Memories {
                                 }
                                 Message::NextEvent => {
                                     displayer.on_event += 1;
-                                    if displayer.on_event == *len {
+                                    if displayer.on_event == events.len() {
                                         next_stage = true;
                                     }
                                 }

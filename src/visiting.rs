@@ -59,7 +59,6 @@ impl Event {
 pub struct Experience {
     pub shot: ShootingTime,
     pub path: String,
-    pub with: Option<Vec<usize>>,
     pub handle: Option<image::Handle>,
     pub join_handle: Arc<Mutex<Option<tokio::task::JoinHandle<()>>>>,
 }
@@ -208,7 +207,6 @@ pub async fn get_queue(state: State) -> Result<State, crate::Error> {
                 images.push(Experience {
                     path: img.get("path").unwrap().as_str().unwrap().to_string(),
                     shot: img_shotdate,
-                    with: None,
                     handle: None,
                     join_handle: Arc::new(Mutex::new(None)),
                 });
@@ -219,20 +217,17 @@ pub async fn get_queue(state: State) -> Result<State, crate::Error> {
             for i in with_people {
                 with.push(i.as_integer().unwrap() as usize);
             }
-            for it in &with {
-                if it == &chose_person {
-                    images.push(Experience {
-                        path: format!(
-                            "image/experience/{}",
-                            img.get("path").unwrap().as_str().unwrap()
-                        ),
-                        shot: img_shotdate,
-                        with: Some(with),
-                        handle: None,
-                        join_handle: Arc::new(Mutex::new(None)),
-                    });
-                    break;
-                }
+            if with.contains(&chose_person) {
+                images.push(Experience {
+                    path: format!(
+                        "image/experience/{}",
+                        img.get("path").unwrap().as_str().unwrap()
+                    ),
+                    shot: img_shotdate,
+                    handle: None,
+                    join_handle: Arc::new(Mutex::new(None)),
+                });
+                break;
             }
         }
         if !images.is_empty() {
@@ -265,7 +260,6 @@ pub async fn get_queue(state: State) -> Result<State, crate::Error> {
                 images.push(Experience {
                     path: img.get("path").unwrap().as_str().unwrap().to_string(),
                     shot: img_shotdate,
-                    with: None,
                     handle: None,
                     join_handle: Arc::new(Mutex::new(None)),
                 });
@@ -281,7 +275,6 @@ pub async fn get_queue(state: State) -> Result<State, crate::Error> {
                     images.push(Experience {
                         path: img.get("path").unwrap().as_str().unwrap().to_string(),
                         shot: img_shotdate,
-                        with: Some(with),
                         handle: None,
                         join_handle: Arc::new(Mutex::new(None)),
                     });
@@ -304,12 +297,12 @@ pub async fn get_queue(state: State) -> Result<State, crate::Error> {
         }
     }
     queue_event.sort_unstable();
+    dbg!(queue_event.len());
     let initial_event = Event {
         description: String::from(""),
         on_experience: 0,
         experiences: vec![Experience {
             shot: state.configs.from_date.clone(),
-            with: None,
             path: String::from(""),
             handle: None,
             join_handle: Arc::new(Mutex::new(None)),

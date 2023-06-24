@@ -1,0 +1,540 @@
+url_prefix = "https://graduate-cdn.netlify.app"
+
+emoji = [
+    "1/敖敖不知所措.jpg",
+    "10/Hi pretty girl.jpg",
+    "10/Wink.jpg",
+    "10/灵魂三连问.jpg",
+    "10/自信女人14.0.jpg",
+    "11/专注实验.jpg",
+    "11/我起飞了.jpg",
+    "11/百日誓师之主持人.jpg",
+    "11/诶嘿～.jpg",
+    "11/飞行时刻.jpg",
+    #"11/有道理.jpg",
+    #"11/真香.jpg",
+    "12/不屑.jpg",
+    "12/乖崽-班主任认证.jpg",
+    "14/咦呀.jpg",
+    "15/啧 啥也不是.jpg",
+    "16/自信男人7.0.jpg",
+    "17/羞涩.jpg",
+    "17/让我在迷茫中挣扎.jpg",
+    "18/你瞅啥.jpg",
+    "18/嗯？.jpg",
+    "2/自信女人9.0.jpg",
+    "20/“我只是一个莫得感情的单美丽的礼物”.jpg",
+    "20/不屑.gif",
+    "20/切！.jpg",
+    "20/笑得灿烂.jpg",
+    "20/自信女人2.0.jpg",
+    "20/迷茫.jpg",
+    "21/耶.jpg",
+    "21/自信女人5.0.jpg",
+    "21/诶嘛刺激～.jpg",
+    "23/不要过来.jpg",
+    "23/自信女人15.0.jpg",
+    "25/我天.jpg",
+    "26/自信女人10.0.jpg",
+    "27/自拍.jpg",
+    "28/RUN！.jpg",
+    "28/憨批.jpg",
+    "28/这是哪个大傻子.jpg",
+    "29/自信女人8.0.jpg",
+    "3/《猥琐》.jpg",
+    "30/“触角”.jpg",
+    "30/不屑.jpg",
+    "30/大脸曾.jpg",
+    "30/群山中.jpg",
+    "31/《快乐》.jpg",
+    "33/“惊呆了老铁”.jpg",
+    "33/我真美.jpg",
+    "33/看我妖娆的身姿.jpg",
+    "33/眼睛瞪大的像铜铃.jpg",
+    "33/笑得迷茫.jpg",
+    "33/自信女人6.0.jpg",
+    "33/？×3.jpg",
+    "34/《滞涨》.jpg",
+    "34/认爷爷.jpg",
+    "34/让我看看.jpg",
+    "35/咋滴？.jpg",
+    "35/哦耶！.jpg",
+    "35/我....jpg",
+    "35/没脸见人了.jpg",
+    "35/看到我的大绿帽吗.jpg",
+    "35/高糊抓拍.jpg",
+    "36/一脸懵逼.jpg",
+    "36/危.jpg",
+    "36/强颜欢笑.jpg",
+    "36/笑跪了.jpg",
+    "36/老单的嫌弃.jpg",
+    "36/自信女人11.0.jpg",
+    "37/美照.jpg",
+    "37/自信女人12.0.jpg",
+    "38/Gucci Prada.jpg",
+    "38/加油！.jpg",
+    "38/自信男人.jpg",
+    "38/自信男人1.1.jpg",
+    "39/窗外.jpg",
+    "4/自信女人7.0.jpg",
+    "40/宣传照.jpg",
+    "41/回眸一笑.jpg",
+    "41/眺望.jpg",
+    "41/自信女人16.0.jpg",
+    "42/相框中的我.jpg",
+    "43/旅游.jpg",
+    "44/哟.jpg",
+    "46/不可以这样子啊.jpg",
+    "46/旅游.jpg",
+    "47/喝酒.jpg",
+    "48/带队日内瓦.jpg",
+    "48/死亡凝视.jpg",
+    "49/旅游.jpg",
+    "5/Yeah.jpg",
+    "5/张皇失措.jpg",
+    "5/比心.jpg",
+    "5/自信女人4.0.jpg",
+    "50/书画旁.jpg",
+    "51/抱狗狗.jpg",
+    "51/自信女人.jpg",
+    "54/信不信我一斧头劈死你.jpg",
+    "54/幽默导演.jpg",
+    "55/宣传照.jpg",
+    "55/恭喜发财 〔GIF动画〕.gif",
+    "55/愉快.jpg",
+    "56/旅游.jpg",
+    "57/凝视.jpg",
+    "59/威武.jpg",
+    "60/宣传照.jpg",
+    "7/“我是一朵花”.jpg",
+    "7/家希礼包-1.jpg",
+    "7/家希礼包-10.jpg",
+    "7/家希礼包-100.jpg",
+    "7/家希礼包-101.jpg",
+    "7/家希礼包-102.jpg",
+    "7/家希礼包-103.jpg",
+    "7/家希礼包-104.jpg",
+    "7/家希礼包-105.jpg",
+    "7/家希礼包-106.jpg",
+    "7/家希礼包-107.jpg",
+    "7/家希礼包-108.jpg",
+    "7/家希礼包-109.jpg",
+    "7/家希礼包-11.jpg",
+    "7/家希礼包-110.jpg",
+    "7/家希礼包-111.jpg",
+    "7/家希礼包-112.jpg",
+    "7/家希礼包-113.jpg",
+    "7/家希礼包-114.jpg",
+    "7/家希礼包-115.jpg",
+    "7/家希礼包-116.jpg",
+    "7/家希礼包-117.jpg",
+    "7/家希礼包-118.jpg",
+    "7/家希礼包-119.jpg",
+    "7/家希礼包-12.jpg",
+    "7/家希礼包-120.jpg",
+    "7/家希礼包-121.jpg",
+    "7/家希礼包-122.jpg",
+    "7/家希礼包-123.jpg",
+    "7/家希礼包-13.jpg",
+    "7/家希礼包-14.jpg",
+    "7/家希礼包-15.jpg",
+    "7/家希礼包-16.jpg",
+    "7/家希礼包-17.jpg",
+    "7/家希礼包-18.jpg",
+    "7/家希礼包-19.jpg",
+    "7/家希礼包-2.jpg",
+    "7/家希礼包-20.jpg",
+    "7/家希礼包-21.jpg",
+    "7/家希礼包-22.jpg",
+    "7/家希礼包-23.jpg",
+    "7/家希礼包-24.jpg",
+    "7/家希礼包-25.jpg",
+    "7/家希礼包-26.jpg",
+    "7/家希礼包-27.jpg",
+    "7/家希礼包-28.jpg",
+    "7/家希礼包-29.jpg",
+    "7/家希礼包-3.jpg",
+    "7/家希礼包-30.jpg",
+    "7/家希礼包-31.jpg",
+    "7/家希礼包-32.jpg",
+    "7/家希礼包-33.jpg",
+    "7/家希礼包-34.jpg",
+    "7/家希礼包-35.jpg",
+    "7/家希礼包-36.jpg",
+    "7/家希礼包-37.jpg",
+    "7/家希礼包-38.jpg",
+    "7/家希礼包-39.jpg",
+    "7/家希礼包-4.jpg",
+    "7/家希礼包-40.jpg",
+    "7/家希礼包-41.jpg",
+    "7/家希礼包-42.jpg",
+    "7/家希礼包-43.jpg",
+    "7/家希礼包-44.jpg",
+    "7/家希礼包-45.jpg",
+    "7/家希礼包-46.jpg",
+    "7/家希礼包-47.jpg",
+    "7/家希礼包-48.jpg",
+    "7/家希礼包-49.jpg",
+    "7/家希礼包-5.jpg",
+    "7/家希礼包-50.jpg",
+    "7/家希礼包-51.jpg",
+    "7/家希礼包-52.jpg",
+    "7/家希礼包-53.jpg",
+    "7/家希礼包-54.jpg",
+    "7/家希礼包-55.jpg",
+    "7/家希礼包-56.jpg",
+    "7/家希礼包-57.jpg",
+    "7/家希礼包-58.jpg",
+    "7/家希礼包-59.jpg",
+    "7/家希礼包-6.jpg",
+    "7/家希礼包-60.jpg",
+    "7/家希礼包-61.jpg",
+    "7/家希礼包-62.jpg",
+    "7/家希礼包-63.jpg",
+    "7/家希礼包-64.jpg",
+    "7/家希礼包-65.jpg",
+    "7/家希礼包-66.jpg",
+    "7/家希礼包-67.jpg",
+    "7/家希礼包-68.jpg",
+    "7/家希礼包-69.jpg",
+    "7/家希礼包-7.jpg",
+    "7/家希礼包-70.jpg",
+    "7/家希礼包-71.jpg",
+    "7/家希礼包-72.jpg",
+    "7/家希礼包-73.jpg",
+    "7/家希礼包-74.jpg",
+    "7/家希礼包-75.jpg",
+    "7/家希礼包-76.jpg",
+    "7/家希礼包-77.jpg",
+    "7/家希礼包-78.jpg",
+    "7/家希礼包-79.jpg",
+    "7/家希礼包-8.jpg",
+    "7/家希礼包-80.jpg",
+    "7/家希礼包-81.jpg",
+    "7/家希礼包-82.jpg",
+    "7/家希礼包-83.jpg",
+    "7/家希礼包-84.jpg",
+    "7/家希礼包-85.jpg",
+    "7/家希礼包-86.jpg",
+    "7/家希礼包-87.jpg",
+    "7/家希礼包-88.jpg",
+    "7/家希礼包-89.jpg",
+    "7/家希礼包-9.jpg",
+    "7/家希礼包-90.jpg",
+    "7/家希礼包-91.jpg",
+    "7/家希礼包-92.jpg",
+    "7/家希礼包-93.jpg",
+    "7/家希礼包-94.jpg",
+    "7/家希礼包-95.jpg",
+    "7/家希礼包-96.jpg",
+    "7/家希礼包-97.jpg",
+    "7/家希礼包-98.jpg",
+    "7/家希礼包-99.jpg",
+    "8/自信女人13.0.jpg",
+    "9/？？？.jpg",
+]
+
+# Students are numbered under 1-35, by their student number in Grade 7,
+# while memorable teachers are numbered from 36.
+[profile]
+1 = "敖卓茵"
+10 = "李瑗"
+11 = "林泓睿"
+12 = "陆英卉"
+13 = "夏钰喆"
+14 = "刘俊希"
+15 = "周诺"
+16 = "欧嘉杰"
+17 = "张灿"
+18 = "林家希"
+19 = "伍纯菲"
+2 = "任恩琦"
+20 = "符玉雅云"
+21 = "陈匡莹"
+22 = "李荣晋"
+23 = "黄嘉玉"
+24 = "周盈盈"
+25 = "黎鹏飞"
+26 = "陈思瑶"
+27 = "张芷瑜"
+28 = "黄森"
+29 = "罗心懿"
+3 = "刘佳庚"
+30 = "曾铉雅"
+31 = "江浩哲"
+32 = "容颖贤"
+33 = "苏逸菲"
+34 = "曾韬展"
+35 = "周晋宇"
+36 = "单爱丽"
+37 = "张婷"
+38 = "黄嘉炜"
+39 = "欧晓然"
+4 = "何好"
+40 = "霍翔凌"
+41 = "蔡芸"
+42 = "梁康锡"
+43 = "石瑾"
+44 = "李嘉源"
+45 = "肖雅匀"
+46 = "万芳"
+47 = "张翠平"
+48 = "邓九贵"
+49 = "翟哲"
+5 = "杨珺婷"
+50 = "刘秀珍"
+51 = "李佩云"
+52 = "冯杰云"
+53 = "温雷"
+54 = "Mr. Macfarlane"
+55 = "韩恩"
+56 = "黎志辉"
+57 = "邓雅文"
+58 = "李素珲"
+59 = "郑小兵"
+6 = "柳昱嘉"
+60 = "韩轶敏"
+7 = "钟彦慷"
+8 = "林子钰"
+9 = "陈琛杨"
+
+[audio]
+bellring = [
+    "/audio/铃声/中学上课铃.aac",
+    "/audio/铃声/中学下课铃.aac",
+    "/audio/铃声/中学预备铃.aac",
+    "/audio/铃声/眼保健操.aac",
+    "/audio/铃声/祈福校歌.aac",
+    "/audio/铃声/考生须知.mp3",
+    "/audio/铃声/运动员进行曲.aac",
+]
+exercise = [
+    "/audio/课间操/Deep Side - Booty Music.mp3",
+    "/audio/课间操/Good Time.mp3",
+    "/audio/课间操/少年.mp3",
+    "/audio/课间操/我们都是追梦人.mp3",
+    "/audio/课间操/跑操.m4a",
+]
+records = [
+    "/audio/老师录音锦集/同学们坐下来吧.mp3",
+    "/audio/老师录音锦集/回座位！安静下来.mp3",
+    "/audio/老师录音锦集/怎么还有声音啊.mp3",
+    "/audio/老师录音锦集/是你是老师还是我是老师啊.mp3",
+    "/audio/老师录音锦集/江哥-邓九贵老师1.mp3",
+    "/audio/老师录音锦集/江哥-邓九贵老师2.mp3",
+]
+
+[[together_event]]
+date = 2020-08-28 16:57:14
+description = "第一张合照~"
+image = ["/image/grade7/开学合照.jpg"]
+
+[[together_event]]
+date = 2020-10-27
+description = "足球联赛"
+image = [
+    "/image/grade7/足球联赛-合照.jpg",
+    "/image/grade7/足球联赛-横排.jpg",
+    "/image/grade7/足球联赛-站队.jpg",
+]
+
+[[together_event]]
+date = 2020-11-12
+description = "七年级的春游"
+image = ["/image/grade7/春游-树下.jpg", "/image/grade7/春游-狮子.jpg"]
+
+[[together_event]]
+date = 2021-02-17
+description = "大夫山春游"
+image = [
+    "/image/grade7/大夫山-不笑.jpg",
+    "/image/grade7/大夫山-树荫.jpg",
+    "/image/grade7/大夫山-笑.jpg",
+]
+
+[[together_event]]
+date = 2021-11-19
+description = "八年级运动会"
+image = [
+    "/image/grade8/运动会-墙边1.jpg",
+    "/image/grade8/运动会-墙边2.jpg",
+    "/image/grade8/运动会-墙边3.jpg",
+    "/image/grade8/运动会-草坪.jpg",
+    "/image/grade8/运动会-长图全景.jpg",
+]
+
+[[together_event]]
+date = 2023-03-29
+description = "毕业照"
+image = [
+    "/image/grade9/毕业照-举牌.jpg",
+    "/image/grade9/毕业照-扔纸飞机.jpg",
+    "/image/grade9/毕业照-操场上.jpg",
+    "/image/grade9/毕业照-音乐教室.jpg",
+]
+
+[[panorama]]
+image = ["总览图.jpg"]
+pinpoint = [11, -12]
+[[panorama]]
+image = ["3号宿舍楼后侧.jpg", "学校南侧.jpg"]
+pinpoint = [-700, 0]
+[[panorama]]
+image = ["宿舍上空.jpg", "旁观宿舍楼间大树.jpg", "近瞧宿舍楼间大树.jpg", "远看宿舍楼间大树.jpg"]
+pinpoint = [-650, 0]
+[[panorama]]
+image = ["宿舍西侧.jpg"]
+pinpoint = [-690, -150]
+[[panorama]]
+image = ["1号宿舍楼内景.jpg", "1号宿舍楼楼梯.jpg"]
+pinpoint = [-650, 80]
+[[panorama]]
+image = ["宿舍间的劳动实践课.jpg"]
+pinpoint = [-630, -80]
+[[panorama]]
+image = ["宿舍与小学间通道.jpg"]
+pinpoint = [-580, -30]
+[[panorama]]
+image = ["小学低年部南侧.jpg"]
+pinpoint = [-550, -50]
+[[panorama]]
+image = ["校外赛百味.jpg"]
+pinpoint = [-730, 180]
+[[panorama]]
+image = ["宿舍旁滑滑梯.jpg", "小山丘与幼儿园跑道.jpg", "幼儿园足球场.jpg"]
+pinpoint = [-570, 80]
+[[panorama]]
+image = ["2号宿舍楼内景.jpg"]
+pinpoint = [-590, -85]
+[[panorama]]
+image = ["3号宿舍楼内景.jpg"]
+pinpoint = [-680, -80]
+[[panorama]]
+image = ["小学低年部足球场.jpg", "小学足球场东侧.jpg"]
+pinpoint = [-530, -130]
+[[panorama]]
+image = ["小学篮球场.jpg"]
+pinpoint = [-450, -150]
+[[panorama]]
+image = ["幼儿园上空.jpg", "幼儿园内景.jpg"]
+pinpoint = [-470, 65]
+[[panorama]]
+image = ["小学低年部中庭.jpg"]
+pinpoint = [-370, -45]
+[[panorama]]
+image = ["小学篮球场上空.jpg"]
+pinpoint = [-380, -150]
+[[panorama]]
+image = ["升旗台南侧.jpg"]
+pinpoint = [-280, -150]
+[[panorama]]
+image = ["校园东侧.jpg"]
+pinpoint = [-350, 150]
+[[panorama]]
+image = ["风雨长廊之小学低年部段.jpg"]
+pinpoint = [-330, 30]
+[[panorama]]
+image = ["幼儿园泳池边草地.jpg", "草地上的芒果树.jpg"]
+pinpoint = [-300, 70]
+[[panorama]]
+image = ["七八年级饭堂东侧小道.jpg", "指示牌.jpg"]
+pinpoint = [-280, 130]
+[[panorama]]
+image = ["九年级饭堂前洗手池.jpg"]
+pinpoint = [-180, 10]
+[[panorama]]
+image = ["升旗台背面.jpg", "正门前.jpg"]
+pinpoint = [-240, -190]
+[[panorama]]
+image = ["中学中庭.jpg", "仰视中学中庭.jpg"]
+pinpoint = [-40, -50]
+[[panorama]]
+image = ["圆草坪西南角.jpg"]
+pinpoint = [-280, -100]
+[[panorama]]
+image = ["游泳池西南面.jpg"]
+pinpoint = [-150, 10]
+[[panorama]]
+image = ["行政大楼下之厨房视角.jpg", "行政大楼中央楼梯.jpg"]
+pinpoint = [-245, 50]
+[[panorama]]
+image = ["升旗台前草坪.jpg"]
+pinpoint = [-210, -60]
+[[panorama]]
+image = ["九年级饭堂东侧小道.jpg"]
+pinpoint = [-200, 150]
+[[panorama]]
+image = ["教室东北.jpg", "教室东南.jpg", "教室西北.jpg", "教室西南.jpg"]
+pinpoint = [-75, -50]
+[[panorama]]
+image = ["校巴停车场.jpg"]
+pinpoint = [-40, -150]
+[[panorama]]
+image = ["泳池旁生物园.jpg"]
+pinpoint = [-130, 25]
+[[panorama]]
+image = ["游泳池.jpg"]
+pinpoint = [-60, 80]
+[[panorama]]
+image = ["泳池北侧.jpg", "泳池边.jpg"]
+pinpoint = [25, 100]
+[[panorama]]
+image = ["风雨长廊向南望.jpg"]
+pinpoint = [45, 20]
+[[panorama]]
+image = ["中学门北边.jpg", "国际楼前空地.jpg"]
+pinpoint = [106, -70]
+[[panorama]]
+image = ["小学高年部中庭.jpg"]
+pinpoint = [100, 100]
+[[panorama]]
+image = ["风雨长廊向北望.jpg"]
+pinpoint = [65, 20]
+[[panorama]]
+image = ["四号门旁.jpg"]
+pinpoint = [145, 150]
+[[panorama]]
+image = ["操场旁生物园.jpg", "生物园之追逐好去处.jpg", "生物园向北望.jpg"]
+pinpoint = [255, 130]
+[[panorama]]
+image = ["体艺楼前.jpg", "体艺楼西侧.jpg"]
+pinpoint = [270, -160]
+[[panorama]]
+image = ["国际楼东侧.jpg", "篮球场与大操场衔接处.jpg"]
+pinpoint = [290, 20]
+[[panorama]]
+image = ["下层篮球场.jpg"]
+pinpoint = [250, 80]
+[[panorama]]
+image = ["体艺楼北侧.jpg"]
+pinpoint = [330, -80]
+[[panorama]]
+image = ["雨后操场.jpg"]
+pinpoint = [340, -160]
+[[panorama]]
+image = ["体操基地.jpg"]
+pinpoint = [290, 60]
+[[panorama]]
+image = ["弯道旁.jpg"]
+pinpoint = [360, 20]
+[[panorama]]
+image = ["操场器材室.jpg"]
+pinpoint = [370, 80]
+[[panorama]]
+image = ["跳远沙池.jpg"]
+pinpoint = [500, 40]
+[[panorama]]
+image = ["操场上的升旗台.jpg"]
+pinpoint = [525, -80]
+[[panorama]]
+image = ["上层篮球场.jpg"]
+pinpoint = [650, 60]
+[[panorama]]
+image = ["湿漉漉的球场.jpg"]
+pinpoint = [700, 60]
+[[panorama]]
+image = ["体锻偷懒宝地.jpg"]
+pinpoint = [720, -80]
+[[panorama]]
+image = ["通向缤纷汇天桥.jpg"]
+pinpoint = [720, 100]

@@ -18,7 +18,7 @@ impl State {
         let config_path = format!("{}{}", proj_dir.config_dir().display(), "/configs.toml");
         let storage: String = proj_dir.data_dir().display().to_string();
         dbg!(&storage);
-        let idxurl: String = format!("https://amazingkenneth.github.io/graduate/index.toml");
+        let idxurl = String::from("https://yankang1.coding.net/p/graduate/shared-depot/graduate/git/raw/gh-pages/index.toml");
         let content = if let None = reusable {
             fs::create_dir_all(&storage).unwrap();
             fs::create_dir_all(proj_dir.config_dir().display().to_string()).unwrap();

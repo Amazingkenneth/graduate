@@ -405,7 +405,7 @@ image = [
 { path = "/image/camera/IMG_20210217_091216.jpg", date = 2021-02-17 09:12:16, with = [34] },
 ]
 [[event]]
-description = "大夫山春游"
+description = "大夫山春游一日游"
 image = [
 { path = "/image/grade7/大夫山-笑.jpg", date = 2021-02-17 09:58:28 },
 ]
@@ -417,12 +417,8 @@ image = [
 [[event]]
 description = "大夫山一日游"
 image = [
-{ path = "/image/camera/大夫山-树荫.jpg", date = 2021-02-17 12:22:14 },
 { path = "/image/camera/additional-1.jpg", date = 2021-02-17 12:22:14 },
-]
-[[event]]
-description = "大夫山一日游"
-image = [
+{ path = "/image/grade7/大夫山-树荫.jpg", date = 2021-02-17 12:22:15 },
 { path = "/image/camera/IMG_20210217_122352.jpg", date = 2021-02-17 12:23:52 },
 ]
 [[event]]
@@ -776,8 +772,8 @@ image = [
 { path = "/image/camera/IMG_20220428_084447.jpg", date = 2022-04-28 08:44:47, with = [36,37] },
 { path = "/image/camera/IMG_20220428_084733.jpg", date = 2022-04-28 08:47:33, with = [37] },
 { path = "/image/camera/IMG_20220428_084755.jpg", date = 2022-04-28 08:47:55, with = [37] },
-{ path = "/image/camera/IMG_20220428_111139.jpg", date = 2022-04-28 11:11:39 },
 { path = "/image/camera/IMG_20220428_111139.jpg", date = 2022-04-28 11:11:39, with = [37] },
+{ path = "/image/camera/IMG_20220428_111139.jpg", date = 2022-04-28 11:11:39 },
 ]
 [[event]]
 description = "刘庚被提问"
@@ -982,26 +978,26 @@ image = [
 [[event]]
 description = "最后一节数学晚课"
 image = [
-{ path = "/image/camera/workinghard-14.jpg", date = 2023-06-18 19:11:47, with = [22] },
-{ path = "/image/camera/workinghard-1.jpg", date = 2023-06-18 19:13:50, with = [16] },
-{ path = "/image/camera/workinghard-2.jpg", date = 2023-06-18 19:14:51, with = [31] },
-{ path = "/image/camera/workinghard-3.jpg", date = 2023-06-18 19:19:37, with = [19] },
-{ path = "/image/camera/workinghard-5.jpg", date = 2023-06-18 19:23:54, with = [30,29,6] },
-{ path = "/image/camera/workinghard-8.jpg", date = 2023-06-18 19:24:35, with = [18,32] },
-{ path = "/image/camera/workinghard-9.jpg", date = 2023-06-18 19:25:39, with = [7] },
-{ path = "/image/camera/workinghard-16.jpg", date = 2023-06-18 19:25:58, with = [11] },
-{ path = "/image/camera/workinghard-12.jpg", date = 2023-06-18 19:26:12, with = [28,21,13,22,20] },
-{ path = "/image/camera/workinghard-13.jpg", date = 2023-06-18 19:27:19, with = [33,10,32,6,35] },
-{ path = "/image/camera/workinghard-19.jpg", date = 2023-06-18 19:28:02, with = [7,9,21,28,13,22] },
-{ path = "/image/camera/workinghard-6.jpg", date = 2023-06-18 19:28:07, with = [9,21] },
+{ path = "/image/camera/workinghard-14.jpg", date = 2023-06-18 19:11:47, with = [7] },
+{ path = "/image/camera/workinghard-1.jpg", date = 2023-06-18 19:13:50, with = [9,21] },
+{ path = "/image/camera/workinghard-2.jpg", date = 2023-06-18 19:14:51, with = [21] },
+{ path = "/image/camera/workinghard-3.jpg", date = 2023-06-18 19:19:37, with = [15] },
+{ path = "/image/camera/workinghard-5.jpg", date = 2023-06-18 19:23:54, with = [31] },
+{ path = "/image/camera/workinghard-8.jpg", date = 2023-06-18 19:24:35, with = [19] },
+{ path = "/image/camera/workinghard-9.jpg", date = 2023-06-18 19:25:39, with = [30,29,6] },
+{ path = "/image/camera/workinghard-16.jpg", date = 2023-06-18 19:25:58, with = [16] },
+{ path = "/image/camera/workinghard-12.jpg", date = 2023-06-18 19:26:12, with = [22] },
+{ path = "/image/camera/workinghard-13.jpg", date = 2023-06-18 19:27:19, with = [6,34,10,29] },
+{ path = "/image/camera/workinghard-19.jpg", date = 2023-06-18 19:28:02, with = [11] },
+{ path = "/image/camera/workinghard-6.jpg", date = 2023-06-18 19:28:07, with = [18] },
 { path = "/image/camera/workinghard-22.jpg", date = 2023-06-18 19:29:40, with = [1] },
-{ path = "/image/camera/workinghard-18.jpg", date = 2023-06-18 19:29:57, with = [32,18] },
-{ path = "/image/camera/workinghard-11.jpg", date = 2023-06-18 19:31:08, with = [18] },
-{ path = "/image/camera/workinghard-7.jpg", date = 2023-06-18 19:32:20, with = [21] },
-{ path = "/image/camera/workinghard-10.jpg", date = 2023-06-18 19:34:20, with = [21,13] },
-{ path = "/image/camera/workinghard-15.jpg", date = 2023-06-18 19:34:25, with = [6,34,10,29] },
+{ path = "/image/camera/workinghard-18.jpg", date = 2023-06-18 19:29:57, with = [33,10,32,6,35] },
+{ path = "/image/camera/workinghard-11.jpg", date = 2023-06-18 19:31:08, with = [13] },
+{ path = "/image/camera/workinghard-7.jpg", date = 2023-06-18 19:32:20, with = [32,18] },
+{ path = "/image/camera/workinghard-10.jpg", date = 2023-06-18 19:34:20, with = [28,21,13,22,20] },
+{ path = "/image/camera/workinghard-15.jpg", date = 2023-06-18 19:34:25, with = [32,18] },
 { path = "/image/camera/workinghard-21.jpg", date = 2023-06-18 19:35:18, with = [15] },
-{ path = "/image/camera/workinghard-17.jpg", date = 2023-06-18 19:36:20, with = [18] },
+{ path = "/image/camera/workinghard-17.jpg", date = 2023-06-18 19:36:20, with = [7,9,21,28,13,22] },
 { path = "/image/camera/workinghard-20.jpg", date = 2023-06-18 19:38:02, with = [5,14] },
 ]
 [[event]]

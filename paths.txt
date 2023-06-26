@@ -23,7 +23,7 @@
 /image/camera/IMG_20220606_093847.jpg
 /image/camera/IMG_20220606_094014.jpg
 /image/camera/IMG_20220606_094022.jpg
-/image/camera/大夫山-树荫.jpg
+/image/grade7/大夫山-树荫.jpg
 /image/camera/IMG_20210217_122352.jpg
 /image/camera/IMG_20210217_133905.jpg
 /image/camera/IMG_20210217_154323.jpg
@@ -358,7 +358,6 @@
 /image/grade7/春游-树下.jpg
 /image/grade7/春游-狮子.jpg
 /image/grade7/大夫山-不笑.jpg
-/image/grade7/大夫山-树荫.jpg
 /image/grade7/大夫山-笑.jpg
 /image/grade7/开学合照.jpg
 /image/grade7/足球联赛-合照.jpg

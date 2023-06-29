@@ -624,9 +624,10 @@ impl Application for Memories {
                                     displayer.on_event -= 1;
                                 }
                                 Message::NextEvent => {
-                                    displayer.on_event += 1;
-                                    if displayer.on_event == events.len() {
+                                    if displayer.on_event + 1 == events.len() {
                                         next_stage = true;
+                                    } else {
+                                        displayer.on_event += 1;
                                     }
                                 }
                                 Message::NextStage => {
@@ -955,8 +956,9 @@ impl Application for Memories {
                             }
                             let mut content = column![row![
                                 content,
-                                scrollable(emojis)
-                                    .horizontal_scroll(iced::widget::scrollable::Properties::new())
+                                scrollable(emojis).direction(scrollable::Direction::Vertical(
+                                    scrollable::Properties::new()
+                                ))
                             ]];
                             content = content.push(show_profiles(profile.plots, "ta 的小日常"));
                             if let Some(summary) = profile.anecdote {
@@ -1252,7 +1254,7 @@ impl Application for Memories {
                             &vision.images[graduation::ON_LOCATION.load(Ordering::Relaxed)];
                         let displayer =
                             imageviewer::Viewer::new(images.image[vision.on_image].clone())
-                                .id(imageviewer::entryevents_viewer_id(
+                                .id(imageviewer::graduation_viewer_id(
                                     graduation::ON_LOCATION.load(Ordering::Relaxed),
                                     vision.on_image,
                                 ))

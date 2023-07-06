@@ -104,16 +104,15 @@ jobs:
     - name: Archive binary (Uncompressed)
       uses: actions/upload-artifact@v3
       with:
-        name: graduate-x64-MacOS-uncompressed
+        name: graduate-x64-macOS-uncompressed
         path: target/release/graduate
     - name: Compress binaries
       shell: bash
       run: |
-        brew update
         brew install upx
         upx target/release/graduate --best --lzma
     - name: Archive binary (Compressed)
       uses: actions/upload-artifact@v3
       with:
-        name: graduate-x64-MacOS
+        name: graduate-x64-macOS
         path: target/release/graduate

@@ -956,7 +956,7 @@ impl Application for Memories {
                             }
                             let mut content = column![row![
                                 content,
-                                scrollable(emojis).direction(scrollable::Direction::Vertical(
+                                scrollable(emojis).direction(scrollable::Direction::Horizontal(
                                     scrollable::Properties::new()
                                 ))
                             ]];

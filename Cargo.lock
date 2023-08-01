@@ -71,6 +71,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "250f629c0161ad8107cf89319e990051fae62832fd343083bea452d93e2205fd"
 
 [[package]]
+name = "allocator-api2"
+version = "0.2.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0942ffc6dcaadf03badf6e6a2d0228460359d5e34b57ccdc720b7382dfbd5ec5"
+
+[[package]]
 name = "alsa"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -531,11 +537,12 @@ dependencies = [
 
 [[package]]
 name = "cosmic-text"
-version = "0.8.0"
-source = "git+https://github.com/hecrj/cosmic-text.git?rev=c3cd24dc972bb8fd55d016c81ac9fa637e0a4ada#c3cd24dc972bb8fd55d016c81ac9fa637e0a4ada"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b0b68966c2543609f8d92f9d33ac3b719b2a67529b0c6c0b3e025637b477eef9"
 dependencies = [
  "aliasable",
- "fontdb 0.14.1",
+ "fontdb",
  "libm",
  "log",
  "rangemap",
@@ -866,23 +873,11 @@ dependencies = [
 
 [[package]]
 name = "fontdb"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "237ff9f0813bbfc9de836016472e0c9ae7802f174a51594607e5f4ff334cb2f5"
-dependencies = [
- "fontconfig-parser",
- "log",
- "memmap2 0.5.10",
- "slotmap",
- "ttf-parser 0.18.1",
-]
-
-[[package]]
-name = "fontdb"
 version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af8d8cbea8f21307d7e84bca254772981296f058a1d36b461bf4d83a7499fc9e"
 dependencies = [
+ "fontconfig-parser",
  "log",
  "memmap2 0.6.2",
  "slotmap",
@@ -1069,8 +1064,9 @@ dependencies = [
 
 [[package]]
 name = "glyphon"
-version = "0.2.0"
-source = "git+https://github.com/hecrj/glyphon.git?rev=8324f20158a62f8520bad4ed09f6aa5552f8f2a6#8324f20158a62f8520bad4ed09f6aa5552f8f2a6"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5e87caa7459145f5e5f167bf34db4532901404c679e62339fb712a0e3ccf722a"
 dependencies = [
  "cosmic-text",
  "etagere",
@@ -1198,18 +1194,13 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
-version = "0.13.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43a3c133739dddd0d2990f9a4bdf8eb4b21ef50e4851ca85ab661199821d510e"
-dependencies = [
- "ahash 0.8.3",
-]
-
-[[package]]
-name = "hashbrown"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2c6201b9ff9fd90a5a3bac2e56a830d0caa509576f0e503818ee82c181b3437a"
+dependencies = [
+ "ahash 0.8.3",
+ "allocator-api2",
+]
 
 [[package]]
 name = "hassle-rs"
@@ -1311,8 +1302,8 @@ dependencies = [
 
 [[package]]
 name = "iced"
-version = "0.9.0"
-source = "git+https://github.com/iced-rs/iced.git#a057f8811bfc47afc4271f05b92263a19122d888"
+version = "0.10.0"
+source = "git+https://github.com/iced-rs/iced.git#50ce65b3b7ad10a8537b751b3890d9dcfaecf846"
 dependencies = [
  "iced_core",
  "iced_futures",
@@ -1325,8 +1316,8 @@ dependencies = [
 
 [[package]]
 name = "iced_core"
-version = "0.9.0"
-source = "git+https://github.com/iced-rs/iced.git#a057f8811bfc47afc4271f05b92263a19122d888"
+version = "0.10.0"
+source = "git+https://github.com/iced-rs/iced.git#50ce65b3b7ad10a8537b751b3890d9dcfaecf846"
 dependencies = [
  "bitflags 1.3.2",
  "instant",
@@ -1338,8 +1329,8 @@ dependencies = [
 
 [[package]]
 name = "iced_futures"
-version = "0.6.0"
-source = "git+https://github.com/iced-rs/iced.git#a057f8811bfc47afc4271f05b92263a19122d888"
+version = "0.7.0"
+source = "git+https://github.com/iced-rs/iced.git#50ce65b3b7ad10a8537b751b3890d9dcfaecf846"
 dependencies = [
  "futures",
  "iced_core",
@@ -1351,8 +1342,8 @@ dependencies = [
 
 [[package]]
 name = "iced_graphics"
-version = "0.8.0"
-source = "git+https://github.com/iced-rs/iced.git#a057f8811bfc47afc4271f05b92263a19122d888"
+version = "0.9.0"
+source = "git+https://github.com/iced-rs/iced.git#50ce65b3b7ad10a8537b751b3890d9dcfaecf846"
 dependencies = [
  "bitflags 1.3.2",
  "bytemuck",
@@ -1369,7 +1360,7 @@ dependencies = [
 [[package]]
 name = "iced_renderer"
 version = "0.1.0"
-source = "git+https://github.com/iced-rs/iced.git#a057f8811bfc47afc4271f05b92263a19122d888"
+source = "git+https://github.com/iced-rs/iced.git#50ce65b3b7ad10a8537b751b3890d9dcfaecf846"
 dependencies = [
  "iced_graphics",
  "iced_tiny_skia",
@@ -1382,7 +1373,7 @@ dependencies = [
 [[package]]
 name = "iced_runtime"
 version = "0.1.0"
-source = "git+https://github.com/iced-rs/iced.git#a057f8811bfc47afc4271f05b92263a19122d888"
+source = "git+https://github.com/iced-rs/iced.git#50ce65b3b7ad10a8537b751b3890d9dcfaecf846"
 dependencies = [
  "iced_core",
  "iced_futures",
@@ -1391,8 +1382,8 @@ dependencies = [
 
 [[package]]
 name = "iced_style"
-version = "0.8.0"
-source = "git+https://github.com/iced-rs/iced.git#a057f8811bfc47afc4271f05b92263a19122d888"
+version = "0.9.0"
+source = "git+https://github.com/iced-rs/iced.git#50ce65b3b7ad10a8537b751b3890d9dcfaecf846"
 dependencies = [
  "iced_core",
  "once_cell",
@@ -1402,7 +1393,7 @@ dependencies = [
 [[package]]
 name = "iced_tiny_skia"
 version = "0.1.0"
-source = "git+https://github.com/iced-rs/iced.git#a057f8811bfc47afc4271f05b92263a19122d888"
+source = "git+https://github.com/iced-rs/iced.git#50ce65b3b7ad10a8537b751b3890d9dcfaecf846"
 dependencies = [
  "bytemuck",
  "cosmic-text",
@@ -1413,14 +1404,14 @@ dependencies = [
  "resvg",
  "rustc-hash",
  "softbuffer",
- "tiny-skia 0.9.1",
+ "tiny-skia 0.10.0",
  "twox-hash",
 ]
 
 [[package]]
 name = "iced_wgpu"
-version = "0.10.0"
-source = "git+https://github.com/iced-rs/iced.git#a057f8811bfc47afc4271f05b92263a19122d888"
+version = "0.11.0"
+source = "git+https://github.com/iced-rs/iced.git#50ce65b3b7ad10a8537b751b3890d9dcfaecf846"
 dependencies = [
  "bitflags 1.3.2",
  "bytemuck",
@@ -1440,8 +1431,8 @@ dependencies = [
 
 [[package]]
 name = "iced_widget"
-version = "0.1.0"
-source = "git+https://github.com/iced-rs/iced.git#a057f8811bfc47afc4271f05b92263a19122d888"
+version = "0.1.2"
+source = "git+https://github.com/iced-rs/iced.git#50ce65b3b7ad10a8537b751b3890d9dcfaecf846"
 dependencies = [
  "iced_renderer",
  "iced_runtime",
@@ -1453,8 +1444,8 @@ dependencies = [
 
 [[package]]
 name = "iced_winit"
-version = "0.9.1"
-source = "git+https://github.com/iced-rs/iced.git#a057f8811bfc47afc4271f05b92263a19122d888"
+version = "0.10.0"
+source = "git+https://github.com/iced-rs/iced.git#50ce65b3b7ad10a8537b751b3890d9dcfaecf846"
 dependencies = [
  "iced_graphics",
  "iced_runtime",
@@ -1499,9 +1490,9 @@ dependencies = [
 
 [[package]]
 name = "imagesize"
-version = "0.11.0"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b72ad49b554c1728b1e83254a1b1565aea4161e28dabbfa171fc15fe62299caf"
+checksum = "029d73f573d8e8d63e6d5020011d3255b28c3ba85d6cf870a07184ed23de9284"
 
 [[package]]
 name = "indexmap"
@@ -1722,11 +1713,11 @@ checksum = "b06a4cde4c0f271a446782e3eff8de789548ce57dbc8eca9292c27f4a42004b4"
 
 [[package]]
 name = "lru"
-version = "0.9.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "71e7d46de488603ffdd5f30afbc64fbba2378214a2c3a2fb83abf3d33126df17"
+checksum = "eedb2bdbad7e0634f83989bf596f497b070130daaa398ab22d84c39e266deec5"
 dependencies = [
- "hashbrown 0.13.2",
+ "hashbrown 0.14.0",
 ]
 
 [[package]]
@@ -2673,9 +2664,9 @@ dependencies = [
 
 [[package]]
 name = "resvg"
-version = "0.32.0"
+version = "0.35.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "142e83d8ae8c8c639f304698a5567b229ba65caba867bf4387bbc0ae158827cf"
+checksum = "b6554f47c38eca56827eea7f285c2a3018b4e12e0e195cc105833c008be338f1"
 dependencies = [
  "gif",
  "jpeg-decoder",
@@ -2683,9 +2674,8 @@ dependencies = [
  "pico-args",
  "png",
  "rgb",
- "svgfilters",
  "svgtypes",
- "tiny-skia 0.9.1",
+ "tiny-skia 0.10.0",
  "usvg",
 ]
 
@@ -2706,19 +2696,6 @@ checksum = "bdf1d4dea18dff2e9eb6dca123724f8b60ef44ad74a9ad283cdfe025df7e73fa"
 dependencies = [
  "cpal",
  "symphonia",
-]
-
-[[package]]
-name = "rosvgtree"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad747e7384940e7bf33b15ba433b7bad9f44c0c6d5287a67c2cb22cd1743d497"
-dependencies = [
- "log",
- "roxmltree",
- "simplecss",
- "siphasher",
- "svgtypes",
 ]
 
 [[package]]
@@ -3102,16 +3079,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8fb1df15f412ee2e9dfc1c504260fa695c1c3f10fe9f4a6ee2d2184d7d6450e2"
 
 [[package]]
-name = "svgfilters"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "639abcebc15fdc2df179f37d6f5463d660c1c79cd552c12343a4600827a04bce"
-dependencies = [
- "float-cmp",
- "rgb",
-]
-
-[[package]]
 name = "svgtypes"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3404,9 +3371,9 @@ dependencies = [
 
 [[package]]
 name = "tiny-skia"
-version = "0.9.1"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ce2986c82f77818c7b9144c70818fdde98db15308e329ae2f7204d767808fd3c"
+checksum = "7db11798945fa5c3e5490c794ccca7c6de86d3afdd54b4eb324109939c6f37bc"
 dependencies = [
  "arrayref",
  "arrayvec",
@@ -3414,7 +3381,7 @@ dependencies = [
  "cfg-if",
  "log",
  "png",
- "tiny-skia-path 0.9.0",
+ "tiny-skia-path 0.10.0",
 ]
 
 [[package]]
@@ -3430,9 +3397,9 @@ dependencies = [
 
 [[package]]
 name = "tiny-skia-path"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7acb0ccda1ac91084353a56d0b69b0e29c311fd809d2088b1ed2f9ae1841c47"
+checksum = "2f60aa35c89ac2687ace1a2556eaaea68e8c0d47408a2e3e7f5c98a489e7281c"
 dependencies = [
  "arrayref",
  "bytemuck",
@@ -3690,9 +3657,9 @@ dependencies = [
 
 [[package]]
 name = "usvg"
-version = "0.32.0"
+version = "0.35.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4b44e14b7678bcc5947b397991432d0c4e02a103958a0ed5e1b9b961ddd08b21"
+checksum = "14d09ddfb0d93bf84824c09336d32e42f80961a9d1680832eb24fdf249ce11e6"
 dependencies = [
  "base64",
  "log",
@@ -3705,28 +3672,29 @@ dependencies = [
 
 [[package]]
 name = "usvg-parser"
-version = "0.32.0"
+version = "0.35.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "90c8251d965c2882a636ffcc054340b1f13a6bce68779cb5b2084d8ffc2535be"
+checksum = "d19bf93d230813599927d88557014e0908ecc3531666d47c634c6838bc8db408"
 dependencies = [
  "data-url",
  "flate2",
  "imagesize",
  "kurbo",
  "log",
- "rosvgtree",
- "strict-num",
+ "roxmltree",
+ "simplecss",
+ "siphasher",
  "svgtypes",
  "usvg-tree",
 ]
 
 [[package]]
 name = "usvg-text-layout"
-version = "0.32.0"
+version = "0.35.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c4fed019d1af07bfe0f3bac13d120d7b51bc65b38cb24809cf4ed0b8b631138"
+checksum = "035044604e89652c0a2959b8b356946997a52649ba6cade45928c2842376feb4"
 dependencies = [
- "fontdb 0.13.1",
+ "fontdb",
  "kurbo",
  "log",
  "rustybuzz 0.7.0",
@@ -3738,14 +3706,14 @@ dependencies = [
 
 [[package]]
 name = "usvg-tree"
-version = "0.32.0"
+version = "0.35.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7371265c467cdae0ccc3655e2e3f310c695fb9f717c0d25187bf3b333f7b5159"
+checksum = "7939a7e4ed21cadb5d311d6339730681c3e24c3e81d60065be80e485d3fc8b92"
 dependencies = [
- "kurbo",
  "rctree",
  "strict-num",
  "svgtypes",
+ "tiny-skia-path 0.10.0",
 ]
 
 [[package]]

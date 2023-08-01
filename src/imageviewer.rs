@@ -334,7 +334,12 @@ where
         let state = tree.state.downcast_mut::<State>();
         let bounds = layout.bounds();
 
-        operation.scrollable(state, self.id.as_ref().map(|id| &id.0), bounds, Vector::ZERO);
+        operation.scrollable(
+            state,
+            self.id.as_ref().map(|id| &id.0),
+            bounds,
+            Vector::ZERO,
+        );
     }
 }
 

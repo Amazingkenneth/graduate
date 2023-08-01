@@ -114,6 +114,8 @@ where
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<Message>,
     ) -> event::Status {
+        let bounds = layout.bounds();
+
         self.element.as_widget_mut().on_event(
             self.state,
             event,
@@ -122,6 +124,7 @@ where
             renderer,
             clipboard,
             shell,
+            &bounds,
         )
     }
 
@@ -320,6 +323,7 @@ where
         renderer: &Renderer,
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
+        viewport: &Rectangle,
     ) -> event::Status {
         self.underlay.as_widget_mut().on_event(
             &mut state.children[0],
@@ -329,6 +333,7 @@ where
             renderer,
             clipboard,
             shell,
+            viewport,
         )
     }
 

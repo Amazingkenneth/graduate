@@ -110,6 +110,7 @@ where
         renderer: &Renderer,
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
+        viewport: &Rectangle,
     ) -> event::Status {
         self.underlay.as_widget_mut().on_event(
             &mut state.children[0],
@@ -119,6 +120,7 @@ where
             renderer,
             clipboard,
             shell,
+            viewport,
         )
     }
 

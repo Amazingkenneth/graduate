@@ -153,6 +153,7 @@ where
         renderer: &Renderer,
         _clipboard: &mut dyn Clipboard,
         _shell: &mut Shell<'_, Message>,
+        _viewport: &Rectangle,
     ) -> event::Status {
         let bounds = layout.bounds();
         let is_mouse_over = cursor_position.is_over(bounds);
@@ -323,17 +324,17 @@ where
             });
         });
     }
-
     fn operate(
         &self,
         tree: &mut Tree,
-        _layout: Layout<'_>,
+        layout: Layout<'_>,
         _renderer: &Renderer,
         operation: &mut dyn iced_core::widget::Operation<Message>,
     ) {
         let state = tree.state.downcast_mut::<State>();
+        let bounds = layout.bounds();
 
-        operation.scrollable(state, self.id.as_ref().map(|id| &id.0));
+        operation.scrollable(state, self.id.as_ref().map(|id| &id.0), bounds, Vector::ZERO);
     }
 }
 

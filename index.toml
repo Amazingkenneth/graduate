@@ -1,4 +1,5 @@
-url_prefix = "https://yankang1.coding.net/p/graduate/shared-depot/graduate/git/raw/gh-pages"
+# url_prefix = "https://yankang1.coding.net/p/graduate/shared-depot/graduate/git/raw/gh-pages"
+url_prefix = "https://graduate-cdn.netlify.app"
 
 emoji = [
     "1/敖敖不知所措.jpg",
@@ -11,8 +12,8 @@ emoji = [
     "11/百日誓师之主持人.jpg",
     "11/诶嘿～.jpg",
     "11/飞行时刻.jpg",
-    #"11/有道理.jpg",
-    #"11/真香.jpg",
+    "11/有道理.jpg",
+    "11/真香.jpg",
     "12/不屑.jpg",
     "12/乖崽-班主任认证.jpg",
     "14/咦呀.jpg",

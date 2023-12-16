@@ -95,10 +95,11 @@ where
 
     fn layout(
         &self,
+        tree: &mut Tree,
         renderer: &Renderer,
         limits: &iced_core::layout::Limits,
     ) -> iced_core::layout::Node {
-        self.underlay.as_widget().layout(renderer, limits)
+        self.underlay.as_widget().layout(tree, renderer, limits)
     }
 
     fn on_event(

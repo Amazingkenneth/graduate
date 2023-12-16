@@ -24,6 +24,7 @@ pub struct Viewer<Handle> {
     max_scale: f32,
     scale_step: f32,
     handle: Handle,
+    filter_method: image::FilterMethod,
 }
 
 impl<Handle> Viewer<Handle> {
@@ -37,6 +38,7 @@ impl<Handle> Viewer<Handle> {
             min_scale: 0.25,
             max_scale: 10.0,
             scale_step: 0.10,
+            filter_method: image::FilterMethod::default(),
             handle,
         }
     }
@@ -112,7 +114,12 @@ where
         self.height
     }
 
-    fn layout(&self, renderer: &Renderer, limits: &layout::Limits) -> layout::Node {
+    fn layout(
+        &self,
+        _tree: &mut Tree,
+        renderer: &Renderer,
+        limits: &layout::Limits,
+    ) -> layout::Node {
         let Size { width, height } = renderer.dimensions(&self.handle);
 
         let mut size = limits
@@ -293,7 +300,7 @@ where
         _theme: &Renderer::Theme,
         _style: &renderer::Style,
         layout: Layout<'_>,
-        _cursor_position: iced::mouse::Cursor,
+        _cursor: mouse::Cursor,
         _viewport: &Rectangle,
     ) {
         let state = tree.state.downcast_ref::<State>();
@@ -315,12 +322,13 @@ where
                 image::Renderer::draw(
                     renderer,
                     self.handle.clone(),
+                    self.filter_method,
                     Rectangle {
                         x: bounds.x,
                         y: bounds.y,
                         ..Rectangle::with_size(image_size)
                     },
-                )
+                );
             });
         });
     }

@@ -212,6 +212,7 @@ impl State {
                 config_path,
                 shown: false,
                 full_screened: false,
+                id: iced::window::Id::unique(),
             };
             let stage = match config_table.get("stage").unwrap().as_str().unwrap() {
                 "ChoosingCharacter" => {
@@ -288,6 +289,7 @@ impl State {
                     config_path,
                     shown: false,
                     full_screened: false,
+                    id: iced::window::Id::unique(),
                 },
             })
         }

@@ -51,7 +51,7 @@ fn main() {
     Memories::run(Settings {
         window: window::Settings {
             platform_specific: specific,
-            size: (1500, 900),
+            size: iced::Size::new(1500.0, 900.0),
             icon: Some(
                 iced::window::icon::from_file_data(
                     include_bytes!("./runtime/icon.png"),
@@ -261,11 +261,11 @@ impl Application for Memories {
                             Mode::Fullscreen
                         };
                         config.full_screened ^= true;
-                        return iced::window::change_mode(mode);
+                        return iced::window::change_mode(config.id, mode);
                     }
                     Message::EscapeFullScreen => {
                         config.full_screened = false;
-                        return iced::window::change_mode(Mode::Windowed);
+                        return iced::window::change_mode(config.id, Mode::Windowed);
                     }
                     Message::Loaded(Ok(mut state)) => {
                         configs::save_configs(&mut state);
@@ -344,11 +344,11 @@ impl Application for Memories {
                             Mode::Fullscreen
                         };
                         state.configs.full_screened ^= true;
-                        return iced::window::change_mode(mode);
+                        return iced::window::change_mode(state.configs.id, mode);
                     }
                     Message::EscapeFullScreen => {
                         state.configs.full_screened = false;
-                        return iced::window::change_mode(Mode::Windowed);
+                        return iced::window::change_mode(state.configs.id, Mode::Windowed);
                     }
                     Message::ScaleDown => {
                         store_scale_factor(load_scale_factor() / 1.05);
@@ -1362,20 +1362,14 @@ impl Application for Memories {
     fn subscription(&self) -> iced::Subscription<Message> {
         match self {
             Memories::Initialization => iced::Subscription::none(),
-            Memories::Loading(_) => iced::subscription::events_with(subscriptions::on_loading),
+            Memories::Loading(_) => iced::event::listen_with(subscriptions::on_loading),
             Memories::Loaded(state) => match state.stage {
-                Stage::EntryEvents(_) => {
-                    iced::subscription::events_with(subscriptions::on_entry_state)
-                }
+                Stage::EntryEvents(_) => iced::event::listen_with(subscriptions::on_entry_state),
                 Stage::ChoosingCharacter(_) => {
-                    iced::subscription::events_with(subscriptions::on_choosing_character)
+                    iced::event::listen_with(subscriptions::on_choosing_character)
                 }
-                Stage::ShowingPlots(_) => {
-                    iced::subscription::events_with(subscriptions::on_showing_plots)
-                }
-                Stage::Graduated(_) => {
-                    iced::subscription::events_with(subscriptions::on_graduation)
-                }
+                Stage::ShowingPlots(_) => iced::event::listen_with(subscriptions::on_showing_plots),
+                Stage::Graduated(_) => iced::event::listen_with(subscriptions::on_graduation),
             },
         }
     }

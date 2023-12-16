@@ -53,13 +53,17 @@ where
     Renderer: iced_core::Renderer + 'a,
 {
     fn layout(
-        &self,
+        &mut self,
         renderer: &Renderer,
         bounds: Size,
         position: Point,
+        _translation: iced_core::Vector,
     ) -> iced_core::layout::Node {
         let limits = Limits::new(Size::ZERO, bounds);
-        let mut element = self.element.as_widget().layout(renderer, &limits);
+        let mut element = self
+            .element
+            .as_widget()
+            .layout(self.state, renderer, &limits);
         let fixed_offset_x = self.offset.x / 1500.0 * bounds.width;
         let fixed_offset_y = self.offset.y / 900.0 * bounds.height;
 
@@ -308,10 +312,11 @@ where
 
     fn layout(
         &self,
+        tree: &mut Tree,
         renderer: &Renderer,
         limits: &iced_core::layout::Limits,
     ) -> iced_core::layout::Node {
-        self.underlay.as_widget().layout(renderer, limits)
+        self.underlay.as_widget().layout(tree, renderer, limits)
     }
 
     fn on_event(

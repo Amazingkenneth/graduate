@@ -47,7 +47,7 @@ jobs:
     - name: Compress binaries
       shell: bash
       run: |
-        wget https://github.com/upx/upx/releases/download/v4.1.0/upx-4.1.0-amd64_linux.tar.xz -O upx.tar.xz
+        wget https://github.com/upx/upx/releases/download/v4.2.1/upx-4.2.1-amd64_linux.tar.xz -O upx.tar.xz
         tar xvJf upx.tar.xz
         upx target/release/graduate --best --lzma
     - name: Archive binary (Compressed)
@@ -83,7 +83,7 @@ jobs:
     - name: Compress binaries
       shell: pwsh
       run: |
-        Invoke-WebRequest -Uri "https://github.com/upx/upx/releases/download/v4.1.0/upx-4.1.0-win64.zip" -OutFile "upx.zip"
+        Invoke-WebRequest -Uri "https://github.com/upx/upx/releases/download/v4.2.1/upx-4.2.1-win64.zip" -OutFile "upx.zip"
         Expand-Archive -Path upx.zip -DestinationPath .\
         .\upx-4.1.0-win64\upx.exe target\release\graduate.exe --best --lzma
     - name: Archive binary

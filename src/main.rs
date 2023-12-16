@@ -39,7 +39,7 @@ pub fn load_scale_factor() -> f64 {
 
 fn main() {
     #[cfg(target_os = "macos")]
-    let specific = iced::window::PlatformSpecific {
+    let specific = iced::window::settings::PlatformSpecific {
         title_hidden: true,
         titlebar_transparent: true,
         fullsize_content_view: true,

@@ -85,7 +85,7 @@ jobs:
       run: |
         Invoke-WebRequest -Uri "https://github.com/upx/upx/releases/download/v4.2.1/upx-4.2.1-win64.zip" -OutFile "upx.zip"
         Expand-Archive -Path upx.zip -DestinationPath .\
-        .\upx-4.1.0-win64\upx.exe target\release\graduate.exe --best --lzma
+        .\upx-4.2.1-win64\upx.exe target\release\graduate.exe --best --lzma
     - name: Archive binary
       uses: actions/upload-artifact@v3
       with:
